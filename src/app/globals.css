@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #070a13;
+    --foreground: #f4f6fb;
+    --font-cairo: 'Cairo', system-ui, -apple-system, sans-serif;
+    --font-jakarta: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+}
+
+body {
+  background-color: #070a13;
+  color: #f4f6fb;
+  font-family: var(--font-jakarta);
+  background-image: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(245, 158, 11, 0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 50% 120%, rgba(16, 185, 129, 0.05), transparent);
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+/* Authentic Typography for Arabic Language following taste-skill */
+[dir="rtl"], .font-arabic {
+  font-family: var(--font-cairo) !important;
+  letter-spacing: 0 !important;
+  line-height: 1.65;
+}
+
+.font-mono {
+  font-family: var(--font-mono) !important;
+}
+
+/* Glassmorphism & Micro-Interactions */
+.glass-panel {
+  background: rgba(13, 18, 30, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-elevated {
+  background: rgba(18, 25, 41, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 25px rgba(245, 158, 11, 0.05);
+}
+
+/* Coaster Pager Hardware simulation animations */
+@keyframes pager-buzz {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  20% { transform: scale(1.02) rotate(-1deg); }
+  40% { transform: scale(0.99) rotate(1deg); }
+  60% { transform: scale(1.03) rotate(-1.5deg); }
+  80% { transform: scale(0.98) rotate(1deg); }
+}
+
+.animate-buzz {
+  animation: pager-buzz 0.4s infinite ease-in-out;
+}
+
+/* Thermal Receipt 80mm Print Rules */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-content, .printable-content * {
+    visibility: visible;
+  }
+  .printable-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm !important;
+    max-width: 80mm !important;
+    margin: 0 !important;
+    padding: 3mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
