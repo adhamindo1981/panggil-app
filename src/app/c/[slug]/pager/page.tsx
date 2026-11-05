@@ -4,7 +4,7 @@ import { dataService } from '@/lib/data-layer';
 import { OrderLookupView } from '@/components/menu/OrderLookupView';
 import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import { getCustomBrandingStyle } from '@/lib/feature-gates';
-import { BellRing, ArrowLeft } from 'lucide-react';
+import { BellRing, ArrowLeft, Home } from 'lucide-react';
 import Link from 'next/link';
 
 interface PageProps {
@@ -31,7 +31,14 @@ export default async function StaticPagerPage({ params }: PageProps) {
     >
       {/* Top Header */}
       <header className="sticky top-0 z-40 bg-[#0d121e]/90 border-b border-zinc-800/80 backdrop-blur-xl px-4 sm:px-6 py-3 flex items-center justify-between shadow-xl">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            href="/"
+            className="p-2 text-zinc-400 hover:text-amber-400 hover:bg-zinc-800 rounded-xl transition-colors"
+            title="الصفحة الرئيسية"
+          >
+            <Home className="w-4 h-4" />
+          </Link>
           <Link
             href={`/c/${cafe.slug}/cashier`}
             className="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-xl transition-colors"

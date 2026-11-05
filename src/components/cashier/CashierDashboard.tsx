@@ -9,6 +9,7 @@ import { audioEngine } from '@/lib/audio-engine';
 import { InvoiceModal } from '../invoice/InvoiceModal';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { CashierPinLock } from './CashierPinLock';
+import { MenuManagerModal } from '../menu/MenuManagerModal';
 import { getPlanFeatures, TIERS_META, getAppBaseUrl } from '@/lib/feature-gates';
 import {
   BellRing,
@@ -24,6 +25,7 @@ import {
   Clock,
   Volume2,
   Utensils,
+  UtensilsCrossed,
   Layers,
   Radio,
   Check,
@@ -36,6 +38,8 @@ import {
   FileText,
   Eye,
   ChefHat,
+  Home,
+  ArrowLeft,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -54,6 +58,7 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
   
   // Modals state
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState<boolean>(false);
+  const [isMenuManagerOpen, setIsMenuManagerOpen] = useState<boolean>(false);
   const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<Order | null>(null);
   const [selectedOrderForQr, setSelectedOrderForQr] = useState<Order | null>(null);
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(null);
@@ -90,8 +95,12 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
     if (typeof window !== 'undefined') {
       const unlocked = sessionStorage.getItem(`cashier_unlocked_${cafe.id}`) === 'true';
       setIsUnlocked(unlocked);
+      // Fetch latest cafe settings (PIN, Tax, Mode) from server / data layer
+      dataService.getCafeBySlug(initialCafe.slug).then((fresh) => {
+        if (fresh) setCafe(fresh);
+      });
     }
-  }, [cafe.id]);
+  }, [cafe.id, initialCafe.slug]);
 
   const handleUnlock = () => {
     setIsUnlocked(true);
@@ -320,6 +329,16 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
                 </span>
               </>
             )}
+          </button>
+
+          {/* Menu Manager Button */}
+          <button
+            onClick={() => setIsMenuManagerOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-xl transition-all shadow-sm cursor-pointer"
+            title="إدارة قائمة الطعام والمنتجات وإضافة الأصناف"
+          >
+            <UtensilsCrossed className="w-3.5 h-3.5 text-amber-400" />
+            <span>إدارة المنيو</span>
           </button>
 
           {/* Customer Menu / Lookup Link */}
@@ -1060,6 +1079,15 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
         onClose={() => setSelectedOrderForInvoice(null)}
         order={selectedOrderForInvoice}
         cafe={cafe}
+      />
+
+      {/* Menu Manager Modal (Allows Cashier & Subscriber to Add/Edit/Delete Dishes & Upload Photos) */}
+      <MenuManagerModal
+        cafe={cafe}
+        isOpen={isMenuManagerOpen}
+        onClose={() => setIsMenuManagerOpen(false)}
+        lang={lang}
+        isCashier={true}
       />
     </div>
   );

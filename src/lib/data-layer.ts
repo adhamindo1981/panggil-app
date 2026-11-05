@@ -546,6 +546,23 @@ class PanggilDataService {
         .order('created_at', { ascending: false });
       if (!error && data) return data as Cafe[];
     }
+
+    // Always fetch freshest cafes from server API if in browser
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch('/api/cafes');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.cafes && Array.isArray(json.cafes)) {
+            this.saveLocalCafes(json.cafes);
+            return json.cafes as Cafe[];
+          }
+        }
+      } catch {
+        // Fallback to local
+      }
+    }
+
     return this.getLocalCafes();
   }
 
@@ -558,7 +575,8 @@ class PanggilDataService {
         .single();
       if (!error && data) return data as Cafe;
     }
-    return this.getLocalCafes().find((c) => c.id === id) || null;
+    const all = await this.getAllCafes();
+    return all.find((c) => c.id === id) || null;
   }
 
   public async getCafeBySlug(slug: string): Promise<Cafe | null> {
@@ -587,24 +605,27 @@ class PanggilDataService {
       }
     }
 
-    // Browser / Client-Side Execution
-    const local = this.getLocalCafes();
-    const foundLocal = local.find((c) => c.slug.toLowerCase() === cleanSlug);
-    if (foundLocal) return foundLocal;
-
-    // Check with server API
+    // Browser / Client-Side Execution: Always query server API first for freshest PIN, Tax, and Info
     if (typeof window !== 'undefined') {
       try {
         const res = await fetch(`/api/cafes?slug=${cleanSlug}`);
         if (res.ok) {
           const data = await res.json();
           if (data.cafe) {
-            this.saveLocalCafes([data.cafe, ...local]);
+            const local = this.getLocalCafes();
+            const filtered = local.filter((c) => c.slug.toLowerCase() !== cleanSlug && c.id !== data.cafe.id);
+            this.saveLocalCafes([data.cafe, ...filtered]);
             return data.cafe as Cafe;
           }
         }
-      } catch {}
+      } catch {
+        // Offline fallback to localStorage
+      }
     }
+
+    const local = this.getLocalCafes();
+    const foundLocal = local.find((c) => c.slug.toLowerCase() === cleanSlug);
+    if (foundLocal) return foundLocal;
 
     const fallbackInitial = INITIAL_CAFES.find((c) => c.slug.toLowerCase() === cleanSlug);
     if (fallbackInitial) return fallbackInitial;
@@ -804,6 +825,23 @@ class PanggilDataService {
     const cats = this.getLocalCategories();
     const updated = [...cats, newCategory];
     this.saveLocalCategories(updated);
+
+    // Sync to server API in background
+    if (typeof window !== 'undefined') {
+      try {
+        fetch('/api/menu', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'category', data: newCategory }),
+        }).catch(() => {});
+      } catch {}
+    } else {
+      try {
+        const { saveServerCategory } = await import('./server-menu-store');
+        saveServerCategory(newCategory);
+      } catch {}
+    }
+
     return newCategory;
   }
 
@@ -813,6 +851,18 @@ class PanggilDataService {
     }
     const cats = this.getLocalCategories().filter((c) => c.id !== id);
     this.saveLocalCategories(cats);
+
+    if (typeof window !== 'undefined') {
+      try {
+        fetch(`/api/menu?type=category&id=${id}`, { method: 'DELETE' }).catch(() => {});
+      } catch {}
+    } else {
+      try {
+        const { deleteServerCategory } = await import('./server-menu-store');
+        deleteServerCategory(id);
+      } catch {}
+    }
+
     return true;
   }
 
@@ -832,6 +882,23 @@ class PanggilDataService {
     const items = this.getLocalMenuItems();
     const updated = [...items, newItem];
     this.saveLocalMenuItems(updated);
+
+    // Sync to server API in background
+    if (typeof window !== 'undefined') {
+      try {
+        fetch('/api/menu', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'item', data: newItem }),
+        }).catch(() => {});
+      } catch {}
+    } else {
+      try {
+        const { saveServerMenuItem } = await import('./server-menu-store');
+        saveServerMenuItem(newItem);
+      } catch {}
+    }
+
     return newItem;
   }
 
@@ -848,6 +915,23 @@ class PanggilDataService {
     const updatedItem: MenuItem = { ...items[index], ...updates };
     items[index] = updatedItem;
     this.saveLocalMenuItems([...items]);
+
+    // Sync to server API in background
+    if (typeof window !== 'undefined') {
+      try {
+        fetch('/api/menu', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, updates }),
+        }).catch(() => {});
+      } catch {}
+    } else {
+      try {
+        const { updateServerMenuItem } = await import('./server-menu-store');
+        updateServerMenuItem(id, updates);
+      } catch {}
+    }
+
     return updatedItem;
   }
 
@@ -857,6 +941,18 @@ class PanggilDataService {
     }
     const items = this.getLocalMenuItems().filter((i) => i.id !== id);
     this.saveLocalMenuItems(items);
+
+    if (typeof window !== 'undefined') {
+      try {
+        fetch(`/api/menu?type=item&id=${id}`, { method: 'DELETE' }).catch(() => {});
+      } catch {}
+    } else {
+      try {
+        const { deleteServerMenuItem } = await import('./server-menu-store');
+        deleteServerMenuItem(id);
+      } catch {}
+    }
+
     return true;
   }
 
@@ -882,7 +978,40 @@ class PanggilDataService {
         .order('display_order', { ascending: true });
       if (!error && data) return data as MenuCategory[];
     }
-    return this.getLocalCategories().filter((c) => c.cafe_id === cafeId);
+
+    // Server-Side Execution
+    if (typeof window === 'undefined') {
+      try {
+        const { getServerCategories, seedStarterMenuForCafe } = await import('./server-menu-store');
+        let cats = getServerCategories(cafeId);
+        if (cats.length === 0) {
+          const seeded = seedStarterMenuForCafe(cafeId);
+          cats = seeded.categories;
+        }
+        return cats;
+      } catch {}
+    }
+
+    // Browser / Client-Side Execution: Query Server API First for real-time sync
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch(`/api/menu?cafe_id=${cafeId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.categories && Array.isArray(data.categories)) {
+            const allLocal = this.getLocalCategories().filter((c) => c.cafe_id !== cafeId);
+            this.saveLocalCategories([...allLocal, ...data.categories]);
+            return data.categories as MenuCategory[];
+          }
+        }
+      } catch {}
+    }
+
+    // Fallback to local storage if offline
+    const local = this.getLocalCategories().filter((c) => c.cafe_id === cafeId);
+    if (local.length > 0) return local;
+
+    return INITIAL_CATEGORIES.filter((c) => c.cafe_id === cafeId);
   }
 
   public async getMenuItems(cafeId: string): Promise<MenuItem[]> {
@@ -893,9 +1022,44 @@ class PanggilDataService {
         .order('created_at', { ascending: true });
       if (!error && data) return data as MenuItem[];
     }
+
+    // Server-Side Execution
+    if (typeof window === 'undefined') {
+      try {
+        const { getServerMenuItems, seedStarterMenuForCafe } = await import('./server-menu-store');
+        let items = getServerMenuItems(cafeId);
+        if (items.length === 0) {
+          const seeded = seedStarterMenuForCafe(cafeId);
+          items = seeded.items;
+        }
+        return items;
+      } catch {}
+    }
+
+    // Browser / Client-Side Execution: Query Server API First for real-time sync
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch(`/api/menu?cafe_id=${cafeId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.items && Array.isArray(data.items)) {
+            const categories = await this.getMenuCategories(cafeId);
+            const categoryIds = new Set(categories.map((c) => c.id));
+            const allOtherLocal = this.getLocalMenuItems().filter((i) => !categoryIds.has(i.category_id));
+            this.saveLocalMenuItems([...allOtherLocal, ...data.items]);
+            return data.items as MenuItem[];
+          }
+        }
+      } catch {}
+    }
+
+    // Fallback to local storage if offline
     const categories = await this.getMenuCategories(cafeId);
     const categoryIds = new Set(categories.map((c) => c.id));
-    return this.getLocalMenuItems().filter((item) => categoryIds.has(item.category_id));
+    const localItems = this.getLocalMenuItems().filter((item) => categoryIds.has(item.category_id));
+    if (localItems.length > 0) return localItems;
+
+    return INITIAL_MENU_ITEMS.filter((item) => categoryIds.has(item.category_id));
   }
 
   public async getOrders(cafeId: string): Promise<Order[]> {

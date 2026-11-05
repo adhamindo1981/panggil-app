@@ -25,13 +25,23 @@ export function PrintableReceipt({ order, cafe, pagerUrl }: PrintableReceiptProp
 
   const dateStr = new Date(order.created_at).toLocaleString();
   const subtotal = order.total_amount || 0;
-  const tax = Math.round(subtotal * 0.1); // 10% PB1
+  const taxRate = typeof cafe.tax_rate === 'number' ? cafe.tax_rate : 10;
+  const tax = Math.round((subtotal * taxRate) / 100);
   const grandTotal = subtotal + tax;
+  const logoUrl = cafe.logo_url || cafe.custom_branding?.logo_url;
 
   return (
     <div className="bg-white text-zinc-900 p-6 rounded-lg font-mono text-xs w-full max-w-[340px] mx-auto shadow-2xl border border-zinc-200 printable-content">
-      {/* Cafe Header */}
+      {/* Cafe Header & Logo */}
       <div className="text-center pb-3 border-b border-dashed border-zinc-400">
+        {logoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoUrl}
+            alt={cafe.name}
+            className="w-14 h-14 object-contain mx-auto mb-2 rounded-xl"
+          />
+        )}
         <h2 className="text-base font-bold tracking-tight text-zinc-950 uppercase">{cafe.name}</h2>
         {cafe.address && <p className="text-[10px] text-zinc-600 mt-1">{cafe.address}</p>}
         {cafe.phone && <p className="text-[10px] text-zinc-600">{cafe.phone}</p>}
@@ -94,7 +104,7 @@ export function PrintableReceipt({ order, cafe, pagerUrl }: PrintableReceiptProp
               <span>{formatCurrency(subtotal, cafe.currency_symbol)}</span>
             </div>
             <div className="flex justify-between text-zinc-600 text-[10px]">
-              <span>{t.invoice.taxRate} (10%)</span>
+              <span>{t.invoice.taxRate} ({taxRate}%)</span>
               <span>{formatCurrency(tax, cafe.currency_symbol)}</span>
             </div>
             <div className="flex justify-between font-bold text-xs pt-1 border-t border-zinc-400 text-zinc-950">

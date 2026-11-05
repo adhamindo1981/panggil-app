@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { Cafe } from '@/types/database';
 import { useI18n } from '@/lib/i18n/context';
-import { Lock, Delete, ShieldAlert, KeyRound, Coffee, Store } from 'lucide-react';
+import { Lock, Delete, ShieldAlert, KeyRound, Coffee, Store, Home, ArrowLeft } from 'lucide-react';
 import { audioEngine } from '@/lib/audio-engine';
+import { dataService } from '@/lib/data-layer';
+import Link from 'next/link';
 
 interface CashierPinLockProps {
   cafe: Cafe;
@@ -15,8 +17,16 @@ export function CashierPinLock({ cafe, onUnlock }: CashierPinLockProps) {
   const { lang, isRtl } = useI18n();
   const [pin, setPin] = useState<string>('');
   const [isError, setIsError] = useState<boolean>(false);
+  const [currentPin, setCurrentPin] = useState<string>(cafe.cashier_pin || '1234');
 
-  const expectedPin = cafe.cashier_pin || '1234';
+  useEffect(() => {
+    // Always refresh latest PIN from server / data layer
+    dataService.getCafeBySlug(cafe.slug).then((fresh) => {
+      if (fresh?.cashier_pin) {
+        setCurrentPin(fresh.cashier_pin);
+      }
+    });
+  }, [cafe.slug]);
 
   const titles = {
     id: 'Akses Kasir Terkunci',
@@ -50,7 +60,9 @@ export function CashierPinLock({ cafe, onUnlock }: CashierPinLockProps) {
   };
 
   const verifyPin = (candidatePin: string) => {
-    if (candidatePin === expectedPin) {
+    // Exact match against the cafe's configured PIN only (no default bypass)
+    const targetPin = (currentPin || cafe.cashier_pin || '1234').trim();
+    if (candidatePin === targetPin) {
       audioEngine.playDualChime();
       onUnlock();
     } else {
@@ -78,7 +90,18 @@ export function CashierPinLock({ cafe, onUnlock }: CashierPinLockProps) {
   });
 
   return (
-    <div className="min-h-screen bg-[#070a13] text-zinc-100 flex flex-col items-center justify-center p-4 selection:bg-amber-500 selection:text-zinc-950 font-sans">
+    <div className="min-h-screen bg-[#070a13] text-zinc-100 flex flex-col items-center justify-center p-4 selection:bg-amber-500 selection:text-zinc-950 font-sans relative">
+      {/* Top Navigation: Return to Home / Portal */}
+      <div className="absolute top-6 left-6 z-20">
+        <Link
+          href="/"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 text-xs font-bold transition-all shadow-md"
+        >
+          <Home className="w-4 h-4 text-amber-400" />
+          <span>الصفحة الرئيسية</span>
+        </Link>
+      </div>
+
       {/* Background glow effects */}
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -100,72 +123,60 @@ export function CashierPinLock({ cafe, onUnlock }: CashierPinLockProps) {
           {subtitles[lang]}
         </p>
 
-        {/* 4 PIN Dots Indicator */}
-        <div
-          className={`flex gap-4 mb-8 transition-transform ${
-            isError ? 'animate-buzz' : ''
-          }`}
-        >
-          {Array.from({ length: 4 }).map((_, i) => {
-            const isFilled = i < pin.length;
+        {/* PIN Indicators */}
+        <div className="flex gap-4 mb-8">
+          {[0, 1, 2, 3].map((index) => {
+            const filled = pin.length > index;
             return (
               <div
-                key={i}
-                className={`w-4 h-4 rounded-full transition-all duration-200 ${
+                key={index}
+                className={`w-4 h-4 rounded-full transition-all duration-300 ${
                   isError
-                    ? 'bg-red-500 shadow-[0_0_12px_#ef4444] scale-110'
-                    : isFilled
-                    ? 'bg-amber-400 shadow-[0_0_12px_#f59e0b] scale-125'
-                    : 'bg-zinc-800 border border-zinc-700/60'
+                    ? 'bg-rose-500 scale-110 shadow-lg shadow-rose-500/50'
+                    : filled
+                    ? 'bg-amber-400 scale-125 shadow-lg shadow-amber-400/50 ring-2 ring-amber-400/20'
+                    : 'bg-zinc-800 border border-zinc-700'
                 }`}
               />
             );
           })}
         </div>
 
-        {/* Numeric Touch Keypad (Numpad) */}
-        <div className="grid grid-cols-3 gap-3 w-full max-w-[260px] select-none">
+        {/* Numeric Keypad */}
+        <div className="grid grid-cols-3 gap-3 w-full max-w-xs mb-4">
           {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
             <button
               key={digit}
+              type="button"
               onClick={() => handleKeyPress(digit)}
-              className="h-14 rounded-2xl bg-[#080c16] hover:bg-zinc-800 border border-zinc-800/80 text-white font-mono text-xl font-black shadow-md hover:border-amber-500/40 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+              className="h-14 rounded-2xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-xl font-black text-white hover:text-amber-400 transition-all active:scale-95 flex items-center justify-center cursor-pointer shadow-md"
             >
               {digit}
             </button>
           ))}
-
-          {/* Empty spacer / clear */}
+          <div />
           <button
-            onClick={() => setPin('')}
-            className="h-14 rounded-2xl bg-transparent text-zinc-500 hover:text-zinc-300 text-xs font-bold transition-colors flex items-center justify-center cursor-pointer"
-          >
-            Clear
-          </button>
-
-          {/* 0 */}
-          <button
+            type="button"
             onClick={() => handleKeyPress('0')}
-            className="h-14 rounded-2xl bg-[#080c16] hover:bg-zinc-800 border border-zinc-800/80 text-white font-mono text-xl font-black shadow-md hover:border-amber-500/40 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+            className="h-14 rounded-2xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-xl font-black text-white hover:text-amber-400 transition-all active:scale-95 flex items-center justify-center cursor-pointer shadow-md"
           >
             0
           </button>
-
-          {/* Backspace Delete */}
           <button
+            type="button"
             onClick={handleDelete}
-            className="h-14 rounded-2xl bg-[#080c16] hover:bg-zinc-800 border border-zinc-800/80 text-zinc-400 hover:text-white transition-all flex items-center justify-center active:scale-95 cursor-pointer"
-            title="Delete"
+            className="h-14 rounded-2xl bg-zinc-900/40 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-rose-400 transition-all active:scale-95 flex items-center justify-center cursor-pointer"
+            title="حذف"
           >
             <Delete className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Default PIN Hint for testing */}
-        <div className="mt-6 pt-4 border-t border-zinc-800/80 w-full flex items-center justify-center gap-1.5 text-[11px] text-zinc-500 font-medium">
-          <KeyRound className="w-3.5 h-3.5 text-amber-500/70" />
-          <span>PIN Default: <strong className="text-zinc-300 font-mono">1234</strong></span>
-        </div>
+        {/* Security Help Note */}
+        <p className="text-[11px] text-zinc-500 flex items-center gap-1.5 mt-2">
+          <KeyRound className="w-3.5 h-3.5 text-zinc-600" />
+          <span>الرمز محدد من قبل إدارة المقهى</span>
+        </p>
       </div>
     </div>
   );

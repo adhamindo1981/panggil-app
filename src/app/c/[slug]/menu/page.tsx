@@ -5,7 +5,7 @@ import { DigitalMenu } from '@/components/menu/DigitalMenu';
 import { OrderLookupView } from '@/components/menu/OrderLookupView';
 import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import { getPlanFeatures, getCustomBrandingStyle } from '@/lib/feature-gates';
-import { ArrowLeft, BellRing } from 'lucide-react';
+import { ArrowLeft, BellRing, Home } from 'lucide-react';
 import Link from 'next/link';
 
 interface PageProps {
@@ -35,7 +35,14 @@ export default async function MenuPage({ params }: PageProps) {
         style={brandStyle}
       >
         <header className="sticky top-0 z-40 bg-[#0d121e]/90 border-b border-zinc-800 backdrop-blur-md px-4 sm:px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/"
+              className="p-2 text-zinc-400 hover:text-amber-400 hover:bg-zinc-800 rounded-xl transition-colors"
+              title="الصفحة الرئيسية"
+            >
+              <Home className="w-4 h-4" />
+            </Link>
             <Link
               href={`/c/${cafe.slug}/cashier`}
               className="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-xl transition-colors"
@@ -75,11 +82,18 @@ export default async function MenuPage({ params }: PageProps) {
     <div className="min-h-screen bg-zinc-950 text-zinc-100" style={brandStyle}>
       {/* Top Header */}
       <header className="sticky top-0 z-40 bg-zinc-900/90 border-b border-zinc-800 backdrop-blur-md px-4 sm:px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            href="/"
+            className="p-2 text-zinc-400 hover:text-amber-400 hover:bg-zinc-800 rounded-xl transition-colors"
+            title="الصفحة الرئيسية"
+          >
+            <Home className="w-4 h-4" />
+          </Link>
           <Link
             href={`/c/${cafe.slug}/cashier`}
             className="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-xl transition-colors"
-            title="Cashier view"
+            title="لوحة الكاشير"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>

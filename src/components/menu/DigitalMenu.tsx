@@ -79,7 +79,8 @@ export function DigitalMenu({ cafe, categories, items }: DigitalMenuProps) {
 
   const totalItemsCount = cart.reduce((acc, curr) => acc + curr.quantity, 0);
   const subtotal = cart.reduce((acc, curr) => acc + curr.price * curr.quantity, 0);
-  const tax = Math.round(subtotal * 0.1);
+  const taxRate = typeof cafe.tax_rate === 'number' ? cafe.tax_rate : 10;
+  const tax = Math.round((subtotal * taxRate) / 100);
   const grandTotal = subtotal + tax;
 
   const handleCheckout = async (e: React.FormEvent) => {
@@ -341,7 +342,7 @@ export function DigitalMenu({ cafe, categories, items }: DigitalMenuProps) {
                     </span>
                   </div>
                   <div className="flex justify-between text-zinc-400">
-                    <span>{t.menu.tax}</span>
+                    <span>{t.menu.tax} {taxRate > 0 ? `(${taxRate}%)` : '(0%)'}</span>
                     <span className="font-mono font-bold text-zinc-200">
                       {formatCurrency(tax, cafe.currency_symbol)}
                     </span>

@@ -41,6 +41,8 @@ export interface Cafe {
   phone?: string;
   address?: string;
   currency_symbol?: string;
+  tax_rate?: number;
+  billing_cycle?: 'monthly' | 'annual';
   google_maps_url?: string;
   cashier_pin?: string;
   created_at?: string;
