@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Cafe, Order } from '@/types/database';
 import { dataService } from '@/lib/data-layer';
 import { CoasterPager } from './CoasterPager';
@@ -9,7 +9,8 @@ import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { audioEngine } from '@/lib/audio-engine';
 import { wakeLockManager } from '@/lib/wake-lock';
 import { useI18n } from '@/lib/i18n/context';
-import { BellRing, Radio, Volume2, ShieldCheck, Check } from 'lucide-react';
+import { getPlanFeatures, getCustomBrandingStyle } from '@/lib/feature-gates';
+import { BellRing, Radio, Volume2, ShieldCheck, Check, Sparkles } from 'lucide-react';
 
 interface LivePagerViewProps {
   initialCafe: Cafe;
@@ -23,6 +24,10 @@ export function LivePagerView({ initialCafe, initialOrder }: LivePagerViewProps)
   const [isAudioUnlocked, setIsAudioUnlocked] = useState<boolean>(false);
   const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
 
+  const planFeatures = useMemo(() => getPlanFeatures(cafe.subscription_tier), [cafe.subscription_tier]);
+  const canShowReview = planFeatures.canUseGoogleReview && Boolean(cafe.google_maps_url);
+  const brandStyle = useMemo(() => getCustomBrandingStyle(cafe), [cafe]);
+
   // Check initial audio state
   useEffect(() => {
     if (audioEngine.getIsUnlocked()) {
@@ -35,20 +40,20 @@ export function LivePagerView({ initialCafe, initialOrder }: LivePagerViewProps)
     const unsubscribe = dataService.subscribeToOrder(order.id, (updatedOrder, wasBuzzed) => {
       setOrder(updatedOrder);
 
-      // Trigger Review Modal if order is completed
-      if (updatedOrder.status === 'completed') {
+      // Trigger Review Modal if order is completed AND plan allows reviews
+      if (updatedOrder.status === 'completed' && canShowReview) {
         setTimeout(() => setShowReviewModal(true), 1500);
       }
     });
 
     return () => unsubscribe();
-  }, [order.id]);
+  }, [order.id, canShowReview]);
 
   const handleRefresh = async () => {
     const fresh = await dataService.getOrderById(order.id);
     if (fresh) {
       setOrder(fresh);
-      if (fresh.status === 'completed') {
+      if (fresh.status === 'completed' && canShowReview) {
         setShowReviewModal(true);
       }
     }
@@ -82,13 +87,23 @@ export function LivePagerView({ initialCafe, initialOrder }: LivePagerViewProps)
   };
 
   return (
-    <div className="min-h-screen bg-[#070a13] text-zinc-100 flex flex-col justify-between selection:bg-amber-500 selection:text-zinc-950 font-sans">
+    <div
+      className="min-h-screen bg-[#070a13] text-zinc-100 flex flex-col justify-between selection:bg-amber-500 selection:text-zinc-950 font-sans"
+      style={brandStyle}
+    >
       {/* Top Header */}
       <header className="px-4 py-3.5 bg-[#0d121e]/85 border-b border-zinc-800/80 backdrop-blur-xl flex items-center justify-between shadow-xl">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 bg-gradient-to-tr from-amber-600 to-amber-400 text-zinc-950 rounded-xl shadow-md">
-            <BellRing className="w-4 h-4" />
-          </div>
+          {planFeatures.canUseCustomBranding && cafe.custom_branding?.logo_url ? (
+            <div className="w-8 h-8 rounded-xl overflow-hidden border border-amber-500/40 shadow-sm shrink-0 bg-zinc-900">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={cafe.custom_branding.logo_url} alt={cafe.name} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="p-2 bg-gradient-to-tr from-amber-600 to-amber-400 text-zinc-950 rounded-xl shadow-md">
+              <BellRing className="w-4 h-4" />
+            </div>
+          )}
           <div>
             <h1 className="text-xs font-black text-white">{cafe.name}</h1>
             <div className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-bold">
@@ -132,24 +147,32 @@ export function LivePagerView({ initialCafe, initialOrder }: LivePagerViewProps)
           cafe={cafe}
           onRefresh={handleRefresh}
           onAcknowledgeReady={() => {
-            // Suggest Google review after customer stops alarm
-            setTimeout(() => setShowReviewModal(true), 2000);
+            // Suggest Google review after customer stops alarm (only if tier allows)
+            if (canShowReview) {
+              setTimeout(() => setShowReviewModal(true), 2000);
+            }
           }}
         />
       </main>
 
       {/* Footer Branding */}
       <footer className="py-4 text-center text-[10px] text-zinc-500 border-t border-zinc-900 bg-[#070a13]">
-        <p className="font-semibold text-zinc-400">Panggil / نداء — Zero-Hardware Coaster Pager Platform</p>
+        {planFeatures.canUseCustomBranding && cafe.custom_branding?.hide_powered_by ? (
+          <p className="font-semibold text-zinc-500">{cafe.name} — Coaster Pager Service</p>
+        ) : (
+          <p className="font-semibold text-zinc-400">Panggil / نداء — Zero-Hardware Coaster Pager Platform</p>
+        )}
       </footer>
 
-      {/* Google Review Conversion Modal */}
-      <GoogleReviewModal
-        isOpen={showReviewModal}
-        onClose={() => setShowReviewModal(false)}
-        cafe={cafe}
-        order={order}
-      />
+      {/* Google Review Conversion Modal (Feature Gated: Bronze / Silver / Gold) */}
+      {canShowReview && (
+        <GoogleReviewModal
+          isOpen={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          cafe={cafe}
+          order={order}
+        />
+      )}
     </div>
   );
 }

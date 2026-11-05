@@ -22,7 +22,13 @@ import {
   Zap,
   Flame,
   ArrowUpRight,
+  Check,
+  X,
+  Star,
+  Crown,
+  Lock,
 } from 'lucide-react';
+import { TIERS_META } from '@/lib/feature-gates';
 
 export default function HomePage() {
   const { t, lang, isRtl } = useI18n();
@@ -210,6 +216,265 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+        {/* ========================================================= */}
+        {/* 4-TIER SUBSCRIPTION & PRICING PLANS */}
+        {/* ========================================================= */}
+        <section className="space-y-8 pt-6">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
+              <Crown className="w-3.5 h-3.5" />
+              <span>
+                {lang === 'ar' ? 'باقات الاشتراك والترقية' : lang === 'id' ? 'Paket Langganan & Fitur' : 'Subscription Plans & Tiers'}
+              </span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black text-white">
+              {lang === 'ar' ? 'اختر الخطة المناسبة لحجم ونشاط مقهاك' : lang === 'id' ? 'Pilih Paket Terbaik untuk Kafe Anda' : 'Choose the Perfect Plan for Your Business'}
+            </h2>
+            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+              {lang === 'ar'
+                ? 'نظام مرن يتدرج من التنبيه البسيط عبر البيجر وحتى الهوية البصرية المخصصة الكاملة بدون عمولات على الطلبات.'
+                : lang === 'id'
+                ? 'Mulai dari sistem bel pager esensial hingga kustomisasi brand penuh tanpa komisi per transaksi.'
+                : 'From essential digital buzzer alerts to enterprise custom brand identity with zero transaction fees.'}
+            </p>
+          </div>
+
+          {/* 4 Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* 1. BASIC */}
+            <div className="bg-gradient-to-b from-[#0d121e] to-[#070a13] border border-zinc-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between hover:border-zinc-700 transition-all">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-black uppercase tracking-wider text-zinc-400">
+                    {TIERS_META.basic.name[lang]}
+                  </span>
+                  <span className="p-2 rounded-xl bg-zinc-800 text-zinc-300">
+                    <BellRing className="w-4 h-4" />
+                  </span>
+                </div>
+                <div className="mb-4">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black font-mono text-white">
+                      {lang === 'ar' ? '49 ر.س' : lang === 'id' ? 'Rp 199rb' : '$14'}
+                    </span>
+                    <span className="text-xs text-zinc-400">
+                      /{lang === 'ar' ? 'شهرياً' : lang === 'id' ? 'bln' : 'mo'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">
+                    {TIERS_META.basic.tagline[lang]}
+                  </p>
+                </div>
+
+                <div className="space-y-2.5 pt-4 border-t border-zinc-800/80 text-xs">
+                  <div className="flex items-center gap-2 text-zinc-200">
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{lang === 'ar' ? 'بيجر رقمي واهتزاز الهاتف' : lang === 'id' ? 'Pager suara & getar digital' : 'Digital pager & vibration alert'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-200">
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{lang === 'ar' ? 'قفل الشاشة وإبقاء الهاتف يقظاً' : lang === 'id' ? 'Screen Wake Lock aktif' : 'Screen Wake Lock & Keep-Alive'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-200">
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{lang === 'ar' ? 'لوحة كاشير وقفل PIN' : lang === 'id' ? 'Dashboard kasir + PIN' : 'Cashier Dashboard + PIN lock'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-600 line-through">
+                    <X className="w-4 h-4 text-zinc-600 shrink-0" />
+                    <span>{lang === 'ar' ? 'تقييم Google Maps التلقائي' : lang === 'id' ? 'Ulasan Google Maps' : 'Google Review conversion'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-600 line-through">
+                    <X className="w-4 h-4 text-zinc-600 shrink-0" />
+                    <span>{lang === 'ar' ? 'المنيو الإلكتروني التفاعلي' : lang === 'id' ? 'Menu digital online' : 'Interactive Digital Menu'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-600 line-through">
+                    <X className="w-4 h-4 text-zinc-600 shrink-0" />
+                    <span>{lang === 'ar' ? 'هوية بصرية مخصصة' : lang === 'id' ? 'Custom branding logo' : 'Custom branding logo'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <Link
+                href="/c/basic-cafe/cashier"
+                className="mt-6 w-full py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold rounded-xl text-center transition-colors block"
+              >
+                {lang === 'ar' ? 'تجربة باقة Basic' : lang === 'id' ? 'Coba Paket Basic' : 'Test Basic Tier'}
+              </Link>
+            </div>
+
+            {/* 2. BRONZE */}
+            <div className="bg-gradient-to-b from-[#15100c] to-[#070a13] border border-amber-900/40 rounded-3xl p-6 shadow-xl flex flex-col justify-between hover:border-amber-700/60 transition-all">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-400">
+                    {TIERS_META.bronze.name[lang]}
+                  </span>
+                  <span className="p-2 rounded-xl bg-amber-950/60 text-amber-400">
+                    <Star className="w-4 h-4" />
+                  </span>
+                </div>
+                <div className="mb-4">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black font-mono text-white">
+                      {lang === 'ar' ? '99 ر.س' : lang === 'id' ? 'Rp 399rb' : '$27'}
+                    </span>
+                    <span className="text-xs text-zinc-400">
+                      /{lang === 'ar' ? 'شهرياً' : lang === 'id' ? 'bln' : 'mo'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">
+                    {TIERS_META.bronze.tagline[lang]}
+                  </p>
+                </div>
+
+                <div className="space-y-2.5 pt-4 border-t border-zinc-800/80 text-xs">
+                  <div className="flex items-center gap-2 text-zinc-200">
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{lang === 'ar' ? 'كافة ميزات باقة Basic' : lang === 'id' ? 'Semua fitur Basic' : 'All Basic features included'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-amber-300 font-bold">
+                    <Check className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>{lang === 'ar' ? 'تحويل الزبائن لتقييم 5 نجوم Google' : lang === 'id' ? 'Konversi review Google Maps' : 'Google Maps 5-Star Reviews'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-200">
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{lang === 'ar' ? 'مولد بطاقات الطاولات A6' : lang === 'id' ? 'Kit cetak akrilik A6' : 'Printable A6 table stand'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-600 line-through">
+                    <X className="w-4 h-4 text-zinc-600 shrink-0" />
+                    <span>{lang === 'ar' ? 'المنيو الإلكتروني التفاعلي' : lang === 'id' ? 'Menu digital online' : 'Interactive Digital Menu'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-600 line-through">
+                    <X className="w-4 h-4 text-zinc-600 shrink-0" />
+                    <span>{lang === 'ar' ? 'هوية بصرية مخصصة' : lang === 'id' ? 'Custom branding logo' : 'Custom branding logo'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <Link
+                href="/c/nedaa-express/cashier"
+                className="mt-6 w-full py-2.5 px-4 bg-amber-950/70 hover:bg-amber-900/80 text-amber-300 border border-amber-800/60 text-xs font-bold rounded-xl text-center transition-colors block"
+              >
+                {lang === 'ar' ? 'تجربة باقة Bronze' : lang === 'id' ? 'Coba Paket Bronze' : 'Test Bronze Tier'}
+              </Link>
+            </div>
+
+            {/* 3. SILVER (POPULAR) */}
+            <div className="relative bg-gradient-to-b from-[#0a1520] to-[#070a13] border-2 border-cyan-500/70 rounded-3xl p-6 shadow-2xl flex flex-col justify-between hover:border-cyan-400 transition-all scale-102">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-cyan-500 text-zinc-950 text-[10px] font-black uppercase tracking-wider shadow-lg">
+                {lang === 'ar' ? 'الأكثر طلباً' : lang === 'id' ? 'Paling Populer' : 'Most Popular'}
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-black uppercase tracking-wider text-cyan-400">
+                    {TIERS_META.silver.name[lang]}
+                  </span>
+                  <span className="p-2 rounded-xl bg-cyan-950/70 text-cyan-400">
+                    <Utensils className="w-4 h-4" />
+                  </span>
+                </div>
+                <div className="mb-4">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black font-mono text-white">
+                      {lang === 'ar' ? '179 ر.س' : lang === 'id' ? 'Rp 749rb' : '$49'}
+                    </span>
+                    <span className="text-xs text-zinc-400">
+                      /{lang === 'ar' ? 'شهرياً' : lang === 'id' ? 'bln' : 'mo'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">
+                    {TIERS_META.silver.tagline[lang]}
+                  </p>
+                </div>
+
+                <div className="space-y-2.5 pt-4 border-t border-zinc-800/80 text-xs">
+                  <div className="flex items-center gap-2 text-zinc-200">
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{lang === 'ar' ? 'بيجر رقمي + تقييم Google Maps' : lang === 'id' ? 'Pager + review Google Maps' : 'Pager + Google Review conversion'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-cyan-300 font-bold">
+                    <Check className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <span>{lang === 'ar' ? 'منيو طعام رقمي وسلة طلبات' : lang === 'id' ? 'Menu makanan online & keranjang' : 'Full Digital Menu & Cart'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-cyan-300 font-bold">
+                    <Check className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <span>{lang === 'ar' ? 'فواتير حرارية وإرسال WhatsApp' : lang === 'id' ? 'Struk thermal & kirim WhatsApp' : 'Thermal receipts & WhatsApp send'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-200">
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{lang === 'ar' ? 'نطق صوتي آلي بـ 3 لغات' : lang === 'id' ? 'Panggilan suara 3 bahasa' : 'Voice synthesis in 3 languages'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-600 line-through">
+                    <X className="w-4 h-4 text-zinc-600 shrink-0" />
+                    <span>{lang === 'ar' ? 'هوية بصرية مخصصة' : lang === 'id' ? 'Custom branding logo' : 'Custom branding logo'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <Link
+                href="/c/silver-cafe/cashier"
+                className="mt-6 w-full py-2.5 px-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-zinc-950 text-xs font-black rounded-xl text-center transition-all shadow-lg shadow-cyan-500/25 block"
+              >
+                {lang === 'ar' ? 'تجربة باقة Silver' : lang === 'id' ? 'Coba Paket Silver' : 'Test Silver Tier'}
+              </Link>
+            </div>
+
+            {/* 4. GOLD */}
+            <div className="bg-gradient-to-b from-[#1b1509] to-[#070a13] border-2 border-yellow-500/60 rounded-3xl p-6 shadow-2xl flex flex-col justify-between hover:border-yellow-400 transition-all">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-black uppercase tracking-wider text-yellow-400">
+                    {TIERS_META.gold.name[lang]}
+                  </span>
+                  <span className="p-2 rounded-xl bg-yellow-950/70 text-yellow-400">
+                    <Crown className="w-4 h-4" />
+                  </span>
+                </div>
+                <div className="mb-4">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black font-mono text-white">
+                      {lang === 'ar' ? '299 ر.س' : lang === 'id' ? 'Rp 1.249rb' : '$79'}
+                    </span>
+                    <span className="text-xs text-zinc-400">
+                      /{lang === 'ar' ? 'شهرياً' : lang === 'id' ? 'bln' : 'mo'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">
+                    {TIERS_META.gold.tagline[lang]}
+                  </p>
+                </div>
+
+                <div className="space-y-2.5 pt-4 border-t border-zinc-800/80 text-xs">
+                  <div className="flex items-center gap-2 text-yellow-300 font-bold">
+                    <Check className="w-4 h-4 text-yellow-400 shrink-0" />
+                    <span>{lang === 'ar' ? 'كامل ميزات النظام بدون قيود' : lang === 'id' ? 'Semua fitur tanpa batasan' : 'Full complete feature access'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-yellow-300 font-bold">
+                    <Check className="w-4 h-4 text-yellow-400 shrink-0" />
+                    <span>{lang === 'ar' ? 'هوية خاصة: شعار وألوان مقهاك' : lang === 'id' ? 'Custom logo & warna brand kafe' : 'Custom logo & primary brand colors'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-yellow-300 font-bold">
+                    <Check className="w-4 h-4 text-yellow-400 shrink-0" />
+                    <span>{lang === 'ar' ? 'إخفاء شعار المنصة (White-label)' : lang === 'id' ? 'Hapus logo platform (White-label)' : 'White-label (Hide Powered by)'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-200">
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>{lang === 'ar' ? 'دعم فني مخصص وترقية فورية' : lang === 'id' ? 'Dukungan teknis prioritas' : 'Priority VIP customer support'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <Link
+                href="/c/kopi-nusantara/cashier"
+                className="mt-6 w-full py-2.5 px-4 bg-gradient-to-r from-yellow-500 via-amber-400 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-zinc-950 text-xs font-black rounded-xl text-center transition-all shadow-lg shadow-yellow-500/25 block"
+              >
+                {lang === 'ar' ? 'تجربة باقة Gold VIP' : lang === 'id' ? 'Coba Paket Gold VIP' : 'Test Gold Tier'}
+              </Link>
+            </div>
+          </div>
+        </section>
 
         {/* Feature Highlights Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 pt-8">

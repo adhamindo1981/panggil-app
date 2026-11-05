@@ -6,6 +6,13 @@
 export type CafeMode = 'pager_only' | 'menu_pager';
 export type AppLanguage = 'id' | 'ar' | 'en';
 export type OrderStatus = 'pending' | 'ready' | 'completed' | 'cancelled';
+export type SubscriptionTier = 'basic' | 'bronze' | 'silver' | 'gold';
+
+export interface CustomBranding {
+  logo_url?: string;
+  primary_color?: string;
+  hide_powered_by?: boolean;
+}
 
 export interface Cafe {
   id: string;
@@ -13,6 +20,8 @@ export interface Cafe {
   slug: string;
   mode: CafeMode;
   default_lang: AppLanguage;
+  subscription_tier: SubscriptionTier;
+  custom_branding?: CustomBranding;
   logo_url?: string;
   phone?: string;
   address?: string;

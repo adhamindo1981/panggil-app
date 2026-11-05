@@ -10,6 +10,7 @@ import { generateWhatsAppReadyUrl } from '@/lib/whatsapp';
 import { InvoiceModal } from '../invoice/InvoiceModal';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { CashierPinLock } from './CashierPinLock';
+import { getPlanFeatures, TIERS_META } from '@/lib/feature-gates';
 import {
   BellRing,
   PlusCircle,
@@ -63,6 +64,10 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
 
   // Cashier PIN Lock State
   const [isUnlocked, setIsUnlocked] = useState<boolean>(false);
+  const [upgradeNotice, setUpgradeNotice] = useState<string | null>(null);
+
+  const planFeatures = useMemo(() => getPlanFeatures(cafe.subscription_tier), [cafe.subscription_tier]);
+  const currentTierMeta = useMemo(() => TIERS_META[cafe.subscription_tier || 'basic'], [cafe.subscription_tier]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -114,6 +119,16 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
 
   // Toggle Mode (Pager Only vs Menu + Pager)
   const handleToggleMode = async () => {
+    if (!planFeatures.canUseMenu) {
+      const upgradeMsg = {
+        ar: 'المنيو الإلكتروني متاح حصراً في الباقتين الفضية والذهبية (Silver & Gold). باقتك الحالية تدعم نظام البيجر فقط.',
+        id: 'Menu digital hanya tersedia di Paket Silver & Gold. Paket Anda saat ini fokus pada sistem pager.',
+        en: 'Digital Menu is available on Silver & Gold tiers. Your current plan focuses on coaster pager alerts.',
+      };
+      setUpgradeNotice(upgradeMsg[lang]);
+      setTimeout(() => setUpgradeNotice(null), 5000);
+      return;
+    }
     const newMode = cafe.mode === 'pager_only' ? 'menu_pager' : 'pager_only';
     await dataService.updateCafeMode(cafe.id, newMode);
     setCafe((prev) => ({ ...prev, mode: newMode }));
@@ -199,20 +214,34 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
       {/* Top Navbar */}
       <header className="sticky top-0 z-40 bg-[#0d121e]/90 border-b border-zinc-800/80 backdrop-blur-xl px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-2xl">
         <div className="flex items-center gap-3.5">
-          <Link
-            href="/"
-            className="p-2.5 bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 text-zinc-950 rounded-2xl shadow-lg shadow-amber-500/20 font-black hover:scale-105 transition-transform"
-            title="الرئيسية"
-          >
-            <BellRing className="w-5 h-5" />
-          </Link>
+          {planFeatures.canUseCustomBranding && cafe.custom_branding?.logo_url ? (
+            <div className="w-10 h-10 rounded-2xl overflow-hidden border border-amber-500/40 shadow-md shrink-0 bg-zinc-900">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={cafe.custom_branding.logo_url} alt={cafe.name} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <Link
+              href="/"
+              className="p-2.5 bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 text-zinc-950 rounded-2xl shadow-lg shadow-amber-500/20 font-black hover:scale-105 transition-transform shrink-0"
+              title="الرئيسية"
+            >
+              <BellRing className="w-5 h-5" />
+            </Link>
+          )}
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-extrabold text-base sm:text-lg text-white tracking-tight">
                 {cafe.name}
               </h1>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+
+              {/* Subscription Tier Badge */}
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-wider ${currentTierMeta.badgeColor}`}>
+                <Sparkles className="w-3 h-3" />
+                <span>{currentTierMeta.name[lang]}</span>
+              </span>
+
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                 {t.common.realtimeActive}
               </span>
             </div>
@@ -221,7 +250,7 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
         </div>
 
         {/* Controls: Mode Toggle & Menu & QR Stand & Lock & Language */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Printable QR Table Kit Link */}
           <Link
             href={`/c/${cafe.slug}/qr-kit`}
@@ -233,30 +262,49 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
             <span>ستاند الطاولات A6</span>
           </Link>
 
-          {/* Mode Switcher */}
+          {/* Mode Switcher (With Feature Gating Lock for Basic/Bronze) */}
           <button
             onClick={handleToggleMode}
-            className="hidden md:flex items-center gap-2 px-3.5 py-2 text-xs font-bold bg-zinc-900/90 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 rounded-xl transition-all shadow-sm"
-            title={t.modes.switchMode}
+            className={`hidden md:flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-xl transition-all shadow-sm ${
+              !planFeatures.canUseMenu
+                ? 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-amber-500/50 cursor-pointer'
+                : 'bg-zinc-900/90 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80'
+            }`}
+            title={!planFeatures.canUseMenu ? 'المنيو الرقمي يتطلب باقة Silver أو Gold' : t.modes.switchMode}
           >
-            <Sliders className="w-3.5 h-3.5 text-amber-400" />
-            <span>
-              {cafe.mode === 'pager_only' ? t.modes.pagerOnly : t.modes.menuPager}
-            </span>
+            {!planFeatures.canUseMenu ? (
+              <>
+                <Lock className="w-3.5 h-3.5 text-amber-400" />
+                <span>{t.modes.pagerOnly}</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                  Silver+
+                </span>
+              </>
+            ) : (
+              <>
+                <Sliders className="w-3.5 h-3.5 text-amber-400" />
+                <span>
+                  {cafe.mode === 'pager_only' ? t.modes.pagerOnly : t.modes.menuPager}
+                </span>
+              </>
+            )}
           </button>
 
-          {/* Customer Menu Link if menu_pager mode */}
-          {cafe.mode === 'menu_pager' && (
-            <Link
-              href={`/c/${cafe.slug}/menu`}
-              target="_blank"
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl transition-all"
-            >
-              <Utensils className="w-3.5 h-3.5" />
-              <span>{t.menu.title}</span>
-              <ArrowUpRight className="w-3 h-3" />
-            </Link>
-          )}
+          {/* Customer Menu / Lookup Link */}
+          <Link
+            href={`/c/${cafe.slug}/menu`}
+            target="_blank"
+            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all ${
+              planFeatures.canUseMenu
+                ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400 border border-zinc-800'
+            }`}
+            title={planFeatures.canUseMenu ? t.menu.title : 'شاشة تتبع البيجر للزبائن'}
+          >
+            <Utensils className="w-3.5 h-3.5" />
+            <span>{planFeatures.canUseMenu ? t.menu.title : 'صفحة الزبائن'}</span>
+            <ArrowUpRight className="w-3 h-3" />
+          </Link>
 
           {/* Lock Screen Button */}
           <button
@@ -270,6 +318,20 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
           <LanguageSwitcher compact />
         </div>
       </header>
+
+      {/* Upgrade Notice Alert Banner */}
+      {upgradeNotice && (
+        <div className="w-full bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 text-zinc-950 font-bold px-4 py-2.5 text-xs text-center flex items-center justify-center gap-2 shadow-lg animate-in slide-in-from-top">
+          <Lock className="w-4 h-4 shrink-0" />
+          <span>{upgradeNotice}</span>
+          <button
+            onClick={() => setUpgradeNotice(null)}
+            className="ms-3 p-1 rounded-lg bg-black/20 hover:bg-black/30 text-zinc-950"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Main Content Area */}
       <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto space-y-7">
