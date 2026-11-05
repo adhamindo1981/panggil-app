@@ -1178,7 +1178,16 @@ class PanggilDataService {
         .insert([newOrder])
         .select()
         .single();
-      if (!error && data) return data as Order;
+      if (!error && data) {
+        cloudRelay.publish(newOrder.id, {
+          type: 'ORDER_CREATED',
+          orderId: newOrder.id,
+          orderNumber: newOrder.order_number,
+          status: newOrder.status,
+        });
+        cloudRelay.publishCafeOrder(newOrder.cafe_id, newOrder);
+        return data as Order;
+      }
     }
 
     // Always register order on server API store for seamless multi-device & QR sync
