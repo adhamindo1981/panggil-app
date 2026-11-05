@@ -139,3 +139,23 @@ export function getCustomBrandingStyle(cafe: Cafe): React.CSSProperties {
     ['--brand-primary' as string]: cafe.custom_branding.primary_color,
   };
 }
+
+/**
+ * Resolves the canonical base URL for generating customer links and QR codes
+ * Ensures that if accessed via an ephemeral or outdated Vercel preview branch,
+ * the generated QR code always points to the live production domain (https://panggil.adhamnur.site)
+ */
+export function getAppBaseUrl(): string {
+  if (typeof window === 'undefined') {
+    return 'https://panggil.adhamnur.site';
+  }
+  const origin = window.location.origin;
+  if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+    return origin;
+  }
+  if (origin.includes('panggil.adhamnur.site')) {
+    return origin;
+  }
+  // Fallback to canonical production URL to prevent stale preview deployment 404s
+  return 'https://panggil.adhamnur.site';
+}

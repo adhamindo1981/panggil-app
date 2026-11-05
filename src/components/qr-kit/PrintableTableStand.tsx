@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Cafe } from '@/types/database';
-import { getPlanFeatures } from '@/lib/feature-gates';
+import { getPlanFeatures, getAppBaseUrl } from '@/lib/feature-gates';
 import { Printer, ArrowLeft, Download, Sparkles, QrCode, Smartphone, Bell, Coffee } from 'lucide-react';
 import Link from 'next/link';
 
@@ -19,9 +19,8 @@ export function PrintableTableStand({ cafe }: PrintableTableStandProps) {
   // For Silver/Gold: link points to full interactive digital menu (/menu)
   const targetPath = features.canUseMenu ? 'menu' : 'pager';
 
-  const targetUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/c/${cafe.slug}/${targetPath}`
-    : `https://panggil.adhamnur.site/c/${cafe.slug}/${targetPath}`;
+  const baseUrl = getAppBaseUrl();
+  const targetUrl = `${baseUrl}/c/${cafe.slug}/${targetPath}`;
 
   useEffect(() => {
     QRCode.toDataURL(targetUrl, {

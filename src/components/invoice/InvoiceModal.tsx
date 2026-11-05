@@ -5,6 +5,7 @@ import { Order, Cafe } from '@/types/database';
 import { useI18n } from '@/lib/i18n/context';
 import { PrintableReceipt } from './PrintableReceipt';
 import { X, Printer, Download, FileText } from 'lucide-react';
+import { getAppBaseUrl } from '@/lib/feature-gates';
 
 interface InvoiceModalProps {
   isOpen: boolean;
@@ -19,9 +20,8 @@ export function InvoiceModal({ isOpen, onClose, order, cafe }: InvoiceModalProps
 
   if (!isOpen || !order) return null;
 
-  const pagerUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/c/${cafe.slug}/pager/${order.id}?num=${encodeURIComponent(order.order_number)}&name=${encodeURIComponent(order.customer_name || '')}`
-    : `/c/${cafe.slug}/pager/${order.id}?num=${encodeURIComponent(order.order_number)}&name=${encodeURIComponent(order.customer_name || '')}`;
+  const baseUrl = getAppBaseUrl();
+  const pagerUrl = `${baseUrl}/c/${cafe.slug}/pager/${order.id}?num=${encodeURIComponent(order.order_number)}&name=${encodeURIComponent(order.customer_name || '')}`;
 
   const handlePrint = () => {
     window.print();

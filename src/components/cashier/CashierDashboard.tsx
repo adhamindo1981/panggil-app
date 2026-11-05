@@ -9,7 +9,7 @@ import { audioEngine } from '@/lib/audio-engine';
 import { InvoiceModal } from '../invoice/InvoiceModal';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { CashierPinLock } from './CashierPinLock';
-import { getPlanFeatures, TIERS_META } from '@/lib/feature-gates';
+import { getPlanFeatures, TIERS_META, getAppBaseUrl } from '@/lib/feature-gates';
 import {
   BellRing,
   PlusCircle,
@@ -117,7 +117,8 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
   // Generate QR code for modal when order is selected
   useEffect(() => {
     if (selectedOrderForQr) {
-      const url = `${window.location.origin}/c/${cafe.slug}/pager/${selectedOrderForQr.id}?num=${encodeURIComponent(selectedOrderForQr.order_number)}&name=${encodeURIComponent(selectedOrderForQr.customer_name || '')}`;
+      const baseUrl = getAppBaseUrl();
+      const url = `${baseUrl}/c/${cafe.slug}/pager/${selectedOrderForQr.id}?num=${encodeURIComponent(selectedOrderForQr.order_number)}&name=${encodeURIComponent(selectedOrderForQr.customer_name || '')}`;
       QRCode.toDataURL(url, {
         width: 280,
         margin: 1.5,
@@ -207,7 +208,8 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
     .reduce((acc, curr) => acc + (curr.total_amount || 0), 0);
 
   const copyCustomerLink = (order: Order) => {
-    const url = `${window.location.origin}/c/${cafe.slug}/pager/${order.id}?num=${encodeURIComponent(order.order_number)}&name=${encodeURIComponent(order.customer_name || '')}`;
+    const baseUrl = getAppBaseUrl();
+    const url = `${baseUrl}/c/${cafe.slug}/pager/${order.id}?num=${encodeURIComponent(order.order_number)}&name=${encodeURIComponent(order.customer_name || '')}`;
     navigator.clipboard.writeText(url);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
