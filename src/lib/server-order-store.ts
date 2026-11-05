@@ -1,12 +1,12 @@
 import { Order, OrderStatus, CreateOrderPayload } from '@/types/database';
-import { INITIAL_CAFES } from './data-layer';
+import { readServerJson, writeServerJson } from './server-storage-utils';
 
-// In-Memory Global Server Store for Multi-Device Cross-Network Synchronization
-// Survives across API routes and serves all connected devices (Cashier PC & Customer Phone)
 declare global {
   // eslint-disable-next-line no-var
   var __GLOBAL_PANGGIL_ORDERS__: Order[] | undefined;
 }
+
+const ORDERS_FILE = 'orders.json';
 
 const SEED_ORDERS: Order[] = [
   {
@@ -46,45 +46,51 @@ const SEED_ORDERS: Order[] = [
         price: 35000,
         quantity: 1,
       },
-      {
-        id: '20000000-0000-0000-0000-000000000008',
-        name_id: 'Kentang Goreng Truffle & Keju',
-        name_ar: 'بطاطس مقلية بالكمأة والجبن',
-        name_en: 'Truffle Parmesan Fries',
-        price: 24000,
-        quantity: 1,
-      },
     ],
     created_at: new Date(Date.now() - 12 * 60000).toISOString(),
     ready_at: new Date(Date.now() - 1 * 60000).toISOString(),
   },
-  {
-    id: '30000000-0000-0000-0000-000000000003',
-    cafe_id: '00000000-0000-0000-0000-000000000002',
-    order_number: '#E-201',
-    customer_name: 'فهد الشمري / Fahad',
-    customer_phone: '+966501234567',
-    status: 'pending',
-    total_amount: 0,
-    items: [],
-    created_at: new Date(Date.now() - 3 * 60000).toISOString(),
-  },
 ];
 
-if (!global.__GLOBAL_PANGGIL_ORDERS__) {
-  global.__GLOBAL_PANGGIL_ORDERS__ = [...SEED_ORDERS];
+function loadOrders(): Order[] {
+  const disk = readServerJson<Order[]>(ORDERS_FILE, []);
+  if (Array.isArray(disk) && disk.length > 0) {
+    return disk;
+  }
+  writeServerJson(ORDERS_FILE, SEED_ORDERS);
+  return [...SEED_ORDERS];
+}
+
+if (!global.__GLOBAL_PANGGIL_ORDERS__ || global.__GLOBAL_PANGGIL_ORDERS__.length === 0) {
+  global.__GLOBAL_PANGGIL_ORDERS__ = loadOrders();
+}
+
+/**
+ * Normalizes cafe identifiers for bulletproof cross-device matching
+ * (e.g., 'cafe-ubk', 'ubk', and 'UBK' all map to the same base slug)
+ */
+function isCafeMatch(orderCafeId: string, targetCafeId: string): boolean {
+  if (!orderCafeId || !targetCafeId) return false;
+  if (orderCafeId === targetCafeId) return true;
+
+  const cleanOrder = orderCafeId.replace(/^cafe-/, '').trim().toLowerCase();
+  const cleanTarget = targetCafeId.replace(/^cafe-/, '').trim().toLowerCase();
+  return cleanOrder === cleanTarget;
 }
 
 export function getServerOrders(cafeId?: string): Order[] {
-  const all = global.__GLOBAL_PANGGIL_ORDERS__ || SEED_ORDERS;
+  if (!global.__GLOBAL_PANGGIL_ORDERS__ || global.__GLOBAL_PANGGIL_ORDERS__.length === 0) {
+    global.__GLOBAL_PANGGIL_ORDERS__ = loadOrders();
+  }
+  const all = global.__GLOBAL_PANGGIL_ORDERS__;
   if (cafeId) {
-    return all.filter((o) => o.cafe_id === cafeId);
+    return all.filter((o) => isCafeMatch(o.cafe_id, cafeId));
   }
   return all;
 }
 
 export function getServerOrderById(orderId: string): Order | null {
-  const all = global.__GLOBAL_PANGGIL_ORDERS__ || SEED_ORDERS;
+  const all = getServerOrders();
   return all.find((o) => o.id === orderId) || null;
 }
 
@@ -105,10 +111,12 @@ export function createServerOrder(payload: CreateOrderPayload): Order {
     created_at: new Date().toISOString(),
   };
 
-  if (!global.__GLOBAL_PANGGIL_ORDERS__) {
-    global.__GLOBAL_PANGGIL_ORDERS__ = [...SEED_ORDERS];
-  }
-  global.__GLOBAL_PANGGIL_ORDERS__ = [newOrder, ...global.__GLOBAL_PANGGIL_ORDERS__];
+  const all = getServerOrders();
+  // Avoid duplicate by id
+  const filtered = all.filter((o) => o.id !== newOrder.id);
+  const updated = [newOrder, ...filtered];
+  global.__GLOBAL_PANGGIL_ORDERS__ = updated;
+  writeServerJson(ORDERS_FILE, updated);
   return newOrder;
 }
 
@@ -117,14 +125,11 @@ export function updateServerOrderStatus(
   status: OrderStatus,
   options?: { buzzed?: boolean }
 ): Order | null {
-  if (!global.__GLOBAL_PANGGIL_ORDERS__) {
-    global.__GLOBAL_PANGGIL_ORDERS__ = [...SEED_ORDERS];
-  }
-
-  const idx = global.__GLOBAL_PANGGIL_ORDERS__.findIndex((o) => o.id === orderId);
+  const all = getServerOrders();
+  const idx = all.findIndex((o) => o.id === orderId);
   if (idx === -1) return null;
 
-  const current = global.__GLOBAL_PANGGIL_ORDERS__[idx];
+  const current = all[idx];
   const updated: Order = {
     ...current,
     status,
@@ -133,6 +138,8 @@ export function updateServerOrderStatus(
     buzzed_at: options?.buzzed ? Date.now() : current.buzzed_at,
   };
 
-  global.__GLOBAL_PANGGIL_ORDERS__[idx] = updated;
+  all[idx] = updated;
+  global.__GLOBAL_PANGGIL_ORDERS__ = [...all];
+  writeServerJson(ORDERS_FILE, all);
   return updated;
 }

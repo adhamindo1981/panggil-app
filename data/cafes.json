@@ -1,0 +1,28 @@
+[
+  {
+    "id": "cafe-ubk",
+    "name": "UBK Cafe",
+    "slug": "ubk",
+    "mode": "menu_pager",
+    "default_lang": "ar",
+    "subscription_tier": "gold",
+    "subscription_status": "active",
+    "cashier_pin": "1981",
+    "tax_rate": 10,
+    "currency_symbol": "ر.س",
+    "created_at": "2026-11-05T11:38:35.020Z"
+  },
+  {
+    "id": "cafe-ubkcaffe",
+    "name": "UBK Caffe",
+    "slug": "ubkcaffe",
+    "mode": "menu_pager",
+    "default_lang": "ar",
+    "subscription_tier": "gold",
+    "subscription_status": "active",
+    "cashier_pin": "1981",
+    "tax_rate": 10,
+    "currency_symbol": "ر.س",
+    "created_at": "2026-11-05T11:38:35.022Z"
+  }
+]

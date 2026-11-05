@@ -31,7 +31,9 @@ export async function POST(request: NextRequest) {
     const saved = saveServerCafe(body);
     return NextResponse.json({ success: true, cafe: saved }, { status: 201 });
   } catch (err) {
-    return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 });
+    const errorMsg = (err as Error)?.message || String(err);
+    console.error('Cafe save error:', err);
+    return NextResponse.json({ success: false, error: errorMsg }, { status: 400 });
   }
 }
 

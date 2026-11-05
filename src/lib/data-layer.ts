@@ -692,12 +692,30 @@ class PanggilDataService {
     }
 
     const cafes = this.getLocalCafes();
-    const index = cafes.findIndex((c) => c.id === id);
-    if (index === -1) return null;
+    let index = cafes.findIndex((c) => c.id === id);
+    if (index === -1 && updates.slug) {
+      index = cafes.findIndex((c) => c.slug.toLowerCase() === updates.slug?.toLowerCase());
+    }
 
-    const updatedCafe: Cafe = { ...cafes[index], ...updates };
-    cafes[index] = updatedCafe;
-    this.saveLocalCafes([...cafes]);
+    let updatedCafe: Cafe;
+    if (index >= 0) {
+      updatedCafe = { ...cafes[index], ...updates };
+      cafes[index] = updatedCafe;
+      this.saveLocalCafes([...cafes]);
+    } else {
+      updatedCafe = {
+        id,
+        name: updates.name || id,
+        slug: updates.slug || id,
+        mode: updates.mode || 'menu_pager',
+        default_lang: updates.default_lang || 'ar',
+        subscription_tier: updates.subscription_tier || 'gold',
+        subscription_status: updates.subscription_status || 'active',
+        cashier_pin: updates.cashier_pin || '1981',
+        ...updates,
+      };
+      this.saveLocalCafes([updatedCafe, ...cafes]);
+    }
 
     // Sync to server API in background
     if (typeof window !== 'undefined') {
@@ -1063,6 +1081,14 @@ class PanggilDataService {
   }
 
   public async getOrders(cafeId: string): Promise<Order[]> {
+    const isMatchingCafe = (orderCafeId: string) => {
+      if (!orderCafeId || !cafeId) return false;
+      if (orderCafeId === cafeId) return true;
+      const a = orderCafeId.replace(/^cafe-/, '').trim().toLowerCase();
+      const b = cafeId.replace(/^cafe-/, '').trim().toLowerCase();
+      return a === b;
+    };
+
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('orders')
@@ -1086,7 +1112,7 @@ class PanggilDataService {
         serverOrders.forEach((o) => map.set(o.id, o));
         cloudOrders.forEach((o) => map.set(o.id, o));
         localOrders.forEach((o) => {
-          if (o.cafe_id === cafeId) {
+          if (isMatchingCafe(o.cafe_id)) {
             map.set(o.id, o);
           }
         });
@@ -1098,7 +1124,7 @@ class PanggilDataService {
     }
 
     const local = this.getLocalOrders();
-    return local.filter((o) => o.cafe_id === cafeId);
+    return local.filter((o) => isMatchingCafe(o.cafe_id));
   }
 
   public async getOrderById(orderId: string): Promise<Order | null> {

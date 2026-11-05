@@ -1,0 +1,34 @@
+[
+  {
+    "id": "10000000-0000-0000-0000-000000000001",
+    "cafe_id": "00000000-0000-0000-0000-000000000001",
+    "name_id": "Kopi Signature",
+    "name_ar": "القهوة المختصة",
+    "name_en": "Signature Coffee",
+    "display_order": 1
+  },
+  {
+    "id": "10000000-0000-0000-0000-000000000002",
+    "cafe_id": "00000000-0000-0000-0000-000000000001",
+    "name_id": "Minuman Non-Kopi",
+    "name_ar": "المشروبات المنعشة",
+    "name_en": "Non-Coffee Drinks",
+    "display_order": 2
+  },
+  {
+    "id": "10000000-0000-0000-0000-000000000003",
+    "cafe_id": "00000000-0000-0000-0000-000000000001",
+    "name_id": "Makanan Berat",
+    "name_ar": "الوجبات الرئيسية",
+    "name_en": "Main Meals",
+    "display_order": 3
+  },
+  {
+    "id": "10000000-0000-0000-0000-000000000004",
+    "cafe_id": "00000000-0000-0000-0000-000000000001",
+    "name_id": "Camilan & Roti",
+    "name_ar": "الحلويات والمخبوزات",
+    "name_en": "Snacks & Pastries",
+    "display_order": 4
+  }
+]

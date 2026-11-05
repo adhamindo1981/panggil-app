@@ -15,6 +15,8 @@ export async function POST(request: NextRequest) {
     const newOrder = createServerOrder(body);
     return NextResponse.json({ success: true, order: newOrder }, { status: 201 });
   } catch (err) {
-    return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 });
+    const errorMsg = (err as Error)?.message || String(err);
+    console.error('Order creation error:', err);
+    return NextResponse.json({ success: false, error: errorMsg }, { status: 400 });
   }
 }

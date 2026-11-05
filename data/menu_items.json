@@ -1,0 +1,92 @@
+[
+  {
+    "id": "20000000-0000-0000-0000-000000000001",
+    "category_id": "10000000-0000-0000-0000-000000000001",
+    "name_id": "Es Kopi Susu Gula Aren",
+    "name_ar": "قهوة مثلجة بحليب وسكر النخيل",
+    "name_en": "Iced Palm Sugar Latte",
+    "price": 22000,
+    "image_url": "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=500&auto=format&fit=crop&q=80",
+    "is_available": true
+  },
+  {
+    "id": "20000000-0000-0000-0000-000000000002",
+    "category_id": "10000000-0000-0000-0000-000000000001",
+    "name_id": "Americano Double Shot",
+    "name_ar": "أمريكانو دبل شوت",
+    "name_en": "Double Shot Americano",
+    "price": 18000,
+    "image_url": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop&q=80",
+    "is_available": true
+  },
+  {
+    "id": "20000000-0000-0000-0000-000000000003",
+    "category_id": "10000000-0000-0000-0000-000000000001",
+    "name_id": "Spanish Latte Creamy",
+    "name_ar": "سبانش لاتيه كريمي",
+    "name_en": "Creamy Spanish Latte",
+    "price": 28000,
+    "image_url": "https://images.unsplash.com/photo-1541167760496-1628856ab772?w=500&auto=format&fit=crop&q=80",
+    "is_available": true
+  },
+  {
+    "id": "20000000-0000-0000-0000-000000000004",
+    "category_id": "10000000-0000-0000-0000-000000000002",
+    "name_id": "Matcha Latte Premium",
+    "name_ar": "ماتشا لاتيه فاخر",
+    "name_en": "Premium Matcha Latte",
+    "price": 26000,
+    "image_url": "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=500&auto=format&fit=crop&q=80",
+    "is_available": true
+  },
+  {
+    "id": "20000000-0000-0000-0000-000000000005",
+    "category_id": "10000000-0000-0000-0000-000000000002",
+    "name_id": "Signature Artisan Chocolate",
+    "name_ar": "شوكولاتة حرفية مميزة",
+    "name_en": "Artisan Dark Chocolate",
+    "price": 25000,
+    "image_url": "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?w=500&auto=format&fit=crop&q=80",
+    "is_available": true
+  },
+  {
+    "id": "20000000-0000-0000-0000-000000000006",
+    "category_id": "10000000-0000-0000-0000-000000000003",
+    "name_id": "Nasi Goreng Kampung Spesial",
+    "name_ar": "أرز مقلي إندونيسي خاص",
+    "name_en": "Special Kampung Fried Rice",
+    "price": 35000,
+    "image_url": "https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=500&auto=format&fit=crop&q=80",
+    "is_available": true
+  },
+  {
+    "id": "20000000-0000-0000-0000-000000000007",
+    "category_id": "10000000-0000-0000-0000-000000000003",
+    "name_id": "Crispy Chicken Mentai Rice",
+    "name_ar": "دجاج مقرمش بصلصة مينتاي",
+    "name_en": "Crispy Chicken Mentai",
+    "price": 38000,
+    "image_url": "https://images.unsplash.com/photo-1562967914-608f82629710?w=500&auto=format&fit=crop&q=80",
+    "is_available": true
+  },
+  {
+    "id": "20000000-0000-0000-0000-000000000008",
+    "category_id": "10000000-0000-0000-0000-000000000004",
+    "name_id": "Kentang Goreng Truffle & Keju",
+    "name_ar": "بطاطس مقلية بالكمأة والجبن",
+    "name_en": "Truffle Parmesan Fries",
+    "price": 24000,
+    "image_url": "https://images.unsplash.com/photo-1576107232684-1279f3908594?w=500&auto=format&fit=crop&q=80",
+    "is_available": true
+  },
+  {
+    "id": "20000000-0000-0000-0000-000000000009",
+    "category_id": "10000000-0000-0000-0000-000000000004",
+    "name_id": "Croissant Butter Perancis",
+    "name_ar": "كرواسون زبدة فرنسي طازج",
+    "name_en": "French Butter Croissant",
+    "price": 20000,
+    "image_url": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&auto=format&fit=crop&q=80",
+    "is_available": true
+  }
+]

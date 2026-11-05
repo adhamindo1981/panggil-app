@@ -1,0 +1,68 @@
+[
+  {
+    "id": "order-adham-869",
+    "cafe_id": "cafe-ubk",
+    "order_number": "#P-869",
+    "customer_name": "Adham",
+    "status": "pending",
+    "total_amount": 54450,
+    "items": [
+      {
+        "id": "item-1",
+        "name_id": "Signature Coffee",
+        "name_ar": "قهوة مميزة (Signature)",
+        "price": 25000,
+        "quantity": 1
+      },
+      {
+        "id": "item-2",
+        "name_id": "Fresh Croissant",
+        "name_ar": "كرواسون طازج",
+        "price": 20000,
+        "quantity": 1
+      }
+    ],
+    "created_at": "2026-11-05T11:41:21.049Z"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000001",
+    "cafe_id": "00000000-0000-0000-0000-000000000001",
+    "order_number": "#A-101",
+    "customer_name": "Budi Santoso / بودي",
+    "customer_phone": "+628129876543",
+    "status": "pending",
+    "total_amount": 44000,
+    "items": [
+      {
+        "id": "20000000-0000-0000-0000-000000000001",
+        "name_id": "Es Kopi Susu Gula Aren",
+        "name_ar": "قهوة مثلجة بحليب وسكر النخيل",
+        "name_en": "Iced Palm Sugar Latte",
+        "price": 22000,
+        "quantity": 2
+      }
+    ],
+    "created_at": "2026-11-05T11:35:13.370Z"
+  },
+  {
+    "id": "30000000-0000-0000-0000-000000000002",
+    "cafe_id": "00000000-0000-0000-0000-000000000001",
+    "order_number": "#A-102",
+    "customer_name": "Siti Rahma / سارة",
+    "customer_phone": "+628131122334",
+    "status": "ready",
+    "total_amount": 59000,
+    "items": [
+      {
+        "id": "20000000-0000-0000-0000-000000000006",
+        "name_id": "Nasi Goreng Kampung Spesial",
+        "name_ar": "أرز مقلي إندونيسي خاص",
+        "name_en": "Special Kampung Fried Rice",
+        "price": 35000,
+        "quantity": 1
+      }
+    ],
+    "created_at": "2026-11-05T11:27:13.373Z",
+    "ready_at": "2026-11-05T11:38:13.374Z"
+  }
+]

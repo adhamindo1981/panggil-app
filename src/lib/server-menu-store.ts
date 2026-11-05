@@ -1,7 +1,6 @@
-import fs from 'fs';
-import path from 'path';
 import { MenuCategory, MenuItem } from '@/types/database';
 import { INITIAL_CATEGORIES, INITIAL_MENU_ITEMS } from './data-layer';
+import { readServerJson, writeServerJson } from './server-storage-utils';
 
 declare global {
   // eslint-disable-next-line no-var
@@ -10,63 +9,38 @@ declare global {
   var __GLOBAL_PANGGIL_MENU_ITEMS__: MenuItem[] | undefined;
 }
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const CATEGORIES_FILE = path.join(DATA_DIR, 'menu_categories.json');
-const ITEMS_FILE = path.join(DATA_DIR, 'menu_items.json');
+const CATEGORIES_FILE = 'menu_categories.json';
+const ITEMS_FILE = 'menu_items.json';
 
-function ensureDataDir() {
-  try {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-  } catch (e) {}
+function isCafeMatch(catCafeId: string, targetCafeId: string): boolean {
+  if (!catCafeId || !targetCafeId) return false;
+  if (catCafeId === targetCafeId) return true;
+
+  const cleanCat = catCafeId.replace(/^cafe-/, '').trim().toLowerCase();
+  const cleanTarget = targetCafeId.replace(/^cafe-/, '').trim().toLowerCase();
+  return cleanCat === cleanTarget;
 }
 
-function loadCategoriesFromDisk(): MenuCategory[] {
-  try {
-    ensureDataDir();
-    if (fs.existsSync(CATEGORIES_FILE)) {
-      const content = fs.readFileSync(CATEGORIES_FILE, 'utf-8');
-      const parsed = JSON.parse(content) as MenuCategory[];
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
-  } catch (e) {}
+function loadCategories(): MenuCategory[] {
+  const disk = readServerJson<MenuCategory[]>(CATEGORIES_FILE, []);
+  if (Array.isArray(disk) && disk.length > 0) return disk;
+  writeServerJson(CATEGORIES_FILE, INITIAL_CATEGORIES);
   return [...INITIAL_CATEGORIES];
 }
 
-function saveCategoriesToDisk(categories: MenuCategory[]) {
-  try {
-    ensureDataDir();
-    fs.writeFileSync(CATEGORIES_FILE, JSON.stringify(categories, null, 2), 'utf-8');
-  } catch (e) {}
-}
-
-function loadItemsFromDisk(): MenuItem[] {
-  try {
-    ensureDataDir();
-    if (fs.existsSync(ITEMS_FILE)) {
-      const content = fs.readFileSync(ITEMS_FILE, 'utf-8');
-      const parsed = JSON.parse(content) as MenuItem[];
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
-  } catch (e) {}
+function loadItems(): MenuItem[] {
+  const disk = readServerJson<MenuItem[]>(ITEMS_FILE, []);
+  if (Array.isArray(disk) && disk.length > 0) return disk;
+  writeServerJson(ITEMS_FILE, INITIAL_MENU_ITEMS);
   return [...INITIAL_MENU_ITEMS];
 }
 
-function saveItemsToDisk(items: MenuItem[]) {
-  try {
-    ensureDataDir();
-    fs.writeFileSync(ITEMS_FILE, JSON.stringify(items, null, 2), 'utf-8');
-  } catch (e) {}
+if (!global.__GLOBAL_PANGGIL_CATEGORIES__ || global.__GLOBAL_PANGGIL_CATEGORIES__.length === 0) {
+  global.__GLOBAL_PANGGIL_CATEGORIES__ = loadCategories();
 }
 
-// Initialize server memory stores
-if (!global.__GLOBAL_PANGGIL_CATEGORIES__) {
-  global.__GLOBAL_PANGGIL_CATEGORIES__ = loadCategoriesFromDisk();
-}
-
-if (!global.__GLOBAL_PANGGIL_MENU_ITEMS__) {
-  global.__GLOBAL_PANGGIL_MENU_ITEMS__ = loadItemsFromDisk();
+if (!global.__GLOBAL_PANGGIL_MENU_ITEMS__ || global.__GLOBAL_PANGGIL_MENU_ITEMS__.length === 0) {
+  global.__GLOBAL_PANGGIL_MENU_ITEMS__ = loadItems();
 }
 
 /**
@@ -74,11 +48,11 @@ if (!global.__GLOBAL_PANGGIL_MENU_ITEMS__) {
  */
 export function getServerCategories(cafeId?: string): MenuCategory[] {
   if (!global.__GLOBAL_PANGGIL_CATEGORIES__ || global.__GLOBAL_PANGGIL_CATEGORIES__.length === 0) {
-    global.__GLOBAL_PANGGIL_CATEGORIES__ = loadCategoriesFromDisk();
+    global.__GLOBAL_PANGGIL_CATEGORIES__ = loadCategories();
   }
   const all = global.__GLOBAL_PANGGIL_CATEGORIES__;
   if (!cafeId) return all;
-  return all.filter((c) => c.cafe_id === cafeId).sort((a, b) => a.display_order - b.display_order);
+  return all.filter((c) => isCafeMatch(c.cafe_id, cafeId)).sort((a, b) => a.display_order - b.display_order);
 }
 
 /**
@@ -86,7 +60,7 @@ export function getServerCategories(cafeId?: string): MenuCategory[] {
  */
 export function getServerMenuItems(cafeId?: string): MenuItem[] {
   if (!global.__GLOBAL_PANGGIL_MENU_ITEMS__ || global.__GLOBAL_PANGGIL_MENU_ITEMS__.length === 0) {
-    global.__GLOBAL_PANGGIL_MENU_ITEMS__ = loadItemsFromDisk();
+    global.__GLOBAL_PANGGIL_MENU_ITEMS__ = loadItems();
   }
   const all = global.__GLOBAL_PANGGIL_MENU_ITEMS__;
   if (!cafeId) return all;
@@ -108,7 +82,7 @@ export function saveServerCategory(category: MenuCategory): MenuCategory {
     all.push(category);
   }
   global.__GLOBAL_PANGGIL_CATEGORIES__ = [...all];
-  saveCategoriesToDisk(all);
+  writeServerJson(CATEGORIES_FILE, all);
   return category;
 }
 
@@ -118,11 +92,11 @@ export function saveServerCategory(category: MenuCategory): MenuCategory {
 export function deleteServerCategory(catId: string): boolean {
   const all = getServerCategories().filter((c) => c.id !== catId);
   global.__GLOBAL_PANGGIL_CATEGORIES__ = all;
-  saveCategoriesToDisk(all);
+  writeServerJson(CATEGORIES_FILE, all);
 
   const items = getServerMenuItems().filter((i) => i.category_id !== catId);
   global.__GLOBAL_PANGGIL_MENU_ITEMS__ = items;
-  saveItemsToDisk(items);
+  writeServerJson(ITEMS_FILE, items);
   return true;
 }
 
@@ -138,7 +112,7 @@ export function saveServerMenuItem(item: MenuItem): MenuItem {
     all.push(item);
   }
   global.__GLOBAL_PANGGIL_MENU_ITEMS__ = [...all];
-  saveItemsToDisk(all);
+  writeServerJson(ITEMS_FILE, all);
   return item;
 }
 
@@ -153,7 +127,7 @@ export function updateServerMenuItem(itemId: string, updates: Partial<MenuItem>)
   const updated: MenuItem = { ...all[index], ...updates };
   all[index] = updated;
   global.__GLOBAL_PANGGIL_MENU_ITEMS__ = [...all];
-  saveItemsToDisk(all);
+  writeServerJson(ITEMS_FILE, all);
   return updated;
 }
 
@@ -163,7 +137,7 @@ export function updateServerMenuItem(itemId: string, updates: Partial<MenuItem>)
 export function deleteServerMenuItem(itemId: string): boolean {
   const all = getServerMenuItems().filter((i) => i.id !== itemId);
   global.__GLOBAL_PANGGIL_MENU_ITEMS__ = all;
-  saveItemsToDisk(all);
+  writeServerJson(ITEMS_FILE, all);
   return true;
 }
 
