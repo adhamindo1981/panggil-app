@@ -117,7 +117,7 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
   // Generate QR code for modal when order is selected
   useEffect(() => {
     if (selectedOrderForQr) {
-      const url = `${window.location.origin}/c/${cafe.slug}/pager/${selectedOrderForQr.id}`;
+      const url = `${window.location.origin}/c/${cafe.slug}/pager/${selectedOrderForQr.id}?num=${encodeURIComponent(selectedOrderForQr.order_number)}&name=${encodeURIComponent(selectedOrderForQr.customer_name || '')}`;
       QRCode.toDataURL(url, {
         width: 280,
         margin: 1.5,
@@ -176,8 +176,7 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
 
   // Buzz / Call Pager (Sends realtime siren signal to customer's mobile phone)
   const handleBuzzOrder = async (orderId: string) => {
-    // Subtle tactile click on cashier device (customer phone receives the loud siren)
-    audioEngine.playBeepPulse(750, 0.05, 'sine');
+    // Send immediate cloud relay buzz signal to customer's phone
     await dataService.buzzOrder(orderId);
     refreshOrders();
   };
@@ -208,7 +207,7 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
     .reduce((acc, curr) => acc + (curr.total_amount || 0), 0);
 
   const copyCustomerLink = (order: Order) => {
-    const url = `${window.location.origin}/c/${cafe.slug}/pager/${order.id}`;
+    const url = `${window.location.origin}/c/${cafe.slug}/pager/${order.id}?num=${encodeURIComponent(order.order_number)}&name=${encodeURIComponent(order.customer_name || '')}`;
     navigator.clipboard.writeText(url);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
@@ -759,7 +758,7 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
             {/* Quick Action Links */}
             <div className="flex flex-col gap-2.5">
               <Link
-                href={`/c/${cafe.slug}/pager/${selectedOrderForQr.id}`}
+                href={`/c/${cafe.slug}/pager/${selectedOrderForQr.id}?num=${encodeURIComponent(selectedOrderForQr.order_number)}&name=${encodeURIComponent(selectedOrderForQr.customer_name || '')}`}
                 target="_blank"
                 className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-zinc-950 font-black text-xs rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-98 shadow-lg shadow-amber-500/20"
               >

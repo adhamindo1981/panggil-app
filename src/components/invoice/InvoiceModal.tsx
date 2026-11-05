@@ -20,8 +20,8 @@ export function InvoiceModal({ isOpen, onClose, order, cafe }: InvoiceModalProps
   if (!isOpen || !order) return null;
 
   const pagerUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/c/${cafe.slug}/pager/${order.id}`
-    : `/c/${cafe.slug}/pager/${order.id}`;
+    ? `${window.location.origin}/c/${cafe.slug}/pager/${order.id}?num=${encodeURIComponent(order.order_number)}&name=${encodeURIComponent(order.customer_name || '')}`
+    : `/c/${cafe.slug}/pager/${order.id}?num=${encodeURIComponent(order.order_number)}&name=${encodeURIComponent(order.customer_name || '')}`;
 
   const handlePrint = () => {
     window.print();

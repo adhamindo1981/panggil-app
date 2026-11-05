@@ -75,9 +75,15 @@ export function OrderLookupView({ cafe, recentOrders = [] }: OrderLookupViewProp
       );
 
       if (matched) {
-        router.push(`/c/${cafe.slug}/pager/${matched.id}`);
+        router.push(
+          `/c/${cafe.slug}/pager/${matched.id}?num=${encodeURIComponent(matched.order_number)}&name=${encodeURIComponent(matched.customer_name || '')}`
+        );
       } else {
-        setErrorMessage(text.notFound[lang]);
+        // Direct fallback: Route to ticket channel so customer is connected immediately even if offline or remote
+        const cleanNum = query.replace(/[^A-Za-z0-9_-]/g, '').toLowerCase();
+        router.push(
+          `/c/${cafe.slug}/pager/ticket-${cleanNum}?num=${encodeURIComponent(query)}`
+        );
       }
     } catch (err) {
       setErrorMessage(text.notFound[lang]);

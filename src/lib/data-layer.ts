@@ -15,6 +15,7 @@ import {
 } from '@/types/database';
 import { supabase, isSupabaseConfigured } from './supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { cloudRelay } from './cloud-relay';
 
 // Initial Mock Cafes
 export const INITIAL_CAFES: Cafe[] = [
@@ -457,6 +458,14 @@ class PanggilDataService {
       } catch {}
     }
 
+    // Publish to Universal Cloud Relay for instant multi-device recognition
+    cloudRelay.publish(newOrder.id, {
+      type: 'ORDER_CREATED',
+      orderId: newOrder.id,
+      orderNumber: newOrder.order_number,
+      status: newOrder.status,
+    });
+
     const localOrders = this.getLocalOrders();
     const updated = [newOrder, ...localOrders];
     this.saveLocalOrders(updated);
@@ -480,6 +489,13 @@ class PanggilDataService {
         }).catch(() => {});
       } catch {}
     }
+
+    // 2. Publish to Universal Cloud Relay (Cross-Device: Cashier PC -> Customer Phone)
+    cloudRelay.publish(orderId, {
+      type: 'STATUS_CHANGED',
+      orderId,
+      status,
+    });
 
     if (isSupabaseConfigured && supabase) {
       const updateData: Partial<Order> = { status };
@@ -524,6 +540,14 @@ class PanggilDataService {
         fetch(`/api/orders/${orderId}/buzz`, { method: 'POST' }).catch(() => {});
       } catch {}
     }
+
+    // Publish high-priority buzz event to Universal Cloud Relay (<100ms delivery to Customer Phone)
+    cloudRelay.publish(orderId, {
+      type: 'ORDER_BUZZED',
+      orderId,
+      status: 'ready',
+      buzzedAt: Date.now(),
+    });
 
     // Send immediate buzz event for connected client listeners
     if (broadcastChannel) {
@@ -645,7 +669,34 @@ class PanggilDataService {
     broadcastChannel?.addEventListener('message', handleBroadcast);
     window.addEventListener('panggil_local_order_updated', handleLocalEvent);
 
-    // 4. Ultra-Fast Sub-Second Mobile Server Polling (every 600ms) to sync PC cashier buzz to phone instantly
+    // 4. Universal Cloud Realtime Relay (Direct SSE Stream from Cashier PC with <100ms latency)
+    const unsubCloudRelay = cloudRelay.subscribe(orderId, (msg) => {
+      const isBuzz = msg.type === 'ORDER_BUZZED' || msg.status === 'ready';
+      const buzzedTime = msg.buzzedAt || (isBuzz ? Date.now() : undefined);
+      lastKnownStatus = msg.status;
+      if (buzzedTime) lastKnownBuzzedAt = buzzedTime;
+
+      this.getOrderById(orderId).then((ord) => {
+        const fallback: Order = ord || {
+          id: orderId,
+          cafe_id: '',
+          order_number: msg.orderNumber || `#${orderId.slice(0, 5)}`,
+          customer_name: 'Pelanggan / عميل',
+          customer_phone: '',
+          status: msg.status,
+          total_amount: 0,
+          items: [],
+          created_at: new Date().toISOString(),
+          buzzed_at: buzzedTime,
+        };
+        onUpdate(
+          { ...fallback, status: msg.status, buzzed_at: buzzedTime },
+          isBuzz
+        );
+      });
+    });
+
+    // 5. Ultra-Fast Sub-Second Mobile Server Polling (every 600ms) to sync PC cashier buzz to phone instantly
     const pollInterval = setInterval(async () => {
       try {
         const res = await fetch(`/api/orders/${orderId}`);
@@ -667,6 +718,7 @@ class PanggilDataService {
     }, 600);
 
     return () => {
+      unsubCloudRelay();
       clearInterval(pollInterval);
       supabaseChannel?.unsubscribe();
       broadcastChannel?.removeEventListener('message', handleBroadcast);
