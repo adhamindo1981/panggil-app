@@ -32,6 +32,7 @@ import { TIERS_META } from '@/lib/feature-gates';
 
 export default function HomePage() {
   const { t, lang, isRtl } = useI18n();
+  const [billingCycle, setBillingCycle] = React.useState<'monthly' | 'annual'>('monthly');
 
   return (
     <div className="min-h-screen bg-[#070a13] text-zinc-100 flex flex-col justify-between selection:bg-amber-500 selection:text-zinc-950 font-sans">
@@ -218,26 +219,52 @@ export default function HomePage() {
         </div>
 
         {/* ========================================================= */}
-        {/* 4-TIER SUBSCRIPTION & PRICING PLANS */}
+        {/* 4-TIER SUBSCRIPTION & PRICING PLANS (IDR Focused) */}
         {/* ========================================================= */}
         <section className="space-y-8 pt-6">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
+          <div className="text-center max-w-2xl mx-auto space-y-4">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
               <Crown className="w-3.5 h-3.5" />
               <span>
                 {lang === 'ar' ? 'باقات الاشتراك والترقية' : lang === 'id' ? 'Paket Langganan & Fitur' : 'Subscription Plans & Tiers'}
               </span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-black text-white">
-              {lang === 'ar' ? 'اختر الخطة المناسبة لحجم ونشاط مقهاك' : lang === 'id' ? 'Pilih Paket Terbaik untuk Kafe Anda' : 'Choose the Perfect Plan for Your Business'}
+              {lang === 'ar' ? 'اختر الخطة المناسبة لحجم ونشاط مقهاك أو مكتبك' : lang === 'id' ? 'Pilih Paket Terbaik untuk Kafe & Kantor Layanan' : 'Choose the Perfect Plan for Your Business'}
             </h2>
             <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
               {lang === 'ar'
-                ? 'نظام مرن يتدرج من التنبيه البسيط عبر البيجر وحتى الهوية البصرية المخصصة الكاملة بدون عمولات على الطلبات.'
+                ? 'نظام مرن يلبي احتياجات المقاهي والمطاعم ومكاتب خدمة المراجعين (Queue Management) بدون أي عمولات على المبيعات.'
                 : lang === 'id'
-                ? 'Mulai dari sistem bel pager esensial hingga kustomisasi brand penuh tanpa komisi per transaksi.'
-                : 'From essential digital buzzer alerts to enterprise custom brand identity with zero transaction fees.'}
+                ? 'Solusi fleksibel untuk kafe, resto, hingga loket pelayanan kantor. Tanpa perangkat mahal dan tanpa komisi.'
+                : 'Flexible solution for cafes, restaurants, and service office queue counters. Zero commissions and zero hardware.'}
             </p>
+
+            {/* Monthly / Annual Billing Toggle */}
+            <div className="pt-2 flex items-center justify-center gap-3">
+              <span className={`text-xs font-bold ${billingCycle === 'monthly' ? 'text-amber-400 font-black' : 'text-zinc-400'}`}>
+                {lang === 'ar' ? 'شهري' : lang === 'id' ? 'Bulanan' : 'Monthly'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'annual' : 'monthly')}
+                className="w-14 h-7 bg-zinc-800 rounded-full p-1 transition-colors border border-zinc-700 relative focus:outline-none"
+              >
+                <div
+                  className={`w-5 h-5 rounded-full bg-amber-500 shadow-md transform transition-transform ${
+                    billingCycle === 'annual' ? 'translate-x-7' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+              <div className="flex items-center gap-1.5">
+                <span className={`text-xs font-bold ${billingCycle === 'annual' ? 'text-amber-400 font-black' : 'text-zinc-400'}`}>
+                  {lang === 'ar' ? 'سنوي' : lang === 'id' ? 'Tahunan' : 'Annual'}
+                </span>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  {lang === 'ar' ? 'وفر شهرين مجاناً' : lang === 'id' ? 'Hemat 2 Bulan' : '2 Months Free'}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* 4 Cards Grid */}
@@ -255,11 +282,13 @@ export default function HomePage() {
                 </div>
                 <div className="mb-4">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-black font-mono text-white">
-                      {lang === 'ar' ? '49 ر.س' : lang === 'id' ? 'Rp 199rb' : '$14'}
+                    <span className="text-2xl sm:text-3xl font-black font-mono text-white">
+                      {billingCycle === 'annual'
+                        ? (lang === 'id' ? 'Rp 990.000' : lang === 'ar' ? '250 ر.س' : '$70')
+                        : (lang === 'id' ? 'Rp 99.000' : lang === 'ar' ? '25 ر.س' : '$7')}
                     </span>
                     <span className="text-xs text-zinc-400">
-                      /{lang === 'ar' ? 'شهرياً' : lang === 'id' ? 'bln' : 'mo'}
+                      /{billingCycle === 'annual' ? (lang === 'ar' ? 'سنوياً' : lang === 'id' ? 'thn' : 'yr') : (lang === 'ar' ? 'شهرياً' : lang === 'id' ? 'bln' : 'mo')}
                     </span>
                   </div>
                   <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">
@@ -270,27 +299,27 @@ export default function HomePage() {
                 <div className="space-y-2.5 pt-4 border-t border-zinc-800/80 text-xs">
                   <div className="flex items-center gap-2 text-zinc-200">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>{lang === 'ar' ? 'بيجر رقمي واهتزاز الهاتف' : lang === 'id' ? 'Pager suara & getar digital' : 'Digital pager & vibration alert'}</span>
+                    <span>{lang === 'ar' ? 'صفارة بيجر واهتزاز ونطق صوتي' : lang === 'id' ? 'Alarm pager, getar & suara panggil' : 'Pager siren, vibration & voice call'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-zinc-200">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>{lang === 'ar' ? 'قفل الشاشة وإبقاء الهاتف يقظاً' : lang === 'id' ? 'Screen Wake Lock aktif' : 'Screen Wake Lock & Keep-Alive'}</span>
+                    <span>{lang === 'ar' ? 'إبقاء شاشة الهاتف يقظة (Wake Lock)' : lang === 'id' ? 'Layar HP selalu aktif (Wake Lock)' : 'Screen Wake Lock & Keep-Alive'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-zinc-200">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>{lang === 'ar' ? 'لوحة كاشير وقفل PIN' : lang === 'id' ? 'Dashboard kasir + PIN' : 'Cashier Dashboard + PIN lock'}</span>
+                    <span>{lang === 'ar' ? 'لوحة كاشير/مكتب خدمة + قفل PIN' : lang === 'id' ? 'Dashboard kasir/loket + PIN lock' : 'Cashier/service desk + PIN lock'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-zinc-600 line-through">
                     <X className="w-4 h-4 text-zinc-600 shrink-0" />
-                    <span>{lang === 'ar' ? 'تقييم Google Maps التلقائي' : lang === 'id' ? 'Ulasan Google Maps' : 'Google Review conversion'}</span>
+                    <span>{lang === 'ar' ? 'تقييم Google Maps التلقائي' : lang === 'id' ? 'Ulasan bintang 5 Google Maps' : 'Google Review conversion'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-zinc-600 line-through">
                     <X className="w-4 h-4 text-zinc-600 shrink-0" />
-                    <span>{lang === 'ar' ? 'المنيو الإلكتروني التفاعلي' : lang === 'id' ? 'Menu digital online' : 'Interactive Digital Menu'}</span>
+                    <span>{lang === 'ar' ? 'المنيو الإلكتروني التفاعلي' : lang === 'id' ? 'Menu digital interaktif' : 'Interactive Digital Menu'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-zinc-600 line-through">
                     <X className="w-4 h-4 text-zinc-600 shrink-0" />
-                    <span>{lang === 'ar' ? 'هوية بصرية مخصصة' : lang === 'id' ? 'Custom branding logo' : 'Custom branding logo'}</span>
+                    <span>{lang === 'ar' ? 'هوية بصرية مخصصة' : lang === 'id' ? 'Custom branding & logo kafe' : 'Custom branding & logo'}</span>
                   </div>
                 </div>
               </div>
@@ -316,11 +345,13 @@ export default function HomePage() {
                 </div>
                 <div className="mb-4">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-black font-mono text-white">
-                      {lang === 'ar' ? '99 ر.س' : lang === 'id' ? 'Rp 399rb' : '$27'}
+                    <span className="text-2xl sm:text-3xl font-black font-mono text-white">
+                      {billingCycle === 'annual'
+                        ? (lang === 'id' ? 'Rp 1.490.000' : lang === 'ar' ? '390 ر.س' : '$100')
+                        : (lang === 'id' ? 'Rp 149.000' : lang === 'ar' ? '39 ر.س' : '$10')}
                     </span>
                     <span className="text-xs text-zinc-400">
-                      /{lang === 'ar' ? 'شهرياً' : lang === 'id' ? 'bln' : 'mo'}
+                      /{billingCycle === 'annual' ? (lang === 'ar' ? 'سنوياً' : lang === 'id' ? 'thn' : 'yr') : (lang === 'ar' ? 'شهرياً' : lang === 'id' ? 'bln' : 'mo')}
                     </span>
                   </div>
                   <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">
@@ -331,23 +362,23 @@ export default function HomePage() {
                 <div className="space-y-2.5 pt-4 border-t border-zinc-800/80 text-xs">
                   <div className="flex items-center gap-2 text-zinc-200">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>{lang === 'ar' ? 'كافة ميزات باقة Basic' : lang === 'id' ? 'Semua fitur Basic' : 'All Basic features included'}</span>
+                    <span>{lang === 'ar' ? 'كافة ميزات باقة Basic' : lang === 'id' ? 'Semua fitur paket Basic' : 'All Basic features included'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-amber-300 font-bold">
                     <Check className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>{lang === 'ar' ? 'تحويل الزبائن لتقييم 5 نجوم Google' : lang === 'id' ? 'Konversi review Google Maps' : 'Google Maps 5-Star Reviews'}</span>
+                    <span>{lang === 'ar' ? 'تحويل الزبائن لتقييم 5 نجوم Google' : lang === 'id' ? 'Modal ulasan Google Maps 5 bintang' : 'Google Maps 5-Star Reviews'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-zinc-200">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>{lang === 'ar' ? 'مولد بطاقات الطاولات A6' : lang === 'id' ? 'Kit cetak akrilik A6' : 'Printable A6 table stand'}</span>
+                    <span>{lang === 'ar' ? 'مولد بطاقات الطاولات A6' : lang === 'id' ? 'Kit cetak stand akrilik A6' : 'Printable A6 table stand'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-zinc-600 line-through">
                     <X className="w-4 h-4 text-zinc-600 shrink-0" />
-                    <span>{lang === 'ar' ? 'المنيو الإلكتروني التفاعلي' : lang === 'id' ? 'Menu digital online' : 'Interactive Digital Menu'}</span>
+                    <span>{lang === 'ar' ? 'المنيو الإلكتروني التفاعلي' : lang === 'id' ? 'Menu digital interaktif' : 'Interactive Digital Menu'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-zinc-600 line-through">
                     <X className="w-4 h-4 text-zinc-600 shrink-0" />
-                    <span>{lang === 'ar' ? 'هوية بصرية مخصصة' : lang === 'id' ? 'Custom branding logo' : 'Custom branding logo'}</span>
+                    <span>{lang === 'ar' ? 'هوية بصرية مخصصة' : lang === 'id' ? 'Custom branding & logo kafe' : 'Custom branding & logo'}</span>
                   </div>
                 </div>
               </div>
@@ -377,11 +408,13 @@ export default function HomePage() {
                 </div>
                 <div className="mb-4">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-black font-mono text-white">
-                      {lang === 'ar' ? '179 ر.س' : lang === 'id' ? 'Rp 749rb' : '$49'}
+                    <span className="text-2xl sm:text-3xl font-black font-mono text-white">
+                      {billingCycle === 'annual'
+                        ? (lang === 'id' ? 'Rp 1.990.000' : lang === 'ar' ? '500 ر.س' : '$140')
+                        : (lang === 'id' ? 'Rp 199.000' : lang === 'ar' ? '50 ر.س' : '$14')}
                     </span>
                     <span className="text-xs text-zinc-400">
-                      /{lang === 'ar' ? 'شهرياً' : lang === 'id' ? 'bln' : 'mo'}
+                      /{billingCycle === 'annual' ? (lang === 'ar' ? 'سنوياً' : lang === 'id' ? 'thn' : 'yr') : (lang === 'ar' ? 'شهرياً' : lang === 'id' ? 'bln' : 'mo')}
                     </span>
                   </div>
                   <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">
@@ -400,7 +433,7 @@ export default function HomePage() {
                   </div>
                   <div className="flex items-center gap-2 text-cyan-300 font-bold">
                     <Check className="w-4 h-4 text-cyan-400 shrink-0" />
-                    <span>{lang === 'ar' ? 'فواتير حرارية وإرسال WhatsApp' : lang === 'id' ? 'Struk thermal & kirim WhatsApp' : 'Thermal receipts & WhatsApp send'}</span>
+                    <span>{lang === 'ar' ? 'طباعة وحفظ فواتير PDF فورية' : lang === 'id' ? 'Struk thermal & unduh PDF instan' : 'Thermal receipt & instant PDF invoice'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-zinc-200">
                     <Check className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -408,7 +441,7 @@ export default function HomePage() {
                   </div>
                   <div className="flex items-center gap-2 text-zinc-600 line-through">
                     <X className="w-4 h-4 text-zinc-600 shrink-0" />
-                    <span>{lang === 'ar' ? 'هوية بصرية مخصصة' : lang === 'id' ? 'Custom branding logo' : 'Custom branding logo'}</span>
+                    <span>{lang === 'ar' ? 'هوية بصرية مخصصة' : lang === 'id' ? 'Custom branding & logo kafe' : 'Custom branding & logo'}</span>
                   </div>
                 </div>
               </div>
@@ -434,11 +467,13 @@ export default function HomePage() {
                 </div>
                 <div className="mb-4">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-black font-mono text-white">
-                      {lang === 'ar' ? '299 ر.س' : lang === 'id' ? 'Rp 1.249rb' : '$79'}
+                    <span className="text-2xl sm:text-3xl font-black font-mono text-white">
+                      {billingCycle === 'annual'
+                        ? (lang === 'id' ? 'Rp 2.490.000' : lang === 'ar' ? '650 ر.س' : '$180')
+                        : (lang === 'id' ? 'Rp 249.000' : lang === 'ar' ? '65 ر.س' : '$18')}
                     </span>
                     <span className="text-xs text-zinc-400">
-                      /{lang === 'ar' ? 'شهرياً' : lang === 'id' ? 'bln' : 'mo'}
+                      /{billingCycle === 'annual' ? (lang === 'ar' ? 'سنوياً' : lang === 'id' ? 'thn' : 'yr') : (lang === 'ar' ? 'شهرياً' : lang === 'id' ? 'bln' : 'mo')}
                     </span>
                   </div>
                   <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">
@@ -449,7 +484,7 @@ export default function HomePage() {
                 <div className="space-y-2.5 pt-4 border-t border-zinc-800/80 text-xs">
                   <div className="flex items-center gap-2 text-yellow-300 font-bold">
                     <Check className="w-4 h-4 text-yellow-400 shrink-0" />
-                    <span>{lang === 'ar' ? 'كامل ميزات النظام بدون قيود' : lang === 'id' ? 'Semua fitur tanpa batasan' : 'Full complete feature access'}</span>
+                    <span>{lang === 'ar' ? 'كامل ميزات النظام بدون قيود' : lang === 'id' ? 'Semua fitur lengkap tanpa batas' : 'Full complete feature access'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-yellow-300 font-bold">
                     <Check className="w-4 h-4 text-yellow-400 shrink-0" />

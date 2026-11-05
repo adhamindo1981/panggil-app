@@ -50,7 +50,8 @@ export interface TierMeta {
   badgeColor: string;
   borderColor: string;
   tagline: { ar: string; id: string; en: string };
-  priceMonthly: { sar: number; idr: number; usd: number };
+  priceMonthly: { idr: number; sar: number; usd: number };
+  priceAnnual: { idr: number; sar: number; usd: number };
   popular?: boolean;
 }
 
@@ -59,17 +60,18 @@ export const TIERS_META: Record<SubscriptionTier, TierMeta> = {
     tier: 'basic',
     name: {
       ar: 'الباقة الأساسية',
-      id: 'Paket Dasar',
+      id: 'Paket Basic',
       en: 'Basic Tier',
     },
     badgeColor: 'bg-zinc-800 text-zinc-300 border-zinc-700',
     borderColor: 'border-zinc-800',
     tagline: {
       ar: 'بيجر رقمي فوري لتنبيه الزبائن بدون أجهزة',
-      id: 'Pager digital instan tanpa perangkat keras',
+      id: 'Sistem bel coaster pager digital tanpa perangkat keras',
       en: 'Instant zero-hardware coaster pager alert',
     },
-    priceMonthly: { sar: 49, idr: 199000, usd: 14 },
+    priceMonthly: { idr: 99000, sar: 25, usd: 7 },
+    priceAnnual: { idr: 990000, sar: 250, usd: 70 },
   },
   bronze: {
     tier: 'bronze',
@@ -82,10 +84,11 @@ export const TIERS_META: Record<SubscriptionTier, TierMeta> = {
     borderColor: 'border-amber-900/50',
     tagline: {
       ar: 'بيجر رقمي + تحويل الزبائن لتقييم 5 نجوم في خرائط Google',
-      id: 'Pager digital + konversi ulasan bintang 5 Google Maps',
+      id: 'Pager digital + konversi otomatis ulasan bintang 5 Google Maps',
       en: 'Digital pager + 5-star Google Maps review conversion',
     },
-    priceMonthly: { sar: 99, idr: 399000, usd: 27 },
+    priceMonthly: { idr: 149000, sar: 39, usd: 10 },
+    priceAnnual: { idr: 1490000, sar: 390, usd: 100 },
   },
   silver: {
     tier: 'silver',
@@ -98,11 +101,12 @@ export const TIERS_META: Record<SubscriptionTier, TierMeta> = {
     borderColor: 'border-cyan-800/50',
     popular: true,
     tagline: {
-      ar: 'بيجر + تقييم Google + منيو إلكتروني تفاعلي وفواتير WhatsApp/PDF',
-      id: 'Pager + ulasan Google + menu digital interaktif & struk WhatsApp',
-      en: 'Pager + Google reviews + digital menu & digital invoices',
+      ar: 'بيجر + تقييم Google + منيو إلكتروني تفاعلي وفواتير PDF',
+      id: 'Pager + ulasan Google + menu digital lengkap & struk cetak PDF',
+      en: 'Pager + Google reviews + digital menu & PDF invoices',
     },
-    priceMonthly: { sar: 179, idr: 749000, usd: 49 },
+    priceMonthly: { idr: 199000, sar: 50, usd: 14 },
+    priceAnnual: { idr: 1990000, sar: 500, usd: 140 },
   },
   gold: {
     tier: 'gold',
@@ -115,10 +119,11 @@ export const TIERS_META: Record<SubscriptionTier, TierMeta> = {
     borderColor: 'border-yellow-500/50',
     tagline: {
       ar: 'كامل الميزات + هوية بصرية مخصصة بشعار المقهى وألوان علامتك التجارية',
-      id: 'Akses penuh + identitas visual custom logo cafe & warna brand',
+      id: 'Akses penuh + custom logo kafe, warna brand & struk eksklusif',
       en: 'Full suite + custom brand logo, primary colors & white-label',
     },
-    priceMonthly: { sar: 299, idr: 1249000, usd: 79 },
+    priceMonthly: { idr: 249000, sar: 65, usd: 18 },
+    priceAnnual: { idr: 2490000, sar: 650, usd: 180 },
   },
 };
 

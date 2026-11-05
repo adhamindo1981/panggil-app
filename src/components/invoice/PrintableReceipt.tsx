@@ -62,12 +62,6 @@ export function PrintableReceipt({ order, cafe, pagerUrl }: PrintableReceiptProp
           <span>{t.invoice.receiptNumber}:</span>
           <span>{order.id.slice(0, 8).toUpperCase()}</span>
         </div>
-        {order.customer_phone && (
-          <div className="flex justify-between">
-            <span>{t.cashier.customerPhone}:</span>
-            <span>{order.customer_phone}</span>
-          </div>
-        )}
       </div>
 
       {/* Order Items (if any) */}

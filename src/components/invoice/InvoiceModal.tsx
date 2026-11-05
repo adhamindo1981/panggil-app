@@ -4,8 +4,7 @@ import React, { useRef } from 'react';
 import { Order, Cafe } from '@/types/database';
 import { useI18n } from '@/lib/i18n/context';
 import { PrintableReceipt } from './PrintableReceipt';
-import { X, Printer, Share2, MessageCircle } from 'lucide-react';
-import { generateWhatsAppReadyUrl } from '@/lib/whatsapp';
+import { X, Printer, Download, FileText } from 'lucide-react';
 
 interface InvoiceModalProps {
   isOpen: boolean;
@@ -28,17 +27,12 @@ export function InvoiceModal({ isOpen, onClose, order, cafe }: InvoiceModalProps
     window.print();
   };
 
-  const handleWhatsApp = () => {
-    if (!order.customer_phone) return;
-    const url = generateWhatsAppReadyUrl(
-      order.customer_phone,
-      order.order_number,
-      order.customer_name,
-      cafe.name,
-      pagerUrl,
-      lang
-    );
-    window.open(url, '_blank');
+  const labels = {
+    printOrPdf: {
+      ar: 'طباعة / حفظ كـ PDF',
+      id: 'Cetak / Unduh PDF',
+      en: 'Print / Save as PDF',
+    },
   };
 
   return (
@@ -47,14 +41,14 @@ export function InvoiceModal({ isOpen, onClose, order, cafe }: InvoiceModalProps
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 bg-zinc-950/60 no-print">
           <div className="flex items-center gap-2">
-            <Printer className="w-5 h-5 text-amber-500" />
+            <FileText className="w-5 h-5 text-amber-500" />
             <h3 className="font-bold text-zinc-100 text-sm sm:text-base">
               {t.invoice.title}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg transition-colors"
+            className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -65,29 +59,19 @@ export function InvoiceModal({ isOpen, onClose, order, cafe }: InvoiceModalProps
           <PrintableReceipt order={order} cafe={cafe} pagerUrl={pagerUrl} />
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons (Strictly Privacy First: Direct Print & PDF Download) */}
         <div className="p-4 border-t border-zinc-800 bg-zinc-900/90 flex flex-wrap gap-2 justify-end no-print">
-          {order.customer_phone && (
-            <button
-              onClick={handleWhatsApp}
-              className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-xl transition-all"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>{t.cashier.sendWhatsapp}</span>
-            </button>
-          )}
-
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-zinc-950 bg-amber-500 hover:bg-amber-400 rounded-xl shadow-lg transition-all active:scale-95"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-zinc-950 bg-amber-500 hover:bg-amber-400 rounded-xl shadow-lg transition-all active:scale-95 cursor-pointer"
           >
             <Printer className="w-4 h-4" />
-            <span>{t.common.print}</span>
+            <span>{labels.printOrPdf[lang]}</span>
           </button>
 
           <button
             onClick={onClose}
-            className="px-4 py-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-colors"
+            className="px-4 py-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-colors cursor-pointer"
           >
             {t.common.close}
           </button>

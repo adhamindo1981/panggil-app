@@ -6,7 +6,6 @@ import { Cafe, Order, OrderStatus } from '@/types/database';
 import { useI18n } from '@/lib/i18n/context';
 import { dataService } from '@/lib/data-layer';
 import { audioEngine } from '@/lib/audio-engine';
-import { generateWhatsAppReadyUrl } from '@/lib/whatsapp';
 import { InvoiceModal } from '../invoice/InvoiceModal';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { CashierPinLock } from './CashierPinLock';
@@ -21,7 +20,6 @@ import {
   Share2,
   Sliders,
   ExternalLink,
-  MessageCircle,
   Copy,
   Clock,
   Volume2,
@@ -33,6 +31,8 @@ import {
   Sparkles,
   ArrowUpRight,
   Lock,
+  RefreshCw,
+  Hash,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -56,11 +56,22 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
   const [qrModalSrc, setQrModalSrc] = useState<string>('');
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
 
-  // New Quick Ticket form
+  // New Quick Ticket form (Supports manual invoice input from external POS/Accounting or auto-increment)
   const [quickOrderNumber, setQuickOrderNumber] = useState<string>('');
   const [quickCustomerName, setQuickCustomerName] = useState<string>('');
-  const [quickCustomerPhone, setQuickCustomerPhone] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // Auto-generate next sequential ticket number fallback
+  const handleAutoGenerateOrderNumber = () => {
+    const numbers = orders
+      .map((o) => {
+        const digits = o.order_number.replace(/\D/g, '');
+        return digits ? parseInt(digits, 10) : 0;
+      })
+      .filter((n) => !isNaN(n) && n > 0);
+    const nextNum = numbers.length > 0 ? Math.max(...numbers) + 1 : 101;
+    setQuickOrderNumber(String(nextNum));
+  };
 
   // Cashier PIN Lock State
   const [isUnlocked, setIsUnlocked] = useState<boolean>(false);
@@ -145,14 +156,12 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
         cafe_id: cafe.id,
         order_number: quickOrderNumber.trim(),
         customer_name: quickCustomerName.trim() || undefined,
-        customer_phone: quickCustomerPhone.trim() || undefined,
         items: [],
         total_amount: 0,
       });
 
       setQuickOrderNumber('');
       setQuickCustomerName('');
-      setQuickCustomerPhone('');
       setIsNewOrderModalOpen(false);
       await refreshOrders();
 
@@ -532,11 +541,6 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
                             {order.customer_name}
                           </p>
                         )}
-                        {order.customer_phone && (
-                          <p className="text-[11px] text-zinc-400 font-mono mt-0.5">
-                            {order.customer_phone}
-                          </p>
-                        )}
                       </div>
 
                       {/* Small Quick Action Icons */}
@@ -654,17 +658,31 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
 
             <form onSubmit={handleCreateQuickTicket} className="mt-5 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-2">
-                  {t.cashier.orderNumber} *
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                    {t.cashier.orderNumber} *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAutoGenerateOrderNumber}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 rounded-lg border border-amber-500/30 transition-all cursor-pointer"
+                    title="توليد رقم تلقائي متسلسل"
+                  >
+                    <Hash className="w-3 h-3" />
+                    <span>Auto #</span>
+                  </button>
+                </div>
                 <input
                   type="text"
                   required
                   value={quickOrderNumber}
                   onChange={(e) => setQuickOrderNumber(e.target.value)}
-                  placeholder={t.cashier.enterOrderNumber}
+                  placeholder="e.g. 104, A-12, INV-88"
                   className="w-full px-4 py-3 bg-[#070a13] border border-zinc-800 rounded-2xl text-base font-mono font-bold text-white focus:outline-none focus:border-amber-500"
                 />
+                <p className="text-[10px] text-zinc-500 mt-1">
+                  أدخل رقم الفاتورة من برنامج الكاشير الخاص بك أو اضغط Auto # للتوليد السريع
+                </p>
               </div>
 
               <div>
@@ -675,20 +693,7 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
                   type="text"
                   value={quickCustomerName}
                   onChange={(e) => setQuickCustomerName(e.target.value)}
-                  placeholder={t.cashier.enterCustomerName}
-                  className="w-full px-4 py-3 bg-[#070a13] border border-zinc-800 rounded-2xl text-sm text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-2">
-                  {t.cashier.customerPhone} (WhatsApp)
-                </label>
-                <input
-                  type="tel"
-                  value={quickCustomerPhone}
-                  onChange={(e) => setQuickCustomerPhone(e.target.value)}
-                  placeholder={t.cashier.enterCustomerPhone}
+                  placeholder="اسم العميل أو رقم الطاولة (اختياري)"
                   className="w-full px-4 py-3 bg-[#070a13] border border-zinc-800 rounded-2xl text-sm text-white focus:outline-none focus:border-amber-500"
                 />
               </div>
@@ -704,7 +709,7 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
                 <button
                   type="submit"
                   disabled={isSubmitting || !quickOrderNumber.trim()}
-                  className="flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 disabled:opacity-50 text-zinc-950 font-black text-xs shadow-lg shadow-amber-500/20 transition-all active:scale-98"
+                  className="flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 disabled:opacity-50 text-zinc-950 font-black text-xs shadow-lg shadow-amber-500/20 transition-all active:scale-98 cursor-pointer"
                 >
                   {isSubmitting ? t.common.loading : t.cashier.createTicket}
                 </button>
@@ -770,25 +775,15 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
                 <span>{copiedLink ? t.cashier.linkCopied : t.cashier.copyLink}</span>
               </button>
 
-              {selectedOrderForQr.customer_phone && (
-                <button
-                  onClick={() => {
-                    const url = generateWhatsAppReadyUrl(
-                      selectedOrderForQr.customer_phone!,
-                      selectedOrderForQr.order_number,
-                      selectedOrderForQr.customer_name,
-                      cafe.name,
-                      `${window.location.origin}/c/${cafe.slug}/pager/${selectedOrderForQr.id}`,
-                      lang
-                    );
-                    window.open(url, '_blank');
-                  }}
-                  className="w-full py-2.5 px-4 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>{t.cashier.sendWhatsapp}</span>
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  setSelectedOrderForInvoice(selectedOrderForQr);
+                }}
+                className="w-full py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <Printer className="w-4 h-4 text-amber-400" />
+                <span>{t.common.print} / حفظ كـ PDF</span>
+              </button>
             </div>
           </div>
         </div>

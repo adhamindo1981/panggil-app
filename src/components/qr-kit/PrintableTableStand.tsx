@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Cafe } from '@/types/database';
+import { getPlanFeatures } from '@/lib/feature-gates';
 import { Printer, ArrowLeft, Download, Sparkles, QrCode, Smartphone, Bell, Coffee } from 'lucide-react';
 import Link from 'next/link';
 
@@ -13,9 +14,14 @@ interface PrintableTableStandProps {
 export function PrintableTableStand({ cafe }: PrintableTableStandProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
 
+  const features = getPlanFeatures(cafe.subscription_tier);
+  // For Basic/Bronze: link points to static pager ticket lookup (/pager)
+  // For Silver/Gold: link points to full interactive digital menu (/menu)
+  const targetPath = features.canUseMenu ? 'menu' : 'pager';
+
   const targetUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/c/${cafe.slug}/menu`
-    : `https://panggil.adhamnur.site/c/${cafe.slug}/menu`;
+    ? `${window.location.origin}/c/${cafe.slug}/${targetPath}`
+    : `https://panggil.adhamnur.site/c/${cafe.slug}/${targetPath}`;
 
   useEffect(() => {
     QRCode.toDataURL(targetUrl, {
@@ -70,14 +76,14 @@ export function PrintableTableStand({ cafe }: PrintableTableStandProps) {
         {/* Cafe Brand Header */}
         <div className="pt-2 z-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-[9px] font-black text-amber-400 uppercase tracking-widest mb-1.5">
-            <Coffee className="w-3 h-3" />
-            <span>SMART ORDER & PAGER</span>
+            {features.canUseMenu ? <Coffee className="w-3 h-3" /> : <Bell className="w-3 h-3" />}
+            <span>{features.canUseMenu ? 'SMART ORDER & PAGER' : 'SMART COASTER PAGER'}</span>
           </div>
           <h1 className="text-base font-black text-white tracking-tight uppercase line-clamp-1">
             {cafe.name}
           </h1>
           <p className="text-[9px] text-zinc-400 font-medium">
-            Menu Digital & Pager Pintar • القائمة والبيجر الذكي
+            {features.canUseMenu ? 'Menu Digital & Pager Pintar • القائمة والبيجر الذكي' : 'Sistem Pager Antrean • نظام البيجر والنداء الذكي'}
           </p>
         </div>
 
@@ -107,19 +113,31 @@ export function PrintableTableStand({ cafe }: PrintableTableStandProps) {
           {/* Indonesian (Default) */}
           <div className="flex items-center justify-between text-[9px] font-bold text-zinc-300 bg-zinc-900/60 px-2.5 py-1 rounded-lg border border-zinc-800/60">
             <span className="text-amber-400 font-black">ID</span>
-            <span className="truncate">Pindai QR → Pilih Menu → Ponsel bergetar saat siap</span>
+            <span className="truncate">
+              {features.canUseMenu
+                ? 'Pindai QR → Pilih Menu → Ponsel bergetar saat siap'
+                : 'Pindai QR → Masukkan Nomor Tiket → Alarm berbunyi saat siap'}
+            </span>
           </div>
 
           {/* Arabic (RTL) */}
           <div className="flex items-center justify-between text-[9px] font-bold text-zinc-200 bg-zinc-900/60 px-2.5 py-1 rounded-lg border border-zinc-800/60" dir="rtl">
             <span className="text-amber-400 font-black">عربي</span>
-            <span className="truncate">امسح الرمز ← اطلب وجبتك ← سيهتز هاتفك فور جهوزيتها</span>
+            <span className="truncate">
+              {features.canUseMenu
+                ? 'امسح الرمز ← اطلب وجبتك ← سيهتز هاتفك فور جهوزيتها'
+                : 'امسح الرمز ← أدخل رقم التذكرة ← سيرن هاتفك فور جهوزية طلبك'}
+            </span>
           </div>
 
           {/* English */}
           <div className="flex items-center justify-between text-[8.5px] font-medium text-zinc-400 bg-zinc-900/40 px-2.5 py-0.5 rounded-lg">
             <span className="text-amber-400 font-bold">EN</span>
-            <span className="truncate">Scan QR → Order items → Phone buzzes when ready</span>
+            <span className="truncate">
+              {features.canUseMenu
+                ? 'Scan QR → Order items → Phone buzzes when ready'
+                : 'Scan QR → Enter Ticket # → Phone rings when ready'}
+            </span>
           </div>
         </div>
 

@@ -31,7 +31,6 @@ export function DigitalMenu({ cafe, categories, items }: DigitalMenuProps) {
   const [cart, setCart] = useState<OrderItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [customerName, setCustomerName] = useState<string>('');
-  const [customerPhone, setCustomerPhone] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -92,7 +91,6 @@ export function DigitalMenu({ cafe, categories, items }: DigitalMenuProps) {
       const order = await dataService.createOrder({
         cafe_id: cafe.id,
         customer_name: customerName.trim(),
-        customer_phone: customerPhone.trim() || undefined,
         items: cart,
         total_amount: grandTotal,
         notes: notes.trim() || undefined,
@@ -315,19 +313,6 @@ export function DigitalMenu({ cafe, categories, items }: DigitalMenuProps) {
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     placeholder={t.cashier.enterCustomerName}
-                    className="w-full px-4 py-2.5 text-xs bg-[#070a13] border border-zinc-800 rounded-2xl text-white focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                    {t.cashier.customerPhone} (WhatsApp)
-                  </label>
-                  <input
-                    type="tel"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder={t.cashier.enterCustomerPhone}
                     className="w-full px-4 py-2.5 text-xs bg-[#070a13] border border-zinc-800 rounded-2xl text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
