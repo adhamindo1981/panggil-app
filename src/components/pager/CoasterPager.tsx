@@ -28,9 +28,10 @@ interface CoasterPagerProps {
   order: Order;
   cafe: Cafe;
   onRefresh?: () => void;
+  onAcknowledgeReady?: () => void;
 }
 
-export function CoasterPager({ order, cafe, onRefresh }: CoasterPagerProps) {
+export function CoasterPager({ order, cafe, onRefresh, onAcknowledgeReady }: CoasterPagerProps) {
   const { t, lang, formatCurrency, isRtl } = useI18n();
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -88,8 +89,8 @@ export function CoasterPager({ order, cafe, onRefresh }: CoasterPagerProps) {
         audioEngine.startAlarmLoop(1200);
       }
 
-      // Start Vibration Loop
-      vibrationEngine.startRepeatingVibration(2000);
+      // Start Vibration Loop [500, 200, 500]
+      vibrationEngine.startRepeatingVibration([500, 200, 500], 1800);
 
       // Voice Announcement via Web Speech API
       speechEngine.announceOrderReady(order.order_number, order.customer_name, lang);
@@ -124,12 +125,13 @@ export function CoasterPager({ order, cafe, onRefresh }: CoasterPagerProps) {
   }, [isReady, isCompleted, isMuted, order.order_number, order.customer_name, lang]);
 
   // User interactions
-  const handleEnableAudio = () => {
+  const handleEnableAudio = async () => {
     setSoundEnabled(true);
     setIsMuted(false);
+    await audioEngine.unlockAudioAndKeepAlive();
     audioEngine.playDualChime();
     if (isReady) {
-      audioEngine.startAlarmLoop(1200);
+      audioEngine.startAlarmLoop(1100);
       speechEngine.announceOrderReady(order.order_number, order.customer_name, lang);
     }
   };
@@ -139,6 +141,7 @@ export function CoasterPager({ order, cafe, onRefresh }: CoasterPagerProps) {
     audioEngine.stopAlarmLoop();
     vibrationEngine.stop();
     speechEngine.stop();
+    onAcknowledgeReady?.();
   };
 
   const toggleWakeLock = async () => {

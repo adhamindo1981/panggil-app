@@ -17,6 +17,8 @@ export interface Cafe {
   phone?: string;
   address?: string;
   currency_symbol?: string;
+  google_maps_url?: string;
+  cashier_pin?: string;
   created_at?: string;
 }
 

@@ -28,6 +28,8 @@ export const INITIAL_CAFES: Cafe[] = [
     phone: '+62 812-3456-7890',
     address: 'Jl. Senopati No. 45, Jakarta Selatan',
     currency_symbol: 'Rp',
+    google_maps_url: 'https://maps.google.com/?q=Senopati+Jakarta+Coffee',
+    cashier_pin: '1234',
   },
   {
     id: '00000000-0000-0000-0000-000000000002',
@@ -39,6 +41,8 @@ export const INITIAL_CAFES: Cafe[] = [
     phone: '+966 50 123 4567',
     address: 'طريق الملك فهد، العليا، الرياض',
     currency_symbol: 'SAR',
+    google_maps_url: 'https://maps.google.com/?q=Riyadh+Coffee+Express',
+    cashier_pin: '1234',
   },
 ];
 

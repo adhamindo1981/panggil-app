@@ -9,6 +9,7 @@ import { audioEngine } from '@/lib/audio-engine';
 import { generateWhatsAppReadyUrl } from '@/lib/whatsapp';
 import { InvoiceModal } from '../invoice/InvoiceModal';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
+import { CashierPinLock } from './CashierPinLock';
 import {
   BellRing,
   PlusCircle,
@@ -30,6 +31,7 @@ import {
   X,
   Sparkles,
   ArrowUpRight,
+  Lock,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -58,6 +60,30 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
   const [quickCustomerName, setQuickCustomerName] = useState<string>('');
   const [quickCustomerPhone, setQuickCustomerPhone] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // Cashier PIN Lock State
+  const [isUnlocked, setIsUnlocked] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const unlocked = sessionStorage.getItem(`cashier_unlocked_${cafe.id}`) === 'true';
+      setIsUnlocked(unlocked);
+    }
+  }, [cafe.id]);
+
+  const handleUnlock = () => {
+    setIsUnlocked(true);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(`cashier_unlocked_${cafe.id}`, 'true');
+    }
+  };
+
+  const handleLock = () => {
+    setIsUnlocked(false);
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem(`cashier_unlocked_${cafe.id}`);
+    }
+  };
 
   // Refresh orders from data layer
   const refreshOrders = async () => {
@@ -163,6 +189,10 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
+  if (!isUnlocked) {
+    return <CashierPinLock cafe={cafe} onUnlock={handleUnlock} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#070a13] text-zinc-100 flex flex-col selection:bg-amber-500 selection:text-zinc-950 font-sans">
       {/* Top Navbar */}
@@ -189,8 +219,19 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
           </div>
         </div>
 
-        {/* Controls: Mode Toggle & Menu & Language */}
+        {/* Controls: Mode Toggle & Menu & QR Stand & Lock & Language */}
         <div className="flex items-center gap-2.5 sm:gap-3">
+          {/* Printable QR Table Kit Link */}
+          <Link
+            href={`/c/${cafe.slug}/qr-kit`}
+            target="_blank"
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700/80 rounded-xl transition-all shadow-sm"
+            title="طباعة ستاندات الطاولات A6"
+          >
+            <Printer className="w-3.5 h-3.5 text-amber-400" />
+            <span>ستاند الطاولات A6</span>
+          </Link>
+
           {/* Mode Switcher */}
           <button
             onClick={handleToggleMode}
@@ -215,6 +256,15 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
               <ArrowUpRight className="w-3 h-3" />
             </Link>
           )}
+
+          {/* Lock Screen Button */}
+          <button
+            onClick={handleLock}
+            className="p-2 text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl transition-colors"
+            title="قفل لوحة الكاشير"
+          >
+            <Lock className="w-4 h-4 text-amber-400" />
+          </button>
 
           <LanguageSwitcher compact />
         </div>

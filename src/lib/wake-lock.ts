@@ -1,14 +1,37 @@
 /**
  * Screen Wake Lock API Manager for "Panggil / نداء"
  * Keeps the customer's phone display awake while waiting for order pickup.
+ * Automatically re-acquires lock upon tab visibility restoration.
  */
 
 class ScreenWakeLockManager {
   private wakeLock: WakeLockSentinel | null = null;
   private isRequested = false;
+  private isListenerAttached = false;
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this.attachVisibilityListener();
+    }
+  }
 
   public isSupported(): boolean {
     return typeof window !== 'undefined' && 'wakeLock' in navigator;
+  }
+
+  private attachVisibilityListener() {
+    if (this.isListenerAttached || typeof document === 'undefined') return;
+    this.isListenerAttached = true;
+
+    document.addEventListener('visibilitychange', async () => {
+      if (this.isRequested && document.visibilityState === 'visible' && !this.getIsActive()) {
+        try {
+          await this.requestWakeLock();
+        } catch (e) {
+          console.warn('Re-acquire wake lock failed:', e);
+        }
+      }
+    });
   }
 
   /**
@@ -22,7 +45,6 @@ class ScreenWakeLockManager {
       this.wakeLock = await navigator.wakeLock.request('screen');
 
       this.wakeLock.addEventListener('release', () => {
-        // Automatically re-acquire if user tab comes back to visibility
         if (this.isRequested && document.visibilityState === 'visible') {
           this.requestWakeLock();
         }

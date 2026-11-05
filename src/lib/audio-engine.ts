@@ -1,116 +1,209 @@
 /**
  * Web Audio API Engine for "Panggil / نداء"
- * Synthesizes realistic restaurant coaster pager buzzer frequencies.
- * Zero external audio files needed - works reliably offline and in low-bandwidth.
+ * Upgraded Commercial Background Survival & Pager Synthesis Engine:
+ *  - iOS Safari & Android Chrome Background Keep-Alive (Active Media Session via silent carrier loop)
+ *  - Prevents WebSocket / Realtime suspension when phone screen is locked or pocketed
+ *  - High-decibel synthesized square-wave pager double-beep (880Hz)
  */
 
 class PagerAudioEngine {
   private ctx: AudioContext | null = null;
   private isBuzzing = false;
   private timerId: NodeJS.Timeout | null = null;
+  private keepAliveOsc: OscillatorNode | null = null;
+  private keepAliveGain: GainNode | null = null;
+  private isUnlocked = false;
 
   private initContext(): AudioContext {
     if (!this.ctx || this.ctx.state === 'closed') {
-      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.ctx = new AudioContextClass();
     }
     if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      this.ctx.resume().catch(console.warn);
     }
     return this.ctx;
   }
 
   /**
-   * Plays a single realistic buzzer beep pulse
+   * Unlocks AudioContext & initiates near-inaudible Background Keep-Alive loop
+   * Critical for mobile background survival (iOS Safari & Android Chrome WebSocket continuity)
    */
-  public playBeepPulse(frequency = 1046.5, duration = 0.18, type: OscillatorType = 'square') {
+  public async unlockAudioAndKeepAlive(): Promise<boolean> {
     try {
       const ctx = this.initContext();
+      if (ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+
+      this.isUnlocked = true;
+
+      // Setup near-inaudible background carrier loop if not already running
+      if (!this.keepAliveOsc) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        // 40Hz sub-audible carrier at microscopic gain (0.0001)
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(40, ctx.currentTime);
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        this.keepAliveOsc = osc;
+        this.keepAliveGain = gain;
+      }
+
+      // Configure Media Session API for iOS/Android lock screen continuity
+      if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+        try {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: 'Panggil / نداء — Coaster Pager Active',
+            artist: 'Monitoring Order Readiness',
+            album: 'Smart Digital Pager',
+          });
+          navigator.mediaSession.playbackState = 'playing';
+
+          // Handle media key actions to keep session alive
+          navigator.mediaSession.setActionHandler('play', () => {
+            if (this.ctx?.state === 'suspended') this.ctx.resume();
+          });
+          navigator.mediaSession.setActionHandler('pause', () => {
+            // keep session active
+          });
+        } catch {
+          // ignore MediaSession unsupported actions
+        }
+      }
+
+      return true;
+    } catch (e) {
+      console.warn('Failed to unlock AudioContext / Keep-Alive:', e);
+      return false;
+    }
+  }
+
+  public getIsUnlocked(): boolean {
+    return this.isUnlocked && this.ctx?.state === 'running';
+  }
+
+  /**
+   * Plays a single short beep pulse (keypad clicks, UI feedback, buzz bursts)
+   */
+  public playBeepPulse(frequency = 800, duration = 0.08, type: OscillatorType = 'sine') {
+    try {
+      const ctx = this.initContext();
+      const now = ctx.currentTime;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
       osc.type = type;
-      osc.frequency.setValueAtTime(frequency, ctx.currentTime);
+      osc.frequency.setValueAtTime(frequency, now);
 
-      // Smooth attack and decay envelope
-      gain.gain.setValueAtTime(0, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.25, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
-
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + duration);
+      osc.start(now);
+      osc.stop(now + duration);
     } catch (e) {
-      console.warn('AudioContext playback blocked or failed:', e);
+      console.warn('Beep pulse error:', e);
     }
   }
 
   /**
-   * Plays realistic double-tone coaster pager alert sequence (e.g. 880Hz / 1760Hz burst)
+   * Plays a high-decibel synthesized square-wave pager double-beep (880Hz)
+   */
+  public playPagerDoubleBeep(frequency = 880, duration = 0.15) {
+    try {
+      const ctx = this.initContext();
+      const now = ctx.currentTime;
+
+      // Beep 1
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'square';
+      osc1.frequency.setValueAtTime(frequency, now);
+
+      gain1.gain.setValueAtTime(0, now);
+      gain1.gain.linearRampToValueAtTime(0.45, now + 0.02);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + duration);
+
+      // Beep 2 (Interspersed burst: 880Hz + 1760Hz harmonic)
+      const delay = duration + 0.08;
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'square';
+      osc2.frequency.setValueAtTime(frequency * 2, now + delay);
+
+      gain2.gain.setValueAtTime(0, now + delay);
+      gain2.gain.linearRampToValueAtTime(0.4, now + delay + 0.02);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + delay + duration);
+
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now + delay);
+      osc2.stop(now + delay + duration);
+    } catch (e) {
+      console.warn('Pager beep playback error:', e);
+    }
+  }
+
+  /**
+   * Plays welcoming double chime
    */
   public playDualChime() {
     try {
       const ctx = this.initContext();
       const now = ctx.currentTime;
 
-      // Primary tone
-      const osc1 = ctx.createOscillator();
-      const gain1 = ctx.createGain();
-      osc1.type = 'triangle';
-      osc1.frequency.setValueAtTime(880, now);
-      osc1.frequency.exponentialRampToValueAtTime(1760, now + 0.15);
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(1760, now + 0.18);
 
-      gain1.gain.setValueAtTime(0.4, now);
-      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
 
-      osc1.connect(gain1);
-      gain1.connect(ctx.destination);
-
-      osc1.start(now);
-      osc1.stop(now + 0.35);
-
-      // Harmonized high piercing beep for ambient noise in crowded cafe
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(2637, now + 0.1); // E7 tone
-      gain2.gain.setValueAtTime(0.25, now + 0.1);
-      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-
-      osc2.start(now + 0.1);
-      osc2.stop(now + 0.45);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.35);
     } catch (e) {
-      console.warn('AudioContext chime failed:', e);
+      console.warn('Chime error:', e);
     }
   }
 
   /**
-   * Starts an alarming coaster pager loop (Buzzer alarm)
-   * Continues until stopAlarm() is called.
+   * Starts high-urgency continuous pager buzzer alarm loop (880Hz double-beep pattern)
    */
-  public startAlarmLoop(intervalMs = 1200) {
+  public startAlarmLoop(intervalMs = 1100) {
     if (this.isBuzzing) return;
     this.isBuzzing = true;
 
-    const triggerBurst = () => {
-      if (!this.isBuzzing) return;
-      // 3 quick sharp beeps like a genuine restaurant pager
-      this.playBeepPulse(2400, 0.12, 'square');
-      setTimeout(() => this.playBeepPulse(2400, 0.12, 'square'), 180);
-      setTimeout(() => this.playBeepPulse(2400, 0.18, 'square'), 360);
-    };
+    // Trigger immediate double-beep
+    this.playPagerDoubleBeep(880, 0.16);
 
-    triggerBurst();
-    this.timerId = setInterval(triggerBurst, intervalMs);
+    this.timerId = setInterval(() => {
+      if (!this.isBuzzing) return;
+      this.playPagerDoubleBeep(880, 0.16);
+    }, intervalMs);
   }
 
   /**
-   * Stops the continuous buzzer loop
+   * Stops buzzer loop
    */
   public stopAlarmLoop() {
     this.isBuzzing = false;

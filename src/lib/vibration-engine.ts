@@ -12,9 +12,9 @@ class PagerVibrationEngine {
   }
 
   /**
-   * Triggers a single vibration pattern: [buzz, pause, buzz, pause, buzz]
+   * Triggers a single vibration pattern: [buzz, pause, buzz]
    */
-  public triggerPattern(pattern: number[] = [350, 150, 350, 150, 450]): boolean {
+  public triggerPattern(pattern: number[] = [500, 200, 500]): boolean {
     if (!this.isSupported()) return false;
     try {
       return navigator.vibrate(pattern);
@@ -27,14 +27,14 @@ class PagerVibrationEngine {
   /**
    * Starts a continuous repeating vibration loop until stopped
    */
-  public startRepeatingVibration(intervalMs = 2000) {
+  public startRepeatingVibration(pattern: number[] = [500, 200, 500], intervalMs = 1800) {
     if (this.isVibrating || !this.isSupported()) return;
     this.isVibrating = true;
 
-    this.triggerPattern();
+    this.triggerPattern(pattern);
     this.intervalId = setInterval(() => {
       if (!this.isVibrating) return;
-      this.triggerPattern();
+      this.triggerPattern(pattern);
     }, intervalMs);
   }
 
