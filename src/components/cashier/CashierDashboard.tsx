@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import QRCode from 'qrcode';
 import { Cafe, Order, OrderStatus } from '@/types/database';
 import { useI18n } from '@/lib/i18n/context';
@@ -33,6 +33,9 @@ import {
   Lock,
   RefreshCw,
   Hash,
+  FileText,
+  Eye,
+  ChefHat,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -53,8 +56,11 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState<boolean>(false);
   const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<Order | null>(null);
   const [selectedOrderForQr, setSelectedOrderForQr] = useState<Order | null>(null);
+  const [selectedOrderDetails, setSelectedOrderDetails] = useState<Order | null>(null);
+  const [newOrderAlert, setNewOrderAlert] = useState<Order | null>(null);
   const [qrModalSrc, setQrModalSrc] = useState<string>('');
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
+  const knownOrderIdsRef = useRef<Set<string>>(new Set(initialOrders.map((o) => o.id)));
 
   // New Quick Ticket form (Supports manual invoice input from external POS/Accounting or auto-increment)
   const [quickOrderNumber, setQuickOrderNumber] = useState<string>('');
@@ -101,9 +107,25 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
     }
   };
 
-  // Refresh orders from data layer
+  // Refresh orders from data layer & detect incoming table orders
   const refreshOrders = async () => {
     const fresh = await dataService.getOrders(cafe.id);
+
+    // Detect if a brand new pending order arrived from a table
+    const brandNew = fresh.find(
+      (o) => !knownOrderIdsRef.current.has(o.id) && o.status === 'pending'
+    );
+    if (brandNew) {
+      // Play kitchen alert chime
+      audioEngine.playDualChime();
+      setNewOrderAlert(brandNew);
+      // Auto-hide alert banner after 12 seconds
+      setTimeout(() => {
+        setNewOrderAlert((curr) => (curr?.id === brandNew.id ? null : curr));
+      }, 12000);
+    }
+
+    fresh.forEach((o) => knownOrderIdsRef.current.add(o.id));
     setOrders(fresh);
   };
 
@@ -499,6 +521,55 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
           </div>
         </div>
 
+        {/* NEW INCOMING ORDER URGENT ALERT BANNER */}
+        {newOrderAlert && (
+          <div className="mb-6 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-zinc-950 shadow-2xl shadow-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-amber-300 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="flex items-center gap-3.5">
+              <div className="p-3 bg-zinc-950 text-amber-400 rounded-2xl shadow-xl shrink-0">
+                <BellRing className="w-6 h-6 animate-bounce" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-zinc-950 text-amber-300">
+                    {t.cashier.newOrderIncoming}
+                  </span>
+                  <span className="font-mono text-base font-black text-zinc-950">
+                    {newOrderAlert.order_number}
+                  </span>
+                </div>
+                <p className="text-xs font-black text-zinc-900 mt-1">
+                  {newOrderAlert.customer_name} • {newOrderAlert.items.reduce((s, i) => s + i.quantity, 0)} {t.cashier.orderedItems} • {formatCurrency(newOrderAlert.total_amount, cafe.currency_symbol)}
+                </p>
+                {newOrderAlert.notes && (
+                  <p className="text-xs font-bold text-zinc-950 mt-1.5 bg-black/15 px-2.5 py-1 rounded-xl inline-block border border-black/10">
+                    📝 {t.cashier.customerNotes}: &ldquo;{newOrderAlert.notes}&rdquo;
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+              <button
+                onClick={() => {
+                  setSelectedOrderDetails(newOrderAlert);
+                  setNewOrderAlert(null);
+                }}
+                className="py-2.5 px-4 bg-zinc-950 hover:bg-zinc-900 text-amber-300 font-black text-xs rounded-xl shadow-lg transition-transform active:scale-95 cursor-pointer flex items-center gap-1.5"
+              >
+                <Eye className="w-4 h-4 text-amber-400" />
+                <span>{t.cashier.viewOrderDetails}</span>
+              </button>
+              <button
+                onClick={() => setNewOrderAlert(null)}
+                className="p-2.5 bg-black/15 hover:bg-black/25 text-zinc-950 rounded-xl transition-colors cursor-pointer"
+                title={t.common.close}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Orders Cards Grid */}
         {filteredOrders.length === 0 ? (
           <div className="py-24 text-center bg-[#0d121e]/60 border border-zinc-800/80 rounded-3xl p-8 shadow-xl">
@@ -536,6 +607,11 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
                               BUZZING
                             </span>
                           )}
+                          {isPending && order.items && order.items.length > 0 && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                              {lang === 'ar' ? 'طلب طاولة' : 'Table Order'}
+                            </span>
+                          )}
                         </div>
                         {order.customer_name && (
                           <p className="text-xs font-bold text-zinc-200 mt-1">
@@ -547,15 +623,22 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
                       {/* Small Quick Action Icons */}
                       <div className="flex items-center gap-1 bg-zinc-900/80 p-1 rounded-xl border border-zinc-800">
                         <button
+                          onClick={() => setSelectedOrderDetails(order)}
+                          className="p-2 text-zinc-400 hover:text-amber-400 hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+                          title={t.cashier.viewOrderDetails}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => setSelectedOrderForQr(order)}
-                          className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                          className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
                           title="عرض رمز QR"
                         >
                           <QrCode className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setSelectedOrderForInvoice(order)}
-                          className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                          className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
                           title="طباعة الفاتورة"
                         >
                           <Printer className="w-4 h-4" />
@@ -563,19 +646,49 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
                       </div>
                     </div>
 
+                    {/* CUSTOMER SPECIAL NOTES (HIGHLIGHTED CALLOUT) */}
+                    {order.notes && (
+                      <div className="my-3 p-3 rounded-2xl bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-transparent border border-amber-500/40 text-amber-200 text-xs shadow-inner">
+                        <div className="flex items-center gap-1.5 font-black text-amber-400 mb-1">
+                          <FileText className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                          <span>{t.cashier.customerNotes}:</span>
+                        </div>
+                        <p className="font-bold text-white whitespace-pre-wrap leading-relaxed text-xs">
+                          {order.notes}
+                        </p>
+                      </div>
+                    )}
+
                     {/* Order items preview (if menu order) */}
                     {order.items && order.items.length > 0 && (
-                      <div className="my-4 py-2 border-b border-zinc-800/80 space-y-1.5 text-xs">
-                        {order.items.map((item, idx) => (
-                          <div key={idx} className="flex justify-between text-zinc-300 text-xs font-medium">
-                            <span className="truncate pr-2">
-                              {item.quantity}× {item.name_id || item.name_en}
-                            </span>
-                            <span className="font-mono text-zinc-400 shrink-0">
-                              {formatCurrency(item.price * item.quantity, cafe.currency_symbol)}
-                            </span>
-                          </div>
-                        ))}
+                      <div className="my-3 py-2.5 px-3 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 space-y-2 text-xs">
+                        <div className="flex items-center justify-between text-[11px] font-black text-zinc-400 pb-1.5 border-b border-zinc-800/60">
+                          <span className="flex items-center gap-1.5 text-zinc-300">
+                            <Utensils className="w-3.5 h-3.5 text-amber-400" />
+                            <span>{t.cashier.orderedItems} ({order.items.reduce((s, i) => s + i.quantity, 0)})</span>
+                          </span>
+                          <span className="font-mono text-amber-400 font-bold">
+                            {formatCurrency(order.total_amount, cafe.currency_symbol)}
+                          </span>
+                        </div>
+                        <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 scrollbar-thin">
+                          {order.items.map((item, idx) => {
+                            const localizedName = lang === 'ar' ? (item.name_ar || item.name_id) : (lang === 'id' ? item.name_id : item.name_en);
+                            return (
+                              <div key={idx} className="flex justify-between items-center text-zinc-200 text-xs font-medium">
+                                <span className="flex items-center gap-2 truncate pr-2">
+                                  <span className="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-mono font-bold text-[10px]">
+                                    {item.quantity}×
+                                  </span>
+                                  <span className="truncate">{localizedName}</span>
+                                </span>
+                                <span className="font-mono text-zinc-400 text-[11px] shrink-0">
+                                  {formatCurrency(item.price * item.quantity, cafe.currency_symbol)}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -784,6 +897,157 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
               >
                 <Printer className="w-4 h-4 text-amber-400" />
                 <span>{t.common.print} / حفظ كـ PDF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* KITCHEN ORDER DETAILS MODAL */}
+      {/* ======================================================== */}
+      {selectedOrderDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-lg bg-[#0d121e] border border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-2xl relative">
+            <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-2xl">
+                  <ChefHat className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-mono text-2xl font-black text-white">
+                      {selectedOrderDetails.order_number}
+                    </h3>
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
+                        selectedOrderDetails.status === 'ready'
+                          ? 'bg-red-500 text-white animate-pulse'
+                          : selectedOrderDetails.status === 'completed'
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      }`}
+                    >
+                      {t.statuses[selectedOrderDetails.status]}
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-400 font-semibold mt-0.5">
+                    {selectedOrderDetails.customer_name} •{' '}
+                    {new Date(selectedOrderDetails.created_at).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setSelectedOrderDetails(null)}
+                className="p-2 text-zinc-400 hover:text-white rounded-xl hover:bg-zinc-800 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* CUSTOMER SPECIAL NOTES (HIGHLIGHTED BOX) */}
+            {selectedOrderDetails.notes && (
+              <div className="my-4 p-4 rounded-2xl bg-amber-500/15 border-2 border-amber-500/40 text-amber-200">
+                <div className="flex items-center gap-2 font-black text-amber-400 mb-1.5 text-xs">
+                  <FileText className="w-4 h-4 text-amber-400" />
+                  <span>{t.cashier.customerNotes} (ملاحظات العميل للتحضير):</span>
+                </div>
+                <p className="font-bold text-white text-sm whitespace-pre-wrap leading-relaxed">
+                  {selectedOrderDetails.notes}
+                </p>
+              </div>
+            )}
+
+            {/* ITEMS LIST */}
+            <div className="my-4 space-y-2">
+              <h4 className="text-xs font-black text-zinc-400 uppercase tracking-wider mb-2">
+                {t.cashier.orderedItems} (
+                {selectedOrderDetails.items.reduce((s, i) => s + i.quantity, 0)})
+              </h4>
+              <div className="border border-zinc-800 rounded-2xl overflow-hidden divide-y divide-zinc-800/80 bg-zinc-900/40 max-h-60 overflow-y-auto">
+                {selectedOrderDetails.items.length === 0 ? (
+                  <p className="p-4 text-xs text-zinc-500 text-center">
+                    {lang === 'ar' ? 'تذكرة استدعاء سريعة بدون أصناف منيو' : 'Quick Pager Ticket'}
+                  </p>
+                ) : (
+                  selectedOrderDetails.items.map((item, idx) => {
+                    const localizedName =
+                      lang === 'ar'
+                        ? item.name_ar || item.name_id
+                        : lang === 'id'
+                        ? item.name_id
+                        : item.name_en;
+                    return (
+                      <div key={idx} className="p-3 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-300 font-mono font-black text-sm flex items-center justify-center shrink-0">
+                            {item.quantity}×
+                          </span>
+                          <div>
+                            <p className="text-sm font-bold text-white">{localizedName}</p>
+                            <p className="text-[11px] font-mono text-zinc-400">
+                              {formatCurrency(item.price, cafe.currency_symbol)} / للواحد
+                            </p>
+                          </div>
+                        </div>
+                        <span className="font-mono text-sm font-bold text-zinc-200">
+                          {formatCurrency(item.price * item.quantity, cafe.currency_symbol)}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="flex justify-between items-center pt-3 border-t border-zinc-800 text-sm font-bold">
+                <span className="text-zinc-400">{t.common.total}:</span>
+                <span className="font-mono text-lg font-black text-amber-400">
+                  {formatCurrency(selectedOrderDetails.total_amount, cafe.currency_symbol)}
+                </span>
+              </div>
+            </div>
+
+            {/* MODAL ACTION BUTTONS */}
+            <div className="mt-6 pt-4 border-t border-zinc-800 flex gap-3">
+              {selectedOrderDetails.status === 'pending' && (
+                <button
+                  onClick={async () => {
+                    await handleBuzzOrder(selectedOrderDetails.id);
+                    setSelectedOrderDetails((curr) => (curr ? { ...curr, status: 'ready' } : null));
+                  }}
+                  className="flex-1 py-3.5 px-4 bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-black text-xs uppercase tracking-wider rounded-2xl shadow-xl shadow-red-600/30 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <BellRing className="w-4 h-4" />
+                  <span>{t.cashier.buzzPager}</span>
+                </button>
+              )}
+
+              {selectedOrderDetails.status === 'ready' && (
+                <button
+                  onClick={async () => {
+                    await handleCompleteOrder(selectedOrderDetails.id);
+                    setSelectedOrderDetails(null);
+                  }}
+                  className="flex-1 py-3.5 px-4 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>{t.cashier.markCompleted}</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => {
+                  setSelectedOrderForInvoice(selectedOrderDetails);
+                  setSelectedOrderDetails(null);
+                }}
+                className="py-3 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold text-xs rounded-2xl flex items-center gap-2 cursor-pointer"
+              >
+                <Printer className="w-4 h-4 text-amber-400" />
+                <span>{t.common.print}</span>
               </button>
             </div>
           </div>

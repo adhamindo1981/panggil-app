@@ -4,7 +4,7 @@
  * across any network (Wi-Fi, 4G/5G, NATs) without requiring external server setup.
  */
 
-import { OrderStatus } from '@/types/database';
+import { Order, OrderStatus } from '@/types/database';
 
 export interface RelayMessage {
   type: 'ORDER_CREATED' | 'ORDER_BUZZED' | 'STATUS_CHANGED';
@@ -15,11 +15,133 @@ export interface RelayMessage {
   timestamp: number;
 }
 
+export interface CafeOrderRelayMessage {
+  type: 'NEW_ORDER_PLACED' | 'ORDER_UPDATED';
+  cafeId: string;
+  order: Order;
+  timestamp: number;
+}
+
 class UniversalCloudRelay {
   private getTopic(orderId: string): string {
     // Sanitize topic name for valid URI characters
     const cleanId = orderId.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48);
     return `panggil-order-${cleanId}`;
+  }
+
+  private getCafeTopic(cafeId: string): string {
+    const cleanId = cafeId.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 48);
+    return `panggil-cafe-${cleanId}`;
+  }
+
+  /**
+   * Broadcast a newly placed customer order to the Cashier Dashboard in real-time
+   */
+  public async publishCafeOrder(cafeId: string, order: Order): Promise<boolean> {
+    const topic = this.getCafeTopic(cafeId);
+    const message: CafeOrderRelayMessage = {
+      type: 'NEW_ORDER_PLACED',
+      cafeId,
+      order,
+      timestamp: Date.now(),
+    };
+
+    try {
+      if (typeof window !== 'undefined') {
+        const response = await fetch(`https://ntfy.sh/${topic}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Title': `New Order: ${order.order_number} (${order.customer_name})`,
+            'Priority': 'urgent',
+            'Tags': 'bell,sparkles',
+          },
+          body: JSON.stringify(message),
+        });
+        return response.ok;
+      }
+      return true;
+    } catch (e) {
+      console.warn('Cafe order publish notice:', e);
+      return false;
+    }
+  }
+
+  /**
+   * Subscribe Cashier Dashboard to incoming customer orders from tables (SSE + Auto Reconnect)
+   */
+  public subscribeCafeOrders(
+    cafeId: string,
+    onNewOrder: (order: Order) => void
+  ): () => void {
+    if (typeof window === 'undefined') return () => {};
+
+    const topic = this.getCafeTopic(cafeId);
+    let eventSource: EventSource | null = null;
+    let isSubscribed = true;
+
+    try {
+      eventSource = new EventSource(`https://ntfy.sh/${topic}/sse`);
+      eventSource.onmessage = (event) => {
+        if (!isSubscribed) return;
+        try {
+          const parsed = JSON.parse(event.data);
+          let dataObj: CafeOrderRelayMessage | null = null;
+          if (parsed.message) {
+            try {
+              dataObj = JSON.parse(parsed.message);
+            } catch {}
+          } else if (parsed.type && parsed.order) {
+            dataObj = parsed;
+          }
+
+          if (dataObj && dataObj.order && dataObj.cafeId === cafeId) {
+            onNewOrder(dataObj.order);
+          }
+        } catch (err) {
+          console.warn('Error parsing cafe order relay event:', err);
+        }
+      };
+    } catch (e) {
+      console.warn('Cafe EventSource warning:', e);
+    }
+
+    return () => {
+      isSubscribed = false;
+      if (eventSource) eventSource.close();
+    };
+  }
+
+  /**
+   * Fetch recent orders placed for this cafe from cloud relay
+   */
+  public async fetchRecentCafeOrders(cafeId: string): Promise<Order[]> {
+    if (typeof window === 'undefined') return [];
+    const topic = this.getCafeTopic(cafeId);
+    try {
+      const res = await fetch(`https://ntfy.sh/${topic}/json?poll=1&since=12h`, {
+        cache: 'no-store',
+      });
+      if (!res.ok) return [];
+      const text = await res.text();
+      const lines = text.trim().split('\n').filter(Boolean);
+      const ordersMap = new Map<string, Order>();
+
+      for (const line of lines) {
+        try {
+          const item = JSON.parse(line);
+          if (item.message) {
+            const dataObj = JSON.parse(item.message) as CafeOrderRelayMessage;
+            if (dataObj.order && dataObj.cafeId === cafeId) {
+              ordersMap.set(dataObj.order.id, dataObj.order);
+            }
+          }
+        } catch {}
+      }
+      return Array.from(ordersMap.values());
+    } catch {
+      return [];
+    }
   }
 
   /**

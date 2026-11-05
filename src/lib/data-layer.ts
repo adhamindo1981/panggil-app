@@ -368,24 +368,26 @@ class PanggilDataService {
 
     if (typeof window !== 'undefined') {
       try {
-        const res = await fetch(`/api/orders?cafe_id=${cafeId}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.orders && Array.isArray(data.orders)) {
-            const serverOrders = data.orders as Order[];
-            const localOrders = this.getLocalOrders();
-            const map = new Map<string, Order>();
-            serverOrders.forEach((o) => map.set(o.id, o));
-            localOrders.forEach((o) => {
-              if (!map.has(o.id) && o.cafe_id === cafeId) {
-                map.set(o.id, o);
-              }
-            });
-            return Array.from(map.values()).sort(
-              (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-            );
+        const [apiRes, cloudOrders] = await Promise.all([
+          fetch(`/api/orders?cafe_id=${cafeId}`).then((r) => r.ok ? r.json() : null).catch(() => null),
+          cloudRelay.fetchRecentCafeOrders(cafeId),
+        ]);
+
+        const serverOrders = (apiRes?.orders && Array.isArray(apiRes.orders)) ? apiRes.orders as Order[] : [];
+        const localOrders = this.getLocalOrders();
+        const map = new Map<string, Order>();
+
+        serverOrders.forEach((o) => map.set(o.id, o));
+        cloudOrders.forEach((o) => map.set(o.id, o));
+        localOrders.forEach((o) => {
+          if (o.cafe_id === cafeId) {
+            map.set(o.id, o);
           }
-        }
+        });
+
+        return Array.from(map.values()).sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
       } catch {}
     }
 
@@ -465,6 +467,9 @@ class PanggilDataService {
       orderNumber: newOrder.order_number,
       status: newOrder.status,
     });
+
+    // Broadcast new order to Cashier Dashboard via Cafe channel
+    cloudRelay.publishCafeOrder(newOrder.cafe_id, newOrder);
 
     const localOrders = this.getLocalOrders();
     const updated = [newOrder, ...localOrders];
@@ -592,7 +597,16 @@ class PanggilDataService {
     broadcastChannel?.addEventListener('message', handleBroadcast);
     window.addEventListener('panggil_local_order_updated', handleLocalEvent);
 
-    // 3. Fast Server Polling (every 2.5s) for multi-device sync
+    // 3. Universal Cloud Relay for Table Orders (Customer Phone -> Cashier Dashboard)
+    const unsubCloudCafe = cloudRelay.subscribeCafeOrders(cafeId, (newOrder) => {
+      const local = this.getLocalOrders();
+      if (!local.some((o) => o.id === newOrder.id)) {
+        this.saveLocalOrders([newOrder, ...local]);
+      }
+      onChange();
+    });
+
+    // 4. Fast Server Polling (every 2.5s) for multi-device sync
     const pollInterval = setInterval(async () => {
       try {
         const res = await fetch(`/api/orders?cafe_id=${cafeId}`);
@@ -606,6 +620,7 @@ class PanggilDataService {
     }, 2500);
 
     return () => {
+      unsubCloudCafe();
       clearInterval(pollInterval);
       supabaseChannel?.unsubscribe();
       broadcastChannel?.removeEventListener('message', handleBroadcast);

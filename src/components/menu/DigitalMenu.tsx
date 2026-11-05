@@ -96,8 +96,10 @@ export function DigitalMenu({ cafe, categories, items }: DigitalMenuProps) {
         notes: notes.trim() || undefined,
       });
 
-      // Redirect directly to customer's live pager view
-      router.push(`/c/${cafe.slug}/pager/${order.id}`);
+      // Redirect directly to customer's live pager view with order number and name
+      router.push(
+        `/c/${cafe.slug}/pager/${order.id}?num=${encodeURIComponent(order.order_number)}&name=${encodeURIComponent(order.customer_name || '')}`
+      );
     } catch (err) {
       console.error('Checkout error:', err);
       setIsSubmitting(false);

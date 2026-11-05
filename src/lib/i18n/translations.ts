@@ -76,6 +76,10 @@ export interface Translations {
     linkCopied: string;
     sendWhatsapp: string;
     buzzSuccess: string;
+    customerNotes: string;
+    newOrderIncoming: string;
+    viewOrderDetails: string;
+    orderedItems: string;
   };
   customer: {
     welcome: string;
@@ -209,6 +213,10 @@ export const translations: Record<AppLanguage, Translations> = {
       linkCopied: "Tautan berhasil disalin!",
       sendWhatsapp: "Kirim via WhatsApp",
       buzzSuccess: "Sinyal panggilan terkirim ke smartphone pelanggan!",
+      customerNotes: "Catatan Pelanggan",
+      newOrderIncoming: "Pesanan meja baru masuk!",
+      viewOrderDetails: "Rincian & Siapkan Pesanan",
+      orderedItems: "Daftar Menu Dipesan",
     },
     customer: {
       welcome: "Selamat Datang di",
@@ -342,6 +350,10 @@ export const translations: Record<AppLanguage, Translations> = {
       linkCopied: "تم نسخ الرابط بنجاح!",
       sendWhatsapp: "إرسال عبر الواتساب",
       buzzSuccess: "تم إرسال إشارة النداء والاهتزاز لهاتف العميل بنجاح!",
+      customerNotes: "ملاحظات العميل",
+      newOrderIncoming: "طلب طاولة جديد وارد الآن!",
+      viewOrderDetails: "تفاصيل وتحضير الطلب",
+      orderedItems: "الأصناف المطلوبة",
     },
     customer: {
       welcome: "أهلاً بك في",
@@ -475,6 +487,10 @@ export const translations: Record<AppLanguage, Translations> = {
       linkCopied: "Link copied to clipboard!",
       sendWhatsapp: "Send via WhatsApp",
       buzzSuccess: "Buzz signal & vibration dispatched to customer phone!",
+      customerNotes: "Customer Notes",
+      newOrderIncoming: "New table order received!",
+      viewOrderDetails: "View & Prepare Order",
+      orderedItems: "Ordered Items",
     },
     customer: {
       welcome: "Welcome to",
