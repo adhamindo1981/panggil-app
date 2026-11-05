@@ -30,5 +30,32 @@
     "name_ar": "الحلويات والمخبوزات",
     "name_en": "Snacks & Pastries",
     "display_order": 4
+  },
+  {
+    "id": "cat-ubk-1",
+    "cafe_id": "ubk",
+    "name_ar": "المشروبات والقهوة",
+    "name_id": "Minuman & Kopi",
+    "name_en": "Drinks & Coffee",
+    "display_order": 1,
+    "created_at": "2026-11-05T15:32:15.633Z"
+  },
+  {
+    "id": "cat-ubk-2",
+    "cafe_id": "ubk",
+    "name_ar": "المأكولات والحلويات",
+    "name_id": "Makanan & Dessert",
+    "name_en": "Food & Desserts",
+    "display_order": 2,
+    "created_at": "2026-11-05T15:32:15.633Z"
+  },
+  {
+    "id": "cat-ubk-main-dishes",
+    "cafe_id": "cafe-ubk",
+    "name_ar": "الأطباق الرئيسية",
+    "name_id": "Makanan Utama",
+    "name_en": "Main Dishes",
+    "display_order": 3,
+    "created_at": "2026-11-05T16:33:02.800Z"
   }
 ]

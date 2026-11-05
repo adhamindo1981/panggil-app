@@ -51,6 +51,7 @@ export function MenuManagerModal({
   const [newItemAr, setNewItemAr] = useState('');
   const [newItemId, setNewItemId] = useState('');
   const [newItemEn, setNewItemEn] = useState('');
+  const [newItemDesc, setNewItemDesc] = useState('');
   const [newItemPrice, setNewItemPrice] = useState(25000);
   const [newItemImageUrl, setNewItemImageUrl] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -142,6 +143,8 @@ export function MenuManagerModal({
       name_id: newItemId.trim() || newItemAr.trim(),
       name_ar: newItemAr.trim() || newItemId.trim(),
       name_en: newItemEn.trim() || newItemId.trim(),
+      description: newItemDesc.trim() || undefined,
+      description_ar: newItemDesc.trim() || undefined,
       price: Number(newItemPrice) || 0,
       image_url: newItemImageUrl || undefined,
       is_available: true,
@@ -151,6 +154,7 @@ export function MenuManagerModal({
     setNewItemAr('');
     setNewItemId('');
     setNewItemEn('');
+    setNewItemDesc('');
     setNewItemPrice(25000);
     setNewItemImageUrl('');
     setShowAddItem(false);
@@ -389,6 +393,19 @@ export function MenuManagerModal({
                           className="w-full bg-stone-950 border border-stone-800 rounded-xl px-3 py-2 text-xs text-stone-100 text-left dir-ltr"
                         />
                       </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block text-[11px] text-amber-400 font-semibold mb-1">
+                          وصف المنتج ومكوناته (Product Description)
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={newItemDesc}
+                          onChange={(e) => setNewItemDesc(e.target.value)}
+                          placeholder="اكتب وصفاً جذاباً للمنتج ومكوناته، مثل: أرز مقلي بالدجاج والبيض وصلصة الصويا التقليدية مع خضار طازجة..."
+                          className="w-full bg-stone-950 border border-stone-800 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-stone-100 resize-none transition-colors"
+                        />
+                      </div>
                     </div>
 
                     {/* Image Upload Box */}
@@ -489,7 +506,12 @@ export function MenuManagerModal({
                                 ? item.name_id
                                 : item.name_en}
                             </p>
-                            <p className="text-[11px] text-amber-400 font-mono font-bold">
+                            {(item.description || item.description_ar) && (
+                              <p className="text-[10px] text-stone-400 line-clamp-1 max-w-[280px] mt-0.5">
+                                {item.description || item.description_ar}
+                              </p>
+                            )}
+                            <p className="text-[11px] text-amber-400 font-mono font-bold mt-0.5">
                               {(item.price || 0).toLocaleString()} {cafe.currency_symbol || 'Rp'}
                             </p>
                           </div>

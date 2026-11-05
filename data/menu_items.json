@@ -88,5 +88,38 @@
     "price": 20000,
     "image_url": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&auto=format&fit=crop&q=80",
     "is_available": true
+  },
+  {
+    "id": "item-ubk-1",
+    "category_id": "cat-ubk-1",
+    "name_ar": "قهوة مميزة (Signature)",
+    "name_id": "Signature Coffee",
+    "name_en": "Special Coffee",
+    "price": 25000,
+    "is_available": true,
+    "created_at": "2026-11-05T15:32:15.633Z"
+  },
+  {
+    "id": "item-ubk-2",
+    "category_id": "cat-ubk-2",
+    "name_ar": "كرواسون طازج",
+    "name_id": "Fresh Croissant",
+    "name_en": "Fresh Croissant",
+    "price": 20000,
+    "is_available": true,
+    "created_at": "2026-11-05T15:32:15.633Z"
+  },
+  {
+    "id": "item-ubk-nasi-goreng",
+    "category_id": "cat-ubk-main-dishes",
+    "name_ar": "ناسي قورينق",
+    "name_id": "Nasi Goreng Spesial",
+    "name_en": "Special Fried Rice",
+    "description": "أرز إندونيسي مقلي مع الدجاج والبيض المقلي والخضار وصلصة الصويا الحلوة التقليدية",
+    "description_ar": "أرز إندونيسي مقلي مع الدجاج والبيض المقلي والخضار وصلصة الصويا الحلوة التقليدية",
+    "price": 45000,
+    "image_url": "https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=500&auto=format&fit=crop&q=80",
+    "is_available": true,
+    "created_at": "2026-11-05T16:33:02.807Z"
   }
 ]

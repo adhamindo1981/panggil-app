@@ -871,50 +871,65 @@ class PanggilDataService {
       created_at: new Date().toISOString(),
     };
 
+    let createdCategory = newCategory;
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase.from('menu_categories').insert([newCategory]).select().single();
-      if (!error && data) return data as MenuCategory;
+      try {
+        const { data, error } = await supabase.from('menu_categories').insert([newCategory]).select().single();
+        if (!error && data) createdCategory = data as MenuCategory;
+      } catch (err) {
+        console.warn('Supabase createCategory error:', err);
+      }
     }
 
     const cats = this.getLocalCategories();
-    const updated = [...cats, newCategory];
+    const updated = [...cats.filter((c) => c.id !== createdCategory.id), createdCategory];
     this.saveLocalCategories(updated);
 
-    // Sync to server API in background
+    // Sync to server API
     if (typeof window !== 'undefined') {
       try {
-        fetch('/api/menu', {
+        await fetch('/api/menu', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'category', data: newCategory }),
-        }).catch(() => {});
+          body: JSON.stringify({ type: 'category', data: createdCategory }),
+        });
       } catch {}
     } else {
       try {
         const { saveServerCategory } = await import('./server-menu-store');
-        saveServerCategory(newCategory);
+        saveServerCategory(createdCategory);
       } catch {}
     }
 
-    return newCategory;
+    if (broadcastChannel) {
+      broadcastChannel.postMessage({ type: 'MENU_UPDATED' });
+    }
+
+    return createdCategory;
   }
 
   public async deleteCategory(id: string): Promise<boolean> {
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('menu_categories').delete().eq('id', id);
+      try {
+        await supabase.from('menu_categories').delete().eq('id', id);
+      } catch {}
     }
     const cats = this.getLocalCategories().filter((c) => c.id !== id);
     this.saveLocalCategories(cats);
 
     if (typeof window !== 'undefined') {
       try {
-        fetch(`/api/menu?type=category&id=${id}`, { method: 'DELETE' }).catch(() => {});
+        await fetch(`/api/menu?type=category&id=${id}`, { method: 'DELETE' });
       } catch {}
     } else {
       try {
         const { deleteServerCategory } = await import('./server-menu-store');
         deleteServerCategory(id);
       } catch {}
+    }
+
+    if (broadcastChannel) {
+      broadcastChannel.postMessage({ type: 'MENU_UPDATED' });
     }
 
     return true;
@@ -928,38 +943,61 @@ class PanggilDataService {
       created_at: new Date().toISOString(),
     };
 
+    let createdItem = newItem;
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase.from('menu_items').insert([newItem]).select().single();
-      if (!error && data) return data as MenuItem;
+      try {
+        const { description, description_ar, ...baseData } = newItem;
+        const { data, error } = await supabase.from('menu_items').insert([newItem]).select().single();
+        if (!error && data) {
+          createdItem = { ...newItem, ...(data as MenuItem) };
+        } else if (error) {
+          // Graceful fallback if description column does not exist in Supabase yet
+          const { data: fallbackData } = await supabase.from('menu_items').insert([baseData]).select().single();
+          if (fallbackData) createdItem = { ...newItem, ...(fallbackData as MenuItem) };
+        }
+      } catch (err) {
+        console.warn('Supabase createMenuItem error:', err);
+      }
     }
 
     const items = this.getLocalMenuItems();
-    const updated = [...items, newItem];
+    const updated = [...items.filter((i) => i.id !== createdItem.id), createdItem];
     this.saveLocalMenuItems(updated);
 
-    // Sync to server API in background
+    // Sync to server API
     if (typeof window !== 'undefined') {
       try {
-        fetch('/api/menu', {
+        await fetch('/api/menu', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'item', data: newItem }),
-        }).catch(() => {});
+          body: JSON.stringify({ type: 'item', data: createdItem }),
+        });
       } catch {}
     } else {
       try {
         const { saveServerMenuItem } = await import('./server-menu-store');
-        saveServerMenuItem(newItem);
+        saveServerMenuItem(createdItem);
       } catch {}
     }
 
-    return newItem;
+    if (broadcastChannel) {
+      broadcastChannel.postMessage({ type: 'MENU_UPDATED' });
+    }
+
+    return createdItem;
   }
 
   public async updateMenuItem(id: string, updates: Partial<MenuItem>): Promise<MenuItem | null> {
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase.from('menu_items').update(updates).eq('id', id).select().single();
-      if (!error && data) return data as MenuItem;
+      try {
+        const { description, description_ar, ...baseUpdates } = updates;
+        const { data, error } = await supabase.from('menu_items').update(updates).eq('id', id).select().single();
+        if (error) {
+          await supabase.from('menu_items').update(baseUpdates).eq('id', id);
+        }
+      } catch (err) {
+        console.warn('Supabase updateMenuItem error:', err);
+      }
     }
 
     const items = this.getLocalMenuItems();
@@ -970,14 +1008,14 @@ class PanggilDataService {
     items[index] = updatedItem;
     this.saveLocalMenuItems([...items]);
 
-    // Sync to server API in background
+    // Sync to server API
     if (typeof window !== 'undefined') {
       try {
-        fetch('/api/menu', {
+        await fetch('/api/menu', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id, updates }),
-        }).catch(() => {});
+        });
       } catch {}
     } else {
       try {
@@ -986,25 +1024,35 @@ class PanggilDataService {
       } catch {}
     }
 
+    if (broadcastChannel) {
+      broadcastChannel.postMessage({ type: 'MENU_UPDATED' });
+    }
+
     return updatedItem;
   }
 
   public async deleteMenuItem(id: string): Promise<boolean> {
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('menu_items').delete().eq('id', id);
+      try {
+        await supabase.from('menu_items').delete().eq('id', id);
+      } catch {}
     }
     const items = this.getLocalMenuItems().filter((i) => i.id !== id);
     this.saveLocalMenuItems(items);
 
     if (typeof window !== 'undefined') {
       try {
-        fetch(`/api/menu?type=item&id=${id}`, { method: 'DELETE' }).catch(() => {});
+        await fetch(`/api/menu?type=item&id=${id}`, { method: 'DELETE' });
       } catch {}
     } else {
       try {
         const { deleteServerMenuItem } = await import('./server-menu-store');
         deleteServerMenuItem(id);
       } catch {}
+    }
+
+    if (broadcastChannel) {
+      broadcastChannel.postMessage({ type: 'MENU_UPDATED' });
     }
 
     return true;
@@ -1024,96 +1072,149 @@ class PanggilDataService {
   }
 
   public async getMenuCategories(cafeId: string): Promise<MenuCategory[]> {
+    const cleanSlug = (cafeId || '').replace(/^cafe-/, '').trim().toLowerCase();
+    const matchingCafeIds = Array.from(
+      new Set(
+        cleanSlug.startsWith('ubk')
+          ? ['cafe-ubk', 'ubk', 'cafe-ubkcaffe', 'ubkcaffe']
+          : [cafeId, `cafe-${cleanSlug}`, cleanSlug]
+      )
+    ).filter(Boolean);
+
+    let supabaseCategories: MenuCategory[] = [];
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase
-        .from('menu_categories')
-        .select('*')
-        .eq('cafe_id', cafeId)
-        .order('display_order', { ascending: true });
-      if (!error && data) return data as MenuCategory[];
-    }
-
-    // Server-Side Execution
-    if (typeof window === 'undefined') {
       try {
-        const { getServerCategories, seedStarterMenuForCafe } = await import('./server-menu-store');
-        let cats = getServerCategories(cafeId);
-        if (cats.length === 0) {
-          const seeded = seedStarterMenuForCafe(cafeId);
-          cats = seeded.categories;
+        const { data, error } = await supabase
+          .from('menu_categories')
+          .select('*')
+          .in('cafe_id', matchingCafeIds)
+          .order('display_order', { ascending: true });
+        if (!error && data && Array.isArray(data)) {
+          supabaseCategories = data as MenuCategory[];
         }
-        return cats;
-      } catch {}
+      } catch (e) {
+        console.warn('Supabase getMenuCategories warning:', e);
+      }
     }
 
-    // Browser / Client-Side Execution: Query Server API First for real-time sync
+    let serverCategories: MenuCategory[] = [];
     if (typeof window !== 'undefined') {
       try {
         const res = await fetch(`/api/menu?cafe_id=${cafeId}`);
         if (res.ok) {
           const data = await res.json();
           if (data.categories && Array.isArray(data.categories)) {
-            const allLocal = this.getLocalCategories().filter((c) => c.cafe_id !== cafeId);
-            this.saveLocalCategories([...allLocal, ...data.categories]);
-            return data.categories as MenuCategory[];
+            serverCategories = data.categories as MenuCategory[];
           }
         }
       } catch {}
-    }
-
-    // Fallback to local storage if offline
-    const local = this.getLocalCategories().filter((c) => c.cafe_id === cafeId);
-    if (local.length > 0) return local;
-
-    return INITIAL_CATEGORIES.filter((c) => c.cafe_id === cafeId);
-  }
-
-  public async getMenuItems(cafeId: string): Promise<MenuItem[]> {
-    if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase
-        .from('menu_items')
-        .select('*')
-        .order('created_at', { ascending: true });
-      if (!error && data) return data as MenuItem[];
-    }
-
-    // Server-Side Execution
-    if (typeof window === 'undefined') {
+    } else {
       try {
-        const { getServerMenuItems, seedStarterMenuForCafe } = await import('./server-menu-store');
-        let items = getServerMenuItems(cafeId);
-        if (items.length === 0) {
-          const seeded = seedStarterMenuForCafe(cafeId);
-          items = seeded.items;
-        }
-        return items;
+        const { getServerCategories } = await import('./server-menu-store');
+        serverCategories = getServerCategories(cafeId);
       } catch {}
     }
 
-    // Browser / Client-Side Execution: Query Server API First for real-time sync
+    const localCategories = this.getLocalCategories().filter((c) =>
+      matchingCafeIds.some((id) => id.toLowerCase() === (c.cafe_id || '').toLowerCase())
+    );
+
+    // Merge categories across all sources by id
+    const catMap = new Map<string, MenuCategory>();
+    supabaseCategories.forEach((c) => catMap.set(c.id, c));
+    serverCategories.forEach((c) => {
+      if (!catMap.has(c.id)) catMap.set(c.id, c);
+      else catMap.set(c.id, { ...c, ...catMap.get(c.id)! });
+    });
+    localCategories.forEach((c) => {
+      if (!catMap.has(c.id)) catMap.set(c.id, c);
+      else catMap.set(c.id, { ...c, ...catMap.get(c.id)! });
+    });
+
+    let result = Array.from(catMap.values()).sort(
+      (a, b) => (a.display_order || 0) - (b.display_order || 0)
+    );
+
+    if (result.length === 0) {
+      result = INITIAL_CATEGORIES.filter((c) =>
+        matchingCafeIds.some((id) => id.toLowerCase() === (c.cafe_id || '').toLowerCase())
+      );
+    }
+
+    if (result.length > 0) {
+      const allOtherLocal = this.getLocalCategories().filter(
+        (c) => !matchingCafeIds.some((id) => id.toLowerCase() === (c.cafe_id || '').toLowerCase())
+      );
+      this.saveLocalCategories([...allOtherLocal, ...result]);
+    }
+
+    return result;
+  }
+
+  public async getMenuItems(cafeId: string): Promise<MenuItem[]> {
+    const cleanSlug = (cafeId || '').replace(/^cafe-/, '').trim().toLowerCase();
+    const categories = await this.getMenuCategories(cafeId);
+    const categoryIds = new Set(categories.map((c) => c.id));
+
+    let supabaseItems: MenuItem[] = [];
+    if (isSupabaseConfigured && supabase && categoryIds.size > 0) {
+      try {
+        const { data, error } = await supabase
+          .from('menu_items')
+          .select('*')
+          .in('category_id', Array.from(categoryIds))
+          .order('created_at', { ascending: true });
+        if (!error && data && Array.isArray(data)) {
+          supabaseItems = data as MenuItem[];
+        }
+      } catch (e) {
+        console.warn('Supabase getMenuItems warning:', e);
+      }
+    }
+
+    let serverItems: MenuItem[] = [];
     if (typeof window !== 'undefined') {
       try {
         const res = await fetch(`/api/menu?cafe_id=${cafeId}`);
         if (res.ok) {
           const data = await res.json();
           if (data.items && Array.isArray(data.items)) {
-            const categories = await this.getMenuCategories(cafeId);
-            const categoryIds = new Set(categories.map((c) => c.id));
-            const allOtherLocal = this.getLocalMenuItems().filter((i) => !categoryIds.has(i.category_id));
-            this.saveLocalMenuItems([...allOtherLocal, ...data.items]);
-            return data.items as MenuItem[];
+            serverItems = data.items as MenuItem[];
           }
         }
       } catch {}
+    } else {
+      try {
+        const { getServerMenuItems } = await import('./server-menu-store');
+        serverItems = getServerMenuItems(cafeId);
+      } catch {}
     }
 
-    // Fallback to local storage if offline
-    const categories = await this.getMenuCategories(cafeId);
-    const categoryIds = new Set(categories.map((c) => c.id));
-    const localItems = this.getLocalMenuItems().filter((item) => categoryIds.has(item.category_id));
-    if (localItems.length > 0) return localItems;
+    const localItems = this.getLocalMenuItems().filter((i) => categoryIds.has(i.category_id));
 
-    return INITIAL_MENU_ITEMS.filter((item) => categoryIds.has(item.category_id));
+    // Merge items across all sources by id
+    const itemMap = new Map<string, MenuItem>();
+    supabaseItems.forEach((i) => itemMap.set(i.id, i));
+    serverItems.forEach((i) => {
+      if (!itemMap.has(i.id)) itemMap.set(i.id, i);
+      else itemMap.set(i.id, { ...itemMap.get(i.id)!, ...i });
+    });
+    localItems.forEach((i) => {
+      if (!itemMap.has(i.id)) itemMap.set(i.id, i);
+      else itemMap.set(i.id, { ...itemMap.get(i.id)!, ...i });
+    });
+
+    let result = Array.from(itemMap.values());
+    if (result.length === 0) {
+      result = INITIAL_MENU_ITEMS.filter((i) => categoryIds.has(i.category_id));
+    }
+
+    if (result.length > 0) {
+      const allOtherLocal = this.getLocalMenuItems().filter((i) => !categoryIds.has(i.category_id));
+      this.saveLocalMenuItems([...allOtherLocal, ...result]);
+    }
+
+    return result;
   }
 
   public async getOrders(cafeId: string): Promise<Order[]> {

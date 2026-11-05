@@ -18,7 +18,10 @@ function isCafeMatch(catCafeId: string, targetCafeId: string): boolean {
 
   const cleanCat = catCafeId.replace(/^cafe-/, '').trim().toLowerCase();
   const cleanTarget = targetCafeId.replace(/^cafe-/, '').trim().toLowerCase();
-  return cleanCat === cleanTarget;
+  if (cleanCat === cleanTarget) return true;
+
+  if (cleanCat.startsWith('ubk') && cleanTarget.startsWith('ubk')) return true;
+  return false;
 }
 
 function loadCategories(): MenuCategory[] {

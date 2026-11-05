@@ -87,6 +87,8 @@ export interface MenuItem {
   name_id: string;
   name_ar: string;
   name_en: string;
+  description?: string;
+  description_ar?: string;
   price: number;
   image_url?: string;
   is_available: boolean;

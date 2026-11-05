@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import QRCode from 'qrcode';
-import { Cafe, Order, OrderStatus } from '@/types/database';
+import { Cafe, Order, OrderStatus, OrderItem, MenuCategory, MenuItem } from '@/types/database';
 import { useI18n } from '@/lib/i18n/context';
 import { dataService } from '@/lib/data-layer';
 import { audioEngine } from '@/lib/audio-engine';
@@ -40,6 +40,11 @@ import {
   ChefHat,
   Home,
   ArrowLeft,
+  Minus,
+  Plus,
+  ShoppingBag,
+  Trash2,
+  Tag,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -83,6 +88,91 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
     const nextNum = numbers.length > 0 ? Math.max(...numbers) + 1 : 101;
     setQuickOrderNumber(String(nextNum));
   };
+
+  // Menu items and POS state
+  const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [ticketTab, setTicketTab] = useState<'quick' | 'menu'>('quick');
+  const [selectedCategoryTab, setSelectedCategoryTab] = useState<string>('all');
+  const [selectedItemsInTicket, setSelectedItemsInTicket] = useState<{ item: MenuItem; quantity: number }[]>([]);
+
+  const loadMenuData = async () => {
+    try {
+      const [cats, items] = await Promise.all([
+        dataService.getMenuCategories(cafe.id),
+        dataService.getMenuItems(cafe.id),
+      ]);
+      setCategories(cats);
+      setMenuItems(items);
+    } catch {}
+  };
+
+  useEffect(() => {
+    loadMenuData();
+
+    if (typeof window !== 'undefined') {
+      let channel: BroadcastChannel | null = null;
+      if ('BroadcastChannel' in window) {
+        try {
+          channel = new BroadcastChannel('panggil_channel');
+          channel.onmessage = (event) => {
+            if (event.data?.type === 'MENU_UPDATED') {
+              loadMenuData();
+            }
+          };
+        } catch {}
+      }
+
+      const handleStorage = (e: StorageEvent) => {
+        if (e.key === 'panggil_menu_items' || e.key === 'panggil_menu_categories') {
+          loadMenuData();
+        }
+      };
+      window.addEventListener('storage', handleStorage);
+
+      return () => {
+        channel?.close();
+        window.removeEventListener('storage', handleStorage);
+      };
+    }
+  }, [cafe.id]);
+
+  const handleAddItemToTicket = (item: MenuItem) => {
+    setSelectedItemsInTicket((prev) => {
+      const existing = prev.find((x) => x.item.id === item.id);
+      if (existing) {
+        return prev.map((x) => (x.item.id === item.id ? { ...x, quantity: x.quantity + 1 } : x));
+      }
+      return [...prev, { item, quantity: 1 }];
+    });
+  };
+
+  const handleUpdateTicketItemQty = (itemId: string, delta: number) => {
+    setSelectedItemsInTicket((prev) =>
+      prev
+        .map((x) => {
+          if (x.item.id === itemId) {
+            const newQty = x.quantity + delta;
+            return newQty > 0 ? { ...x, quantity: newQty } : null;
+          }
+          return x;
+        })
+        .filter(Boolean) as { item: MenuItem; quantity: number }[]
+    );
+  };
+
+  const ticketSubtotal = selectedItemsInTicket.reduce(
+    (acc, curr) => acc + (curr.item.price || 0) * curr.quantity,
+    0
+  );
+  const ticketTaxRate = typeof cafe.tax_rate === 'number' ? cafe.tax_rate : 10;
+  const ticketGrandTotal =
+    ticketSubtotal > 0 ? Math.round(ticketSubtotal + (ticketSubtotal * ticketTaxRate) / 100) : 0;
+
+  const filteredMenuItems = useMemo(() => {
+    if (selectedCategoryTab === 'all') return menuItems;
+    return menuItems.filter((i) => i.category_id === selectedCategoryTab);
+  }, [menuItems, selectedCategoryTab]);
 
   // Cashier PIN Lock State
   const [isUnlocked, setIsUnlocked] = useState<boolean>(false);
@@ -184,16 +274,26 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
 
     setIsSubmitting(true);
     try {
+      const orderItems: OrderItem[] = selectedItemsInTicket.map(({ item, quantity }) => ({
+        id: item.id,
+        name_id: item.name_id,
+        name_ar: item.name_ar,
+        name_en: item.name_en,
+        price: item.price,
+        quantity,
+      }));
+
       const newOrder = await dataService.createOrder({
         cafe_id: cafe.id,
         order_number: quickOrderNumber.trim(),
         customer_name: quickCustomerName.trim() || undefined,
-        items: [],
-        total_amount: 0,
+        items: orderItems,
+        total_amount: ticketGrandTotal,
       });
 
       setQuickOrderNumber('');
       setQuickCustomerName('');
+      setSelectedItemsInTicket([]);
       setIsNewOrderModalOpen(false);
       await refreshOrders();
 
@@ -793,84 +893,337 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
       </main>
 
       {/* ======================================================== */}
-      {/* QUICK PAGER TICKET MODAL */}
+      {/* QUICK PAGER TICKET & POS MENU SELECTION MODAL */}
       {/* ======================================================== */}
       {isNewOrderModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-md bg-[#0d121e] border border-zinc-800 rounded-3xl p-6 sm:p-7 shadow-2xl relative">
-            <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-amber-500/10 text-amber-400 rounded-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div
+            className={`w-full ${
+              ticketTab === 'menu' ? 'max-w-4xl' : 'max-w-md'
+            } max-h-[92vh] flex flex-col bg-[#0d121e] border border-zinc-800 rounded-3xl shadow-2xl relative overflow-hidden transition-all duration-300`}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-5 border-b border-zinc-800 bg-zinc-900/60 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
                   <PlusCircle className="w-5 h-5" />
                 </div>
-                <h3 className="font-extrabold text-white text-base">
-                  {t.cashier.quickPagerTicket}
-                </h3>
+                <div>
+                  <h3 className="font-extrabold text-white text-base">
+                    {ticketTab === 'menu' ? 'نقطة البيع واختيار الأصناف من المنيو' : t.cashier.quickPagerTicket}
+                  </h3>
+                  <p className="text-[11px] text-zinc-400">
+                    {ticketTab === 'menu'
+                      ? `متاح ${menuItems.length} صنف عبر ${categories.length} أقسام`
+                      : 'إصدار تذكرة استدعاء فورية برقم الطلب'}
+                  </p>
+                </div>
               </div>
-              <button
-                onClick={() => setIsNewOrderModalOpen(false)}
-                className="p-1.5 text-zinc-400 hover:text-white bg-zinc-800/80 rounded-xl"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            <form onSubmit={handleCreateQuickTicket} className="mt-5 space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
-                    {t.cashier.orderNumber} *
-                  </label>
+              <div className="flex items-center gap-2">
+                {/* Switcher between Quick and Menu */}
+                <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-800 text-xs font-bold">
                   <button
                     type="button"
-                    onClick={handleAutoGenerateOrderNumber}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 rounded-lg border border-amber-500/30 transition-all cursor-pointer"
-                    title="توليد رقم تلقائي متسلسل"
+                    onClick={() => setTicketTab('quick')}
+                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                      ticketTab === 'quick'
+                        ? 'bg-amber-500 text-zinc-950 shadow-sm'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
                   >
-                    <Hash className="w-3 h-3" />
-                    <span>Auto #</span>
+                    رقم سريع
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTicketTab('menu')}
+                    className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                      ticketTab === 'menu'
+                        ? 'bg-amber-500 text-zinc-950 shadow-sm'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    <Utensils className="w-3.5 h-3.5" />
+                    <span>أصناف المنيو</span>
+                    {menuItems.length > 0 && (
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                          ticketTab === 'menu'
+                            ? 'bg-zinc-950 text-amber-300'
+                            : 'bg-zinc-800 text-zinc-300'
+                        }`}
+                      >
+                        {menuItems.length}
+                      </span>
+                    )}
                   </button>
                 </div>
-                <input
-                  type="text"
-                  required
-                  value={quickOrderNumber}
-                  onChange={(e) => setQuickOrderNumber(e.target.value)}
-                  placeholder="e.g. 104, A-12, INV-88"
-                  className="w-full px-4 py-3 bg-[#070a13] border border-zinc-800 rounded-2xl text-base font-mono font-bold text-white focus:outline-none focus:border-amber-500"
-                />
-                <p className="text-[10px] text-zinc-500 mt-1">
-                  أدخل رقم الفاتورة من برنامج الكاشير الخاص بك أو اضغط Auto # للتوليد السريع
-                </p>
-              </div>
 
-              <div>
-                <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-2">
-                  {t.cashier.customerName}
-                </label>
-                <input
-                  type="text"
-                  value={quickCustomerName}
-                  onChange={(e) => setQuickCustomerName(e.target.value)}
-                  placeholder="اسم العميل أو رقم الطاولة (اختياري)"
-                  className="w-full px-4 py-3 bg-[#070a13] border border-zinc-800 rounded-2xl text-sm text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <div className="pt-3 flex gap-3">
                 <button
                   type="button"
                   onClick={() => setIsNewOrderModalOpen(false)}
-                  className="flex-1 py-3 px-4 rounded-xl bg-zinc-800 text-zinc-300 font-bold text-xs hover:bg-zinc-700 transition-colors"
+                  className="p-1.5 text-zinc-400 hover:text-white bg-zinc-800/80 rounded-xl cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body Form */}
+            <form onSubmit={handleCreateQuickTicket} className="flex-1 overflow-y-auto p-5 space-y-4">
+              {/* Order Number & Customer Name Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-zinc-900/30 p-4 rounded-2xl border border-zinc-800/80">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                      {t.cashier.orderNumber} *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleAutoGenerateOrderNumber}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-0.5 rounded-lg border border-amber-500/30 transition-all cursor-pointer"
+                      title="توليد رقم تلقائي متسلسل"
+                    >
+                      <Hash className="w-3 h-3" />
+                      <span>Auto #</span>
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={quickOrderNumber}
+                    onChange={(e) => setQuickOrderNumber(e.target.value)}
+                    placeholder="e.g. 104, A-12, INV-88"
+                    className="w-full px-4 py-2.5 bg-[#070a13] border border-zinc-800 rounded-xl text-sm font-mono font-bold text-white focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                    {t.cashier.customerName}
+                  </label>
+                  <input
+                    type="text"
+                    value={quickCustomerName}
+                    onChange={(e) => setQuickCustomerName(e.target.value)}
+                    placeholder="اسم العميل أو رقم الطاولة (اختياري)"
+                    className="w-full px-4 py-2.5 bg-[#070a13] border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              {/* MENU MODE: Category Tabs & Product Grid */}
+              {ticketTab === 'menu' && (
+                <div className="space-y-4">
+                  {/* Category Pills & Quick Menu Manager button */}
+                  <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1">
+                    <div className="flex items-center gap-1.5 flex-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCategoryTab('all')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                          selectedCategoryTab === 'all'
+                            ? 'bg-amber-500 text-zinc-950 font-black shadow-md'
+                            : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                        }`}
+                      >
+                        الكل ({menuItems.length})
+                      </button>
+                      {categories.map((cat) => {
+                        const count = menuItems.filter((i) => i.category_id === cat.id).length;
+                        const catName = lang === 'ar' ? cat.name_ar || cat.name_id : cat.name_id;
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setSelectedCategoryTab(cat.id)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
+                              selectedCategoryTab === cat.id
+                                ? 'bg-amber-500 text-zinc-950 font-black shadow-md'
+                                : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+                            }`}
+                          >
+                            <span>{catName}</span>
+                            <span className="text-[10px] px-1.5 py-0.2 rounded-full font-mono bg-black/20">
+                              {count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsMenuManagerOpen(true)}
+                      className="px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 whitespace-nowrap flex items-center gap-1 shrink-0 cursor-pointer"
+                    >
+                      <UtensilsCrossed className="w-3.5 h-3.5" />
+                      <span>إدارة المنيو</span>
+                    </button>
+                  </div>
+
+                  {/* Menu Items Grid */}
+                  {filteredMenuItems.length === 0 ? (
+                    <div className="text-center py-10 border border-dashed border-zinc-800 rounded-2xl bg-zinc-900/20">
+                      <Utensils className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
+                      <p className="text-xs text-zinc-400 font-bold">لا توجد أصناف في هذا القسم حالياً</p>
+                      <button
+                        type="button"
+                        onClick={() => setIsMenuManagerOpen(true)}
+                        className="mt-3 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold cursor-pointer"
+                      >
+                        + إضافة صنف جديد للمنيو
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-72 overflow-y-auto p-1">
+                      {filteredMenuItems.map((item) => {
+                        const inTicket = selectedItemsInTicket.find((x) => x.item.id === item.id);
+                        const qty = inTicket?.quantity || 0;
+                        const localizedName = lang === 'ar' ? item.name_ar || item.name_id : item.name_id;
+                        const localizedDesc =
+                          lang === 'ar' ? item.description_ar || item.description : item.description;
+
+                        return (
+                          <div
+                            key={item.id}
+                            className={`p-3 rounded-2xl border transition-all flex flex-col justify-between ${
+                              qty > 0
+                                ? 'bg-amber-500/10 border-amber-500/50 shadow-md shadow-amber-500/5'
+                                : 'bg-zinc-900/60 border-zinc-800/80 hover:border-zinc-700'
+                            }`}
+                          >
+                            <div className="flex gap-3">
+                              {item.image_url ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={item.image_url}
+                                  alt={localizedName}
+                                  className="w-14 h-14 rounded-xl object-cover shrink-0 border border-zinc-800"
+                                />
+                              ) : (
+                                <div className="w-14 h-14 rounded-xl bg-zinc-800/80 flex items-center justify-center text-zinc-500 shrink-0">
+                                  <Utensils className="w-6 h-6" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-xs font-bold text-white truncate">{localizedName}</h4>
+                                {localizedDesc && (
+                                  <p className="text-[11px] text-zinc-400 line-clamp-2 mt-0.5">{localizedDesc}</p>
+                                )}
+                                <p className="text-xs font-mono font-black text-amber-400 mt-1">
+                                  {formatCurrency(item.price, cafe.currency_symbol)}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="mt-3 pt-2 border-t border-zinc-800/60 flex items-center justify-between">
+                              {qty > 0 ? (
+                                <div className="flex items-center gap-2 bg-zinc-950 px-2 py-1 rounded-xl border border-amber-500/40 w-full justify-between">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateTicketItemQty(item.id, -1)}
+                                    className="p-1 text-amber-400 hover:text-white rounded-lg hover:bg-zinc-800 cursor-pointer"
+                                  >
+                                    <Minus className="w-3.5 h-3.5" />
+                                  </button>
+                                  <span className="font-mono font-black text-amber-400 text-xs px-2">
+                                    {qty}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateTicketItemQty(item.id, 1)}
+                                    className="p-1 text-amber-400 hover:text-white rounded-lg hover:bg-zinc-800 cursor-pointer"
+                                  >
+                                    <Plus className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddItemToTicket(item)}
+                                  className="w-full py-1.5 px-3 bg-zinc-800 hover:bg-amber-500 hover:text-zinc-950 text-zinc-200 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                >
+                                  <Plus className="w-3.5 h-3.5" />
+                                  <span>إضافة للتذكرة</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Selected Items Basket Drawer / Summary */}
+                  {selectedItemsInTicket.length > 0 && (
+                    <div className="bg-zinc-950 border border-amber-500/30 rounded-2xl p-3.5 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold pb-2 border-b border-zinc-800 text-zinc-300">
+                        <span className="flex items-center gap-1.5 text-amber-400">
+                          <ShoppingBag className="w-4 h-4" />
+                          <span>
+                            الأصناف المختارة ({selectedItemsInTicket.reduce((s, i) => s + i.quantity, 0)})
+                          </span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedItemsInTicket([])}
+                          className="text-[11px] text-zinc-500 hover:text-red-400 flex items-center gap-1 cursor-pointer"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>إفراغ</span>
+                        </button>
+                      </div>
+
+                      <div className="max-h-32 overflow-y-auto divide-y divide-zinc-800/60 text-xs">
+                        {selectedItemsInTicket.map(({ item, quantity }) => {
+                          const localizedName = lang === 'ar' ? item.name_ar || item.name_id : item.name_id;
+                          return (
+                            <div key={item.id} className="py-1.5 flex items-center justify-between">
+                              <span className="text-zinc-200">
+                                {quantity}× {localizedName}
+                              </span>
+                              <span className="font-mono text-zinc-300">
+                                {formatCurrency(item.price * quantity, cafe.currency_symbol)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-zinc-800 text-xs font-bold">
+                        <span className="text-zinc-400">الإجمالي الشامل للضريبة:</span>
+                        <span className="font-mono text-base font-black text-amber-400">
+                          {formatCurrency(ticketGrandTotal, cafe.currency_symbol)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="pt-3 border-t border-zinc-800 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsNewOrderModalOpen(false)}
+                  className="flex-1 py-3 px-4 rounded-xl bg-zinc-800 text-zinc-300 font-bold text-xs hover:bg-zinc-700 transition-colors cursor-pointer"
                 >
                   {t.common.cancel}
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting || !quickOrderNumber.trim()}
-                  className="flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 disabled:opacity-50 text-zinc-950 font-black text-xs shadow-lg shadow-amber-500/20 transition-all active:scale-98 cursor-pointer"
+                  className="flex-1 py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 disabled:opacity-50 text-zinc-950 font-black text-xs shadow-lg shadow-amber-500/20 transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2"
                 >
-                  {isSubmitting ? t.common.loading : t.cashier.createTicket}
+                  <BellRing className="w-4 h-4" />
+                  <span>
+                    {isSubmitting
+                      ? t.common.loading
+                      : ticketTab === 'menu' && selectedItemsInTicket.length > 0
+                      ? `إصدار تذكرة (${selectedItemsInTicket.reduce((s, i) => s + i.quantity, 0)} أصناف)`
+                      : t.cashier.createTicket}
+                  </span>
                 </button>
               </div>
             </form>
@@ -1111,7 +1464,10 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
       <MenuManagerModal
         cafe={cafe}
         isOpen={isMenuManagerOpen}
-        onClose={() => setIsMenuManagerOpen(false)}
+        onClose={() => {
+          setIsMenuManagerOpen(false);
+          loadMenuData();
+        }}
         lang={lang}
         isCashier={true}
       />

@@ -173,6 +173,11 @@ export function DigitalMenu({ cafe, categories, items }: DigitalMenuProps) {
                   <h3 className="font-extrabold text-white text-base mb-1.5 line-clamp-1">
                     {itemName}
                   </h3>
+                  {(item.description || item.description_ar) && (
+                    <p className="text-xs text-zinc-400 font-medium line-clamp-2 mb-2 leading-relaxed">
+                      {item.description || item.description_ar}
+                    </p>
+                  )}
                   <p className="text-amber-400 font-black text-lg font-mono">
                     {formatCurrency(item.price, cafe.currency_symbol)}
                   </p>
