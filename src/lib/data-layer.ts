@@ -19,6 +19,42 @@ import { supabase, isSupabaseConfigured } from './supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { cloudRelay } from './cloud-relay';
 
+export const ORDER_STATUS_RANK: Record<OrderStatus, number> = {
+  cancelled: 0,
+  pending: 1,
+  ready: 2,
+  completed: 3,
+};
+
+export function mergeTwoOrders(existing: Order | undefined, incoming: Order): Order {
+  if (!existing) return incoming;
+
+  const rankExisting = ORDER_STATUS_RANK[existing.status] ?? 0;
+  const rankIncoming = ORDER_STATUS_RANK[incoming.status] ?? 0;
+
+  // Monotonic: completed (3) > ready (2) > pending (1) > cancelled (0)
+  // Higher rank status ALWAYS wins and completed orders NEVER revert!
+  const resolvedStatus: OrderStatus =
+    rankIncoming >= rankExisting ? incoming.status : existing.status;
+
+  return {
+    ...existing,
+    ...incoming,
+    status: resolvedStatus,
+    cafe_id: incoming.cafe_id || existing.cafe_id,
+    customer_name: incoming.customer_name || existing.customer_name,
+    customer_phone: incoming.customer_phone || existing.customer_phone,
+    order_number: incoming.order_number || existing.order_number,
+    total_amount: incoming.total_amount || existing.total_amount,
+    items: incoming.items && incoming.items.length > 0 ? incoming.items : existing.items,
+    notes: incoming.notes || existing.notes,
+    created_at: existing.created_at || incoming.created_at,
+    ready_at: incoming.ready_at || existing.ready_at,
+    completed_at: incoming.completed_at || existing.completed_at,
+    buzzed_at: Math.max(existing.buzzed_at || 0, incoming.buzzed_at || 0) || undefined,
+  };
+}
+
 // Initial Mock Platform Staff Users
 export const INITIAL_PLATFORM_USERS: PlatformUser[] = [
   {
@@ -1081,8 +1117,9 @@ class PanggilDataService {
   }
 
   public async getOrders(cafeId: string): Promise<Order[]> {
-    const isMatchingCafe = (orderCafeId: string) => {
-      if (!orderCafeId || !cafeId) return false;
+    const isMatchingCafe = (orderCafeId?: string) => {
+      if (!cafeId) return true;
+      if (!orderCafeId) return true; // Gracefully keep locally created orders that lacked cafe_id
       if (orderCafeId === cafeId) return true;
       const a = orderCafeId.replace(/^cafe-/, '').trim().toLowerCase();
       const b = cafeId.replace(/^cafe-/, '').trim().toLowerCase();
@@ -1139,40 +1176,24 @@ class PanggilDataService {
     const localOrders = this.getLocalOrders();
     const map = new Map<string, Order>();
 
+    // Helper to merge orders monotonically from all sources
+    const mergeIntoMap = (incoming: Order) => {
+      if (!isMatchingCafe(incoming.cafe_id)) return;
+      const existing = map.get(incoming.id);
+      map.set(incoming.id, mergeTwoOrders(existing, incoming));
+    };
+
     // 1. Populate Supabase orders
-    supabaseOrders.forEach((o) => map.set(o.id, o));
+    supabaseOrders.forEach(mergeIntoMap);
 
     // 2. Populate and merge Server API / Disk orders
-    serverOrders.forEach((o) => {
-      if (isMatchingCafe(o.cafe_id)) {
-        const existing = map.get(o.id);
-        if (!existing) {
-          map.set(o.id, o);
-        } else {
-          const resolvedStatus =
-            o.status === 'completed' || existing.status === 'completed'
-              ? 'completed'
-              : o.status === 'ready' || existing.status === 'ready'
-              ? 'ready'
-              : o.status || existing.status;
-          map.set(o.id, { ...existing, ...o, status: resolvedStatus });
-        }
-      }
-    });
+    serverOrders.forEach(mergeIntoMap);
 
     // 3. Merge Universal Cloud Relay orders
-    cloudOrders.forEach((o) => {
-      if (isMatchingCafe(o.cafe_id) && !map.has(o.id)) {
-        map.set(o.id, o);
-      }
-    });
+    cloudOrders.forEach(mergeIntoMap);
 
-    // 4. Merge Local storage orders
-    localOrders.forEach((o) => {
-      if (isMatchingCafe(o.cafe_id) && !map.has(o.id)) {
-        map.set(o.id, o);
-      }
-    });
+    // 4. Merge Local storage orders (highest priority: user interactions on this terminal)
+    localOrders.forEach(mergeIntoMap);
 
     const mergedList = Array.from(map.values()).sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -1183,13 +1204,15 @@ class PanggilDataService {
       this.saveLocalOrders(mergedList);
     }
 
-    // Auto-sync missing orders to Supabase in background
+    // Auto-sync missing or upgraded orders to Supabase in background
     if (isSupabaseConfigured && supabase && typeof window !== 'undefined') {
-      const missingInSupabase = mergedList.filter(
-        (order) => !supabaseOrders.some((so) => so.id === order.id)
-      );
-      if (missingInSupabase.length > 0) {
-        Promise.resolve(supabase.from('orders').upsert(missingInSupabase)).catch(() => {});
+      const ordersToSync = mergedList.filter((order) => {
+        const so = supabaseOrders.find((s) => s.id === order.id);
+        if (!so) return true;
+        return (ORDER_STATUS_RANK[order.status] ?? 0) > (ORDER_STATUS_RANK[so.status] ?? 0);
+      });
+      if (ordersToSync.length > 0) {
+        Promise.resolve(supabase.from('orders').upsert(ordersToSync)).catch(() => {});
       }
     }
 
@@ -1197,30 +1220,43 @@ class PanggilDataService {
   }
 
   public async getOrderById(orderId: string): Promise<Order | null> {
-    if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
-        .single();
-      if (!error && data) return data as Order;
-    }
-    const local = this.getLocalOrders();
-    const found = local.find((o) => o.id === orderId);
-    if (found) return found;
+    let bestOrder: Order | null = null;
 
-    // Client-side fallback to server API store if not present in phone's local storage
+    // 1. Check local storage
+    const local = this.getLocalOrders();
+    const foundLocal = local.find((o) => o.id === orderId);
+    if (foundLocal) {
+      bestOrder = foundLocal;
+    }
+
+    // 2. Check Supabase
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('id', orderId)
+          .single();
+        if (!error && data) {
+          bestOrder = mergeTwoOrders(bestOrder || undefined, data as Order);
+        }
+      } catch {}
+    }
+
+    // 3. Check server API store
     if (typeof window !== 'undefined') {
       try {
         const res = await fetch(`/api/orders/${orderId}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.order) return data.order as Order;
+          if (data.order) {
+            bestOrder = mergeTwoOrders(bestOrder || undefined, data.order as Order);
+          }
         }
       } catch {}
     }
 
-    return null;
+    return bestOrder;
   }
 
   public async createOrder(payload: CreateOrderPayload): Promise<Order> {
@@ -1300,75 +1336,60 @@ class PanggilDataService {
 
   public async updateOrderStatus(
     orderId: string,
-    status: OrderStatus
+    status: OrderStatus,
+    cafeId?: string
   ): Promise<Order | null> {
     const readyAt = status === 'ready' ? new Date().toISOString() : undefined;
     const completedAt = status === 'completed' ? new Date().toISOString() : undefined;
 
-    // 1. Notify Server API for Cross-Device / Mobile sync
-    if (typeof window !== 'undefined') {
-      try {
-        fetch(`/api/orders/${orderId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status }),
-        }).catch(() => {});
-      } catch {}
-    } else {
-      try {
-        const { updateServerOrderStatus } = await import('./server-order-store');
-        updateServerOrderStatus(orderId, status);
-      } catch {}
-    }
-
-    // 2. Publish to Universal Cloud Relay (Cross-Device: Cashier PC -> Customer Phone)
-    cloudRelay.publish(orderId, {
-      type: 'STATUS_CHANGED',
-      orderId,
-      status,
-    });
-
-    // 3. Update Supabase if configured
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const updateData: Partial<Order> = { status };
-        if (readyAt) updateData.ready_at = readyAt;
-        if (completedAt) updateData.completed_at = completedAt;
-
-        await supabase
-          .from('orders')
-          .update(updateData)
-          .eq('id', orderId);
-      } catch (err) {
-        console.warn('Supabase updateOrderStatus error:', err);
-      }
-    }
-
-    // 4. Update local storage & state
+    // 1. Resolve and update local order first with monotonic rank protection
     const localOrders = this.getLocalOrders();
     const index = localOrders.findIndex((o) => o.id === orderId);
     let updatedOrder: Order;
+
     if (index >= 0) {
+      const current = localOrders[index];
+      const rankCurrent = ORDER_STATUS_RANK[current.status] ?? 0;
+      const rankNew = ORDER_STATUS_RANK[status] ?? 0;
+      const finalStatus: OrderStatus = rankNew >= rankCurrent ? status : current.status;
+
       updatedOrder = {
-        ...localOrders[index],
-        status,
-        ready_at: readyAt || localOrders[index].ready_at,
-        completed_at: completedAt || localOrders[index].completed_at,
+        ...current,
+        cafe_id: current.cafe_id || cafeId || '',
+        status: finalStatus,
+        ready_at: (finalStatus === 'ready' ? (readyAt || current.ready_at || new Date().toISOString()) : current.ready_at),
+        completed_at: (finalStatus === 'completed' ? (completedAt || current.completed_at || new Date().toISOString()) : current.completed_at),
       };
       localOrders[index] = updatedOrder;
       this.saveLocalOrders([...localOrders]);
     } else {
-      updatedOrder = {
-        id: orderId,
-        cafe_id: '',
-        order_number: '#' + orderId.slice(0, 5),
-        status,
-        total_amount: 0,
-        items: [],
-        created_at: new Date().toISOString(),
-        ready_at: readyAt,
-        completed_at: completedAt,
-      };
+      // Fetch existing order from Supabase or server to preserve cafe_id and order details
+      const existing = await this.getOrderById(orderId);
+      if (existing) {
+        const rankExisting = ORDER_STATUS_RANK[existing.status] ?? 0;
+        const rankNew = ORDER_STATUS_RANK[status] ?? 0;
+        const finalStatus: OrderStatus = rankNew >= rankExisting ? status : existing.status;
+
+        updatedOrder = {
+          ...existing,
+          cafe_id: existing.cafe_id || cafeId || '',
+          status: finalStatus,
+          ready_at: (finalStatus === 'ready' ? (readyAt || existing.ready_at || new Date().toISOString()) : existing.ready_at),
+          completed_at: (finalStatus === 'completed' ? (completedAt || existing.completed_at || new Date().toISOString()) : existing.completed_at),
+        };
+      } else {
+        updatedOrder = {
+          id: orderId,
+          cafe_id: cafeId || '',
+          order_number: '#' + orderId.slice(0, 5),
+          status,
+          total_amount: 0,
+          items: [],
+          created_at: new Date().toISOString(),
+          ready_at: readyAt,
+          completed_at: completedAt,
+        };
+      }
       this.saveLocalOrders([updatedOrder, ...localOrders]);
     }
 
@@ -1379,19 +1400,73 @@ class PanggilDataService {
       window.dispatchEvent(new CustomEvent('panggil_local_order_updated', { detail: updatedOrder }));
     }
 
+    // 2. Publish to Universal Cloud Relay (Instant notification to Customer Phone <100ms)
+    cloudRelay.publish(orderId, {
+      type: 'STATUS_CHANGED',
+      orderId,
+      status: updatedOrder.status,
+      timestamp: Date.now(),
+    });
+
+    // Also broadcast order status to Cafe channel for cashier & tablet synchronization
+    if (updatedOrder.cafe_id) {
+      cloudRelay.publishCafeOrder(updatedOrder.cafe_id, updatedOrder, 'ORDER_UPDATED');
+    }
+
+    // 3. Await Server API PATCH to persist order on disk BEFORE any refetch happens!
+    if (typeof window !== 'undefined') {
+      try {
+        await fetch(`/api/orders/${orderId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: updatedOrder.status, order: updatedOrder }),
+        });
+      } catch (err) {
+        console.warn('Server PATCH order error:', err);
+      }
+    } else {
+      try {
+        const { updateServerOrderStatus } = await import('./server-order-store');
+        updateServerOrderStatus(orderId, updatedOrder.status, { orderFallback: updatedOrder });
+      } catch {}
+    }
+
+    // 4. Update Supabase if configured (using upsert fallback if row does not exist yet)
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const updateData: Partial<Order> = {
+          status: updatedOrder.status,
+          ready_at: updatedOrder.ready_at,
+          completed_at: updatedOrder.completed_at,
+        };
+
+        const { data: updatedRows, error } = await supabase
+          .from('orders')
+          .update(updateData)
+          .eq('id', orderId)
+          .select('id');
+
+        if ((!updatedRows || updatedRows.length === 0 || error) && updatedOrder) {
+          await supabase.from('orders').upsert([{ ...updatedOrder, ...updateData }]);
+        }
+      } catch (err) {
+        console.warn('Supabase updateOrderStatus error:', err);
+      }
+    }
+
     return updatedOrder;
   }
 
   /**
    * Buzz order: Trigger readiness and send instant realtime buzz signal across devices
    */
-  public async buzzOrder(orderId: string): Promise<Order | null> {
-    const updated = await this.updateOrderStatus(orderId, 'ready');
+  public async buzzOrder(orderId: string, cafeId?: string): Promise<Order | null> {
+    const updated = await this.updateOrderStatus(orderId, 'ready', cafeId);
 
     // Notify server buzz API immediately
     if (typeof window !== 'undefined') {
       try {
-        fetch(`/api/orders/${orderId}/buzz`, { method: 'POST' }).catch(() => {});
+        await fetch(`/api/orders/${orderId}/buzz`, { method: 'POST' });
       } catch {}
     }
 
@@ -1459,8 +1534,17 @@ class PanggilDataService {
     // 3. Universal Cloud Relay for Table Orders (Customer Phone -> Cashier Dashboard)
     const unsubCloudCafe = cloudRelay.subscribeCafeOrders(cafeId, (newOrder) => {
       const local = this.getLocalOrders();
-      if (!local.some((o) => o.id === newOrder.id)) {
+      const existingIdx = local.findIndex((o) => o.id === newOrder.id);
+      if (existingIdx === -1) {
         this.saveLocalOrders([newOrder, ...local]);
+      } else {
+        const existing = local[existingIdx];
+        const rankExisting = ORDER_STATUS_RANK[existing.status] ?? 0;
+        const rankIncoming = ORDER_STATUS_RANK[newOrder.status] ?? 0;
+        if (rankIncoming >= rankExisting) {
+          local[existingIdx] = mergeTwoOrders(existing, newOrder);
+          this.saveLocalOrders([...local]);
+        }
       }
       onChange();
     });
@@ -1545,12 +1629,16 @@ class PanggilDataService {
 
     // 4. Universal Cloud Realtime Relay (Direct SSE Stream from Cashier PC with <100ms latency)
     const unsubCloudRelay = cloudRelay.subscribe(orderId, (msg) => {
+      if (lastKnownStatus === 'completed' && msg.status !== 'completed') {
+        return; // Completed orders never regress to ready or pending
+      }
       const isBuzz = msg.type === 'ORDER_BUZZED' || msg.status === 'ready';
       const buzzedTime = msg.buzzedAt || (isBuzz ? Date.now() : undefined);
       lastKnownStatus = msg.status;
       if (buzzedTime) lastKnownBuzzedAt = buzzedTime;
 
       this.getOrderById(orderId).then((ord) => {
+        if (!ord && lastKnownStatus === 'completed' && msg.status !== 'completed') return;
         const fallback: Order = ord || {
           id: orderId,
           cafe_id: '',
@@ -1563,9 +1651,14 @@ class PanggilDataService {
           created_at: new Date().toISOString(),
           buzzed_at: buzzedTime,
         };
+        const resolved = mergeTwoOrders(ord || undefined, {
+          ...fallback,
+          status: msg.status,
+          buzzed_at: buzzedTime,
+        });
         onUpdate(
-          { ...fallback, status: msg.status, buzzed_at: buzzedTime },
-          isBuzz
+          resolved,
+          isBuzz && resolved.status === 'ready'
         );
       });
     });
@@ -1578,6 +1671,9 @@ class PanggilDataService {
           const data = await res.json();
           if (data.order) {
             const freshOrder = data.order as Order;
+            if (lastKnownStatus === 'completed' && freshOrder.status !== 'completed') {
+              return; // Ignore stale server poll if already completed
+            }
             const statusChangedToReady = lastKnownStatus !== 'ready' && freshOrder.status === 'ready';
             const wasReBuzzed = !!(freshOrder.buzzed_at && freshOrder.buzzed_at !== lastKnownBuzzedAt);
 

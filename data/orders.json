@@ -1,5 +1,18 @@
 [
   {
+    "id": "order-test-insert",
+    "cafe_id": "",
+    "order_number": "#P-order",
+    "customer_name": "عميل / Pelanggan",
+    "customer_phone": "",
+    "status": "completed",
+    "total_amount": 0,
+    "items": [],
+    "created_at": "2026-11-05T14:59:19.626Z",
+    "ready_at": "2026-11-05T14:59:19.626Z",
+    "completed_at": "2026-11-05T14:59:19.884Z"
+  },
+  {
     "id": "6cc842fc-f6b5-4ff7-bcba-717b714e0ec5",
     "cafe_id": "cafe-ubk",
     "order_number": "#P-999",

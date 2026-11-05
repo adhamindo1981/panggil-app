@@ -123,18 +123,52 @@ export function createServerOrder(payload: CreateOrderPayload): Order {
 export function updateServerOrderStatus(
   orderId: string,
   status: OrderStatus,
-  options?: { buzzed?: boolean }
-): Order | null {
+  options?: { buzzed?: boolean; orderFallback?: Partial<Order> }
+): Order {
   const all = getServerOrders();
   const idx = all.findIndex((o) => o.id === orderId);
-  if (idx === -1) return null;
+
+  const getStatusRank = (s?: string): number => {
+    if (s === 'completed') return 3;
+    if (s === 'ready') return 2;
+    if (s === 'pending') return 1;
+    return 0;
+  };
+
+  if (idx === -1) {
+    const fallback = options?.orderFallback;
+    const newOrder: Order = {
+      id: orderId,
+      cafe_id: fallback?.cafe_id || '',
+      order_number: fallback?.order_number || `#P-${orderId.slice(0, 5)}`,
+      customer_name: fallback?.customer_name || 'عميل / Pelanggan',
+      customer_phone: fallback?.customer_phone || '',
+      status,
+      total_amount: fallback?.total_amount || 0,
+      items: fallback?.items || [],
+      notes: fallback?.notes,
+      created_at: fallback?.created_at || new Date().toISOString(),
+      ready_at: status === 'ready' ? new Date().toISOString() : fallback?.ready_at,
+      completed_at: status === 'completed' ? new Date().toISOString() : fallback?.completed_at,
+      buzzed_at: options?.buzzed ? Date.now() : fallback?.buzzed_at,
+    };
+    const updatedAll = [newOrder, ...all];
+    global.__GLOBAL_PANGGIL_ORDERS__ = updatedAll;
+    writeServerJson(ORDERS_FILE, updatedAll);
+    return newOrder;
+  }
 
   const current = all[idx];
+  // Monotonic guard: completed orders NEVER revert to ready or pending
+  const rankCurrent = getStatusRank(current.status);
+  const rankNew = getStatusRank(status);
+  const finalStatus: OrderStatus = rankNew >= rankCurrent ? status : current.status;
+
   const updated: Order = {
     ...current,
-    status,
-    ready_at: status === 'ready' ? (current.ready_at || new Date().toISOString()) : current.ready_at,
-    completed_at: status === 'completed' ? new Date().toISOString() : current.completed_at,
+    status: finalStatus,
+    ready_at: finalStatus === 'ready' ? (current.ready_at || new Date().toISOString()) : current.ready_at,
+    completed_at: finalStatus === 'completed' ? (current.completed_at || new Date().toISOString()) : current.completed_at,
     buzzed_at: options?.buzzed ? Date.now() : current.buzzed_at,
   };
 

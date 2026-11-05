@@ -35,16 +35,28 @@ class UniversalCloudRelay {
   }
 
   /**
-   * Broadcast a newly placed customer order to the Cashier Dashboard in real-time
+   * Broadcast a customer order update to the Cashier Dashboard in real-time
    */
-  public async publishCafeOrder(cafeId: string, order: Order): Promise<boolean> {
+  public async publishCafeOrder(
+    cafeId: string,
+    order: Order,
+    type: 'NEW_ORDER_PLACED' | 'ORDER_UPDATED' = 'NEW_ORDER_PLACED'
+  ): Promise<boolean> {
     const topic = this.getCafeTopic(cafeId);
     const message: CafeOrderRelayMessage = {
-      type: 'NEW_ORDER_PLACED',
+      type,
       cafeId,
       order,
       timestamp: Date.now(),
     };
+
+    const isCompleted = order.status === 'completed';
+    const isReady = order.status === 'ready';
+    const title = isCompleted
+      ? `Order Delivered: ${order.order_number}`
+      : isReady
+      ? `Order Ready: ${order.order_number}`
+      : `New Order: ${order.order_number} (${order.customer_name || 'Guest'})`;
 
     try {
       if (typeof window !== 'undefined') {
@@ -52,9 +64,9 @@ class UniversalCloudRelay {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Title': `New Order: ${order.order_number} (${order.customer_name})`,
-            'Priority': 'urgent',
-            'Tags': 'bell,sparkles',
+            'Title': title,
+            'Priority': isCompleted ? 'default' : isReady ? 'high' : 'urgent',
+            'Tags': isCompleted ? 'white_check_mark' : isReady ? 'bell' : 'sparkles',
           },
           body: JSON.stringify(message),
         });
@@ -127,13 +139,37 @@ class UniversalCloudRelay {
       const lines = text.trim().split('\n').filter(Boolean);
       const ordersMap = new Map<string, Order>();
 
+      const getStatusRank = (status?: string): number => {
+        if (status === 'completed') return 3;
+        if (status === 'ready') return 2;
+        if (status === 'pending') return 1;
+        return 0;
+      };
+
       for (const line of lines) {
         try {
           const item = JSON.parse(line);
           if (item.message) {
             const dataObj = JSON.parse(item.message) as CafeOrderRelayMessage;
             if (dataObj.order && dataObj.cafeId === cafeId) {
-              ordersMap.set(dataObj.order.id, dataObj.order);
+              const incoming = dataObj.order;
+              const existing = ordersMap.get(incoming.id);
+              if (!existing) {
+                ordersMap.set(incoming.id, incoming);
+              } else {
+                const rankExisting = getStatusRank(existing.status);
+                const rankIncoming = getStatusRank(incoming.status);
+                const resolvedStatus = rankIncoming >= rankExisting ? incoming.status : existing.status;
+
+                ordersMap.set(incoming.id, {
+                  ...existing,
+                  ...incoming,
+                  status: resolvedStatus,
+                  ready_at: incoming.ready_at || existing.ready_at,
+                  completed_at: incoming.completed_at || existing.completed_at,
+                  buzzed_at: Math.max(existing.buzzed_at || 0, incoming.buzzed_at || 0) || undefined,
+                });
+              }
             }
           }
         } catch {}

@@ -208,15 +208,41 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
 
   // Buzz / Call Pager (Sends realtime siren signal to customer's mobile phone)
   const handleBuzzOrder = async (orderId: string) => {
-    // Send immediate cloud relay buzz signal to customer's phone
-    await dataService.buzzOrder(orderId);
-    refreshOrders();
+    // 1. Optimistic UI update: instantly show buzzer state with 0ms latency
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              status: 'ready' as OrderStatus,
+              ready_at: o.ready_at || new Date().toISOString(),
+              buzzed_at: Date.now(),
+            }
+          : o
+      )
+    );
+    // 2. Transmit buzz signal to customer's phone and persist
+    await dataService.buzzOrder(orderId, cafe.id);
+    await refreshOrders();
   };
 
   // Complete Order
   const handleCompleteOrder = async (orderId: string) => {
-    await dataService.updateOrderStatus(orderId, 'completed');
-    refreshOrders();
+    // 1. Optimistic UI update: instantly mark completed with green check & 0ms latency
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              status: 'completed' as OrderStatus,
+              completed_at: o.completed_at || new Date().toISOString(),
+            }
+          : o
+      )
+    );
+    // 2. Persist to disk, cloud relay and Supabase
+    await dataService.updateOrderStatus(orderId, 'completed', cafe.id);
+    await refreshOrders();
   };
 
   // Filtered orders list
