@@ -4,7 +4,15 @@ import { CreateOrderPayload, Order } from '@/types/database';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const cafeId = searchParams.get('cafe_id') || undefined;
+  const cafeId = searchParams.get('cafe_id');
+
+  if (!cafeId) {
+    return NextResponse.json(
+      { success: false, error: 'cafe_id is required to fetch orders' },
+      { status: 400 }
+    );
+  }
+
   const diskOrders = getServerOrders(cafeId);
 
   let mergedOrders = diskOrders;
@@ -14,11 +22,13 @@ export async function GET(request: NextRequest) {
     try {
       const { createClient } = await import('@supabase/supabase-js');
       const supabase = createClient(url, key);
-      let query = supabase.from('orders').select('*').order('created_at', { ascending: false });
-      if (cafeId) {
-        const cleanSlug = cafeId.replace(/^cafe-/, '').trim().toLowerCase();
-        query = query.in('cafe_id', [cafeId, `cafe-${cleanSlug}`, cleanSlug]);
-      }
+      const cleanSlug = cafeId.replace(/^cafe-/, '').trim().toLowerCase();
+      const query = supabase
+        .from('orders')
+        .select('*')
+        .in('cafe_id', [cafeId, `cafe-${cleanSlug}`, cleanSlug])
+        .order('created_at', { ascending: false });
+
       const { data, error } = await query;
       if (!error && data && Array.isArray(data)) {
         const map = new Map<string, Order>();
@@ -41,6 +51,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as CreateOrderPayload;
+
+    if (!body || !body.cafe_id || !body.order_number) {
+      return NextResponse.json(
+        { success: false, error: 'cafe_id and order_number are required' },
+        { status: 400 }
+      );
+    }
+
     const newOrder = createServerOrder(body);
 
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

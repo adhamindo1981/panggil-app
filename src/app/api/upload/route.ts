@@ -16,7 +16,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'File size exceeds 5MB limit' }, { status: 400 });
     }
 
-    const fileExt = file.name.split('.').pop() || 'png';
+    // Strict validation of file types (reject SVG, HTML, scripts to prevent XSS / RCE)
+    const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+    const ALLOWED_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif']);
+
+    const fileExt = (file.name.split('.').pop() || 'png').toLowerCase();
+    const mimeType = (file.type || 'image/png').toLowerCase();
+
+    if (!ALLOWED_MIME_TYPES.has(mimeType) || !ALLOWED_EXTENSIONS.has(fileExt)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid file type. Only JPG, PNG, WEBP, and GIF images are allowed.' },
+        { status: 400 }
+      );
+    }
+
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
     const filePath = `uploads/${fileName}`;
 
@@ -26,7 +39,7 @@ export async function POST(request: NextRequest) {
       const { data, error } = await supabase.storage
         .from(bucket)
         .upload(filePath, buffer, {
-          contentType: file.type || 'image/png',
+          contentType: mimeType,
           upsert: true,
         });
 
@@ -38,7 +51,6 @@ export async function POST(request: NextRequest) {
 
     // Fallback: Convert to Base64 data URL if storage bucket is not yet active
     const buffer = Buffer.from(await file.arrayBuffer());
-    const mimeType = file.type || 'image/png';
     const base64Url = `data:${mimeType};base64,${buffer.toString('base64')}`;
 
     return NextResponse.json({ success: true, url: base64Url });
