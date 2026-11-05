@@ -12,12 +12,69 @@ import {
   Order,
   OrderStatus,
   CreateOrderPayload,
+  PlatformUser,
+  SupportNote,
 } from '@/types/database';
 import { supabase, isSupabaseConfigured } from './supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { cloudRelay } from './cloud-relay';
 
-// Initial Mock Cafes
+// Initial Mock Platform Staff Users
+export const INITIAL_PLATFORM_USERS: PlatformUser[] = [
+  {
+    id: 'user-00000000-0000-0000-0000-000000000001',
+    email: 'admin@panggil.id',
+    name: 'Super Admin (المالك)',
+    role: 'super_admin',
+    password: 'admin123',
+    permissions: {
+      can_create_tenant: true,
+      can_edit_tier: true,
+      can_suspend_tenant: true,
+      can_manage_menu: true,
+      can_view_crm: true,
+      can_manage_staff: true,
+    },
+    is_active: true,
+    created_at: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'user-00000000-0000-0000-0000-000000000002',
+    email: 'onboarding@panggil.id',
+    name: 'Sarah Onboarding',
+    role: 'onboarding_staff',
+    password: 'staff123',
+    permissions: {
+      can_create_tenant: true,
+      can_edit_tier: true,
+      can_suspend_tenant: false,
+      can_manage_menu: true,
+      can_view_crm: true,
+      can_manage_staff: false,
+    },
+    is_active: true,
+    created_at: '2026-02-01T00:00:00Z',
+  },
+  {
+    id: 'user-00000000-0000-0000-0000-000000000003',
+    email: 'support@panggil.id',
+    name: 'Budi Support',
+    role: 'support_agent',
+    password: 'support123',
+    permissions: {
+      can_create_tenant: false,
+      can_edit_tier: false,
+      can_suspend_tenant: false,
+      can_manage_menu: false,
+      can_view_crm: true,
+      can_manage_staff: false,
+    },
+    is_active: true,
+    created_at: '2026-03-01T00:00:00Z',
+  },
+];
+
+// Initial Mock Cafes with Extended CRM Fields
 export const INITIAL_CAFES: Cafe[] = [
   {
     id: '00000000-0000-0000-0000-000000000001',
@@ -26,6 +83,20 @@ export const INITIAL_CAFES: Cafe[] = [
     mode: 'menu_pager',
     default_lang: 'id',
     subscription_tier: 'gold',
+    subscription_status: 'active',
+    subscription_expires_at: '2027-12-31T23:59:59Z',
+    owner_name: 'Budi Hartono',
+    owner_phone: '+6281234567890',
+    owner_email: 'budi@kopinusantara.id',
+    support_notes: [
+      {
+        id: 'note-1',
+        author_name: 'Super Admin',
+        note: 'تم تفعيل الباقة الذهبية السنوية بنجاح مع الهوية البصرية المخصصة.',
+        type: 'onboarding',
+        created_at: '2026-01-10T10:00:00Z',
+      },
+    ],
     custom_branding: {
       logo_url: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=300&auto=format&fit=crop&q=80',
       primary_color: '#f59e0b',
@@ -37,6 +108,7 @@ export const INITIAL_CAFES: Cafe[] = [
     currency_symbol: 'Rp',
     google_maps_url: 'https://maps.google.com/?q=Senopati+Jakarta+Coffee',
     cashier_pin: '1234',
+    created_at: '2026-01-01T00:00:00Z',
   },
   {
     id: '00000000-0000-0000-0000-000000000002',
@@ -45,12 +117,27 @@ export const INITIAL_CAFES: Cafe[] = [
     mode: 'pager_only',
     default_lang: 'ar',
     subscription_tier: 'bronze',
+    subscription_status: 'active',
+    subscription_expires_at: '2027-10-15T23:59:59Z',
+    owner_name: 'فهد الشمري',
+    owner_phone: '+966501234567',
+    owner_email: 'fahad@nedaaexpress.sa',
+    support_notes: [
+      {
+        id: 'note-2',
+        author_name: 'Sarah Onboarding',
+        note: 'العميل مهتم بالترقية للباقة الفضية لإضافة المنيو الرقمي الشهر القادم.',
+        type: 'billing',
+        created_at: '2026-02-15T14:30:00Z',
+      },
+    ],
     logo_url: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=300&auto=format&fit=crop&q=80',
     phone: '+966 50 123 4567',
     address: 'طريق الملك فهد، العليا، الرياض',
     currency_symbol: 'SAR',
     google_maps_url: 'https://maps.google.com/?q=Riyadh+Coffee+Express',
     cashier_pin: '1234',
+    created_at: '2026-01-15T00:00:00Z',
   },
   {
     id: '00000000-0000-0000-0000-000000000003',
@@ -59,10 +146,17 @@ export const INITIAL_CAFES: Cafe[] = [
     mode: 'pager_only',
     default_lang: 'ar',
     subscription_tier: 'basic',
+    subscription_status: 'trial',
+    subscription_expires_at: '2026-11-20T23:59:59Z',
+    owner_name: 'سلطان القحطاني',
+    owner_phone: '+966550001111',
+    owner_email: 'sultan@quickpager.sa',
+    support_notes: [],
     phone: '+966 55 000 1111',
     address: 'شارع التحلية، الرياض',
     currency_symbol: 'SAR',
     cashier_pin: '1234',
+    created_at: '2026-10-01T00:00:00Z',
   },
   {
     id: '00000000-0000-0000-0000-000000000004',
@@ -71,11 +165,18 @@ export const INITIAL_CAFES: Cafe[] = [
     mode: 'menu_pager',
     default_lang: 'en',
     subscription_tier: 'silver',
+    subscription_status: 'active',
+    subscription_expires_at: '2027-08-30T23:59:59Z',
+    owner_name: 'Alex Turner',
+    owner_phone: '+966552223333',
+    owner_email: 'alex@silverlounge.com',
+    support_notes: [],
     phone: '+966 55 222 3333',
     address: 'King Abdullah Financial District, Riyadh',
     currency_symbol: 'SAR',
     google_maps_url: 'https://maps.google.com/?q=KAFD+Riyadh',
     cashier_pin: '1234',
+    created_at: '2026-02-01T00:00:00Z',
   },
 ];
 
@@ -309,6 +410,157 @@ class PanggilDataService {
     }
   }
 
+  private getLocalCafes(): Cafe[] {
+    if (typeof window === 'undefined') {
+      const g = global as unknown as { __GLOBAL_PANGGIL_CAFES__?: Cafe[] };
+      return g.__GLOBAL_PANGGIL_CAFES__ || INITIAL_CAFES;
+    }
+    try {
+      const stored = localStorage.getItem('panggil_cafes');
+      if (!stored) {
+        localStorage.setItem('panggil_cafes', JSON.stringify(INITIAL_CAFES));
+        return INITIAL_CAFES;
+      }
+      return JSON.parse(stored);
+    } catch {
+      return INITIAL_CAFES;
+    }
+  }
+
+  private saveLocalCafes(cafes: Cafe[]) {
+    if (typeof window === 'undefined') {
+      const g = global as unknown as { __GLOBAL_PANGGIL_CAFES__?: Cafe[] };
+      g.__GLOBAL_PANGGIL_CAFES__ = cafes;
+      return;
+    }
+    try {
+      localStorage.setItem('panggil_cafes', JSON.stringify(cafes));
+      broadcastChannel?.postMessage({ type: 'CAFES_UPDATED', cafes });
+      window.dispatchEvent(new CustomEvent('panggil_local_cafes_updated', { detail: cafes }));
+    } catch (e) {
+      console.error('Failed to save local cafes:', e);
+    }
+  }
+
+  private getLocalPlatformUsers(): PlatformUser[] {
+    if (typeof window === 'undefined') {
+      const g = global as unknown as { __GLOBAL_PANGGIL_PLATFORM_USERS__?: PlatformUser[] };
+      return g.__GLOBAL_PANGGIL_PLATFORM_USERS__ || INITIAL_PLATFORM_USERS;
+    }
+    try {
+      const stored = localStorage.getItem('panggil_platform_users');
+      if (!stored) {
+        localStorage.setItem('panggil_platform_users', JSON.stringify(INITIAL_PLATFORM_USERS));
+        return INITIAL_PLATFORM_USERS;
+      }
+      return JSON.parse(stored);
+    } catch {
+      return INITIAL_PLATFORM_USERS;
+    }
+  }
+
+  private saveLocalPlatformUsers(users: PlatformUser[]) {
+    if (typeof window === 'undefined') {
+      const g = global as unknown as { __GLOBAL_PANGGIL_PLATFORM_USERS__?: PlatformUser[] };
+      g.__GLOBAL_PANGGIL_PLATFORM_USERS__ = users;
+      return;
+    }
+    try {
+      localStorage.setItem('panggil_platform_users', JSON.stringify(users));
+      broadcastChannel?.postMessage({ type: 'PLATFORM_USERS_UPDATED', users });
+      window.dispatchEvent(new CustomEvent('panggil_local_platform_users_updated', { detail: users }));
+    } catch (e) {
+      console.error('Failed to save local platform users:', e);
+    }
+  }
+
+  private getLocalCategories(): MenuCategory[] {
+    if (typeof window === 'undefined') {
+      const g = global as unknown as { __GLOBAL_PANGGIL_CATEGORIES__?: MenuCategory[] };
+      return g.__GLOBAL_PANGGIL_CATEGORIES__ || INITIAL_CATEGORIES;
+    }
+    try {
+      const stored = localStorage.getItem('panggil_categories');
+      if (!stored) {
+        localStorage.setItem('panggil_categories', JSON.stringify(INITIAL_CATEGORIES));
+        return INITIAL_CATEGORIES;
+      }
+      return JSON.parse(stored);
+    } catch {
+      return INITIAL_CATEGORIES;
+    }
+  }
+
+  private saveLocalCategories(categories: MenuCategory[]) {
+    if (typeof window === 'undefined') {
+      const g = global as unknown as { __GLOBAL_PANGGIL_CATEGORIES__?: MenuCategory[] };
+      g.__GLOBAL_PANGGIL_CATEGORIES__ = categories;
+      return;
+    }
+    try {
+      localStorage.setItem('panggil_categories', JSON.stringify(categories));
+      broadcastChannel?.postMessage({ type: 'CATEGORIES_UPDATED', categories });
+      window.dispatchEvent(new CustomEvent('panggil_local_categories_updated', { detail: categories }));
+    } catch (e) {
+      console.error('Failed to save local categories:', e);
+    }
+  }
+
+  private getLocalMenuItems(): MenuItem[] {
+    if (typeof window === 'undefined') {
+      const g = global as unknown as { __GLOBAL_PANGGIL_MENU_ITEMS__?: MenuItem[] };
+      return g.__GLOBAL_PANGGIL_MENU_ITEMS__ || INITIAL_MENU_ITEMS;
+    }
+    try {
+      const stored = localStorage.getItem('panggil_menu_items');
+      if (!stored) {
+        localStorage.setItem('panggil_menu_items', JSON.stringify(INITIAL_MENU_ITEMS));
+        return INITIAL_MENU_ITEMS;
+      }
+      return JSON.parse(stored);
+    } catch {
+      return INITIAL_MENU_ITEMS;
+    }
+  }
+
+  private saveLocalMenuItems(items: MenuItem[]) {
+    if (typeof window === 'undefined') {
+      const g = global as unknown as { __GLOBAL_PANGGIL_MENU_ITEMS__?: MenuItem[] };
+      g.__GLOBAL_PANGGIL_MENU_ITEMS__ = items;
+      return;
+    }
+    try {
+      localStorage.setItem('panggil_menu_items', JSON.stringify(items));
+      broadcastChannel?.postMessage({ type: 'MENU_ITEMS_UPDATED', items });
+      window.dispatchEvent(new CustomEvent('panggil_local_menu_items_updated', { detail: items }));
+    } catch (e) {
+      console.error('Failed to save local menu items:', e);
+    }
+  }
+
+  public async getAllCafes(): Promise<Cafe[]> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('cafes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (!error && data) return data as Cafe[];
+    }
+    return this.getLocalCafes();
+  }
+
+  public async getCafeById(id: string): Promise<Cafe | null> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('cafes')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (!error && data) return data as Cafe;
+    }
+    return this.getLocalCafes().find((c) => c.id === id) || null;
+  }
+
   public async getCafeBySlug(slug: string): Promise<Cafe | null> {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
@@ -319,16 +571,206 @@ class PanggilDataService {
       if (!error && data) return data as Cafe;
     }
     // Fallback to local
-    return INITIAL_CAFES.find((c) => c.slug === slug) || INITIAL_CAFES[0];
+    return this.getLocalCafes().find((c) => c.slug === slug) || null;
+  }
+
+  public async createCafe(payload: Omit<Cafe, 'id' | 'created_at'>): Promise<Cafe> {
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'cafe-' + Date.now();
+    const newCafe: Cafe = {
+      ...payload,
+      id,
+      created_at: new Date().toISOString(),
+      subscription_status: payload.subscription_status || 'active',
+      support_notes: payload.support_notes || [],
+    };
+
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('cafes').insert([newCafe]).select().single();
+      if (!error && data) return data as Cafe;
+    }
+
+    const cafes = this.getLocalCafes();
+    const updated = [newCafe, ...cafes];
+    this.saveLocalCafes(updated);
+    return newCafe;
+  }
+
+  public async updateCafe(id: string, updates: Partial<Cafe>): Promise<Cafe | null> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('cafes').update(updates).eq('id', id).select().single();
+      if (!error && data) return data as Cafe;
+    }
+
+    const cafes = this.getLocalCafes();
+    const index = cafes.findIndex((c) => c.id === id);
+    if (index === -1) return null;
+
+    const updatedCafe: Cafe = { ...cafes[index], ...updates };
+    cafes[index] = updatedCafe;
+    this.saveLocalCafes([...cafes]);
+    return updatedCafe;
+  }
+
+  public async deleteCafe(id: string): Promise<boolean> {
+    if (isSupabaseConfigured && supabase) {
+      await supabase.from('cafes').delete().eq('id', id);
+    }
+    const cafes = this.getLocalCafes().filter((c) => c.id !== id);
+    this.saveLocalCafes(cafes);
+    return true;
+  }
+
+  public async addSupportNote(cafeId: string, noteData: Omit<SupportNote, 'id' | 'created_at'>): Promise<SupportNote> {
+    const newNote: SupportNote = {
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'note-' + Date.now(),
+      created_at: new Date().toISOString(),
+      ...noteData,
+    };
+
+    const cafe = await this.getCafeById(cafeId);
+    if (cafe) {
+      const notes = [newNote, ...(cafe.support_notes || [])];
+      await this.updateCafe(cafeId, { support_notes: notes });
+    }
+    return newNote;
+  }
+
+  public async getPlatformUsers(): Promise<PlatformUser[]> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('platform_users')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (!error && data) return data as PlatformUser[];
+    }
+    return this.getLocalPlatformUsers();
+  }
+
+  public async createPlatformUser(user: Omit<PlatformUser, 'id' | 'created_at'>): Promise<PlatformUser> {
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'user-' + Date.now();
+    const newUser: PlatformUser = {
+      ...user,
+      id,
+      created_at: new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('platform_users').insert([newUser]).select().single();
+      if (!error && data) return data as PlatformUser;
+    }
+
+    const users = this.getLocalPlatformUsers();
+    const updated = [newUser, ...users];
+    this.saveLocalPlatformUsers(updated);
+    return newUser;
+  }
+
+  public async updatePlatformUser(id: string, updates: Partial<PlatformUser>): Promise<PlatformUser | null> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('platform_users').update(updates).eq('id', id).select().single();
+      if (!error && data) return data as PlatformUser;
+    }
+
+    const users = this.getLocalPlatformUsers();
+    const index = users.findIndex((u) => u.id === id);
+    if (index === -1) return null;
+
+    const updatedUser: PlatformUser = { ...users[index], ...updates };
+    users[index] = updatedUser;
+    this.saveLocalPlatformUsers([...users]);
+    return updatedUser;
+  }
+
+  public async deletePlatformUser(id: string): Promise<boolean> {
+    if (isSupabaseConfigured && supabase) {
+      await supabase.from('platform_users').delete().eq('id', id);
+    }
+    const users = this.getLocalPlatformUsers().filter((u) => u.id !== id);
+    this.saveLocalPlatformUsers(users);
+    return true;
+  }
+
+  public async createCategory(category: Omit<MenuCategory, 'id' | 'created_at'>): Promise<MenuCategory> {
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'cat-' + Date.now();
+    const newCategory: MenuCategory = {
+      ...category,
+      id,
+      created_at: new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('menu_categories').insert([newCategory]).select().single();
+      if (!error && data) return data as MenuCategory;
+    }
+
+    const cats = this.getLocalCategories();
+    const updated = [...cats, newCategory];
+    this.saveLocalCategories(updated);
+    return newCategory;
+  }
+
+  public async deleteCategory(id: string): Promise<boolean> {
+    if (isSupabaseConfigured && supabase) {
+      await supabase.from('menu_categories').delete().eq('id', id);
+    }
+    const cats = this.getLocalCategories().filter((c) => c.id !== id);
+    this.saveLocalCategories(cats);
+    return true;
+  }
+
+  public async createMenuItem(item: Omit<MenuItem, 'id' | 'created_at'>): Promise<MenuItem> {
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'item-' + Date.now();
+    const newItem: MenuItem = {
+      ...item,
+      id,
+      created_at: new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('menu_items').insert([newItem]).select().single();
+      if (!error && data) return data as MenuItem;
+    }
+
+    const items = this.getLocalMenuItems();
+    const updated = [...items, newItem];
+    this.saveLocalMenuItems(updated);
+    return newItem;
+  }
+
+  public async updateMenuItem(id: string, updates: Partial<MenuItem>): Promise<MenuItem | null> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('menu_items').update(updates).eq('id', id).select().single();
+      if (!error && data) return data as MenuItem;
+    }
+
+    const items = this.getLocalMenuItems();
+    const index = items.findIndex((i) => i.id === id);
+    if (index === -1) return null;
+
+    const updatedItem: MenuItem = { ...items[index], ...updates };
+    items[index] = updatedItem;
+    this.saveLocalMenuItems([...items]);
+    return updatedItem;
+  }
+
+  public async deleteMenuItem(id: string): Promise<boolean> {
+    if (isSupabaseConfigured && supabase) {
+      await supabase.from('menu_items').delete().eq('id', id);
+    }
+    const items = this.getLocalMenuItems().filter((i) => i.id !== id);
+    this.saveLocalMenuItems(items);
+    return true;
   }
 
   public async updateCafeMode(cafeId: string, mode: 'pager_only' | 'menu_pager'): Promise<void> {
     if (isSupabaseConfigured && supabase) {
       await supabase.from('cafes').update({ mode }).eq('id', cafeId);
     }
-    const cafe = INITIAL_CAFES.find(c => c.id === cafeId);
+    const cafes = this.getLocalCafes();
+    const cafe = cafes.find(c => c.id === cafeId);
     if (cafe) {
       cafe.mode = mode;
+      this.saveLocalCafes([...cafes]);
       broadcastChannel?.postMessage({ type: 'CAFE_UPDATED', cafeId, mode });
     }
   }
@@ -342,7 +784,7 @@ class PanggilDataService {
         .order('display_order', { ascending: true });
       if (!error && data) return data as MenuCategory[];
     }
-    return INITIAL_CATEGORIES.filter((c) => c.cafe_id === cafeId);
+    return this.getLocalCategories().filter((c) => c.cafe_id === cafeId);
   }
 
   public async getMenuItems(cafeId: string): Promise<MenuItem[]> {
@@ -353,7 +795,9 @@ class PanggilDataService {
         .order('created_at', { ascending: true });
       if (!error && data) return data as MenuItem[];
     }
-    return INITIAL_MENU_ITEMS;
+    const categories = await this.getMenuCategories(cafeId);
+    const categoryIds = new Set(categories.map((c) => c.id));
+    return this.getLocalMenuItems().filter((item) => categoryIds.has(item.category_id));
   }
 
   public async getOrders(cafeId: string): Promise<Order[]> {

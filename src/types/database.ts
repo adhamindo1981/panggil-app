@@ -7,11 +7,20 @@ export type CafeMode = 'pager_only' | 'menu_pager';
 export type AppLanguage = 'id' | 'ar' | 'en';
 export type OrderStatus = 'pending' | 'ready' | 'completed' | 'cancelled';
 export type SubscriptionTier = 'basic' | 'bronze' | 'silver' | 'gold';
+export type SubscriptionStatus = 'active' | 'trial' | 'expired' | 'suspended';
 
 export interface CustomBranding {
   logo_url?: string;
   primary_color?: string;
   hide_powered_by?: boolean;
+}
+
+export interface SupportNote {
+  id: string;
+  author_name: string;
+  note: string;
+  type: 'general' | 'support' | 'billing' | 'onboarding';
+  created_at: string;
 }
 
 export interface Cafe {
@@ -21,6 +30,12 @@ export interface Cafe {
   mode: CafeMode;
   default_lang: AppLanguage;
   subscription_tier: SubscriptionTier;
+  subscription_status?: SubscriptionStatus;
+  subscription_expires_at?: string;
+  owner_name?: string;
+  owner_phone?: string;
+  owner_email?: string;
+  support_notes?: SupportNote[];
   custom_branding?: CustomBranding;
   logo_url?: string;
   phone?: string;
@@ -29,6 +44,29 @@ export interface Cafe {
   google_maps_url?: string;
   cashier_pin?: string;
   created_at?: string;
+}
+
+export type PlatformUserRole = 'super_admin' | 'onboarding_staff' | 'support_agent';
+
+export interface PlatformPermissions {
+  can_create_tenant: boolean;
+  can_edit_tier: boolean;
+  can_suspend_tenant: boolean;
+  can_manage_menu: boolean;
+  can_view_crm: boolean;
+  can_manage_staff: boolean;
+}
+
+export interface PlatformUser {
+  id: string;
+  email: string;
+  name: string;
+  role: PlatformUserRole;
+  permissions: PlatformPermissions;
+  is_active: boolean;
+  created_at: string;
+  last_login_at?: string;
+  password?: string;
 }
 
 export interface MenuCategory {

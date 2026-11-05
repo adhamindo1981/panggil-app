@@ -55,7 +55,16 @@ export default function HomePage() {
           </div>
         </div>
 
-        <LanguageSwitcher />
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/login"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 font-bold text-xs transition-all shadow-sm"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">لوحة الإدارة (Admin)</span>
+          </Link>
+          <LanguageSwitcher />
+        </div>
       </header>
 
       {/* Hero Section */}
@@ -583,6 +592,15 @@ export default function HomePage() {
         <p className="mt-1 text-[11px] text-zinc-600">
           Built with Next.js 15, TypeScript, Tailwind CSS, Supabase Realtime, and Web APIs
         </p>
+        <div className="mt-3">
+          <Link
+            href="/admin/login"
+            className="text-stone-500 hover:text-amber-400 transition-colors text-[11px] inline-flex items-center gap-1"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>بوابة الإدارة المركزية (Super Admin Portal)</span>
+          </Link>
+        </div>
       </footer>
     </div>
   );
