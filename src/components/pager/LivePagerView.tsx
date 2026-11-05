@@ -7,6 +7,8 @@ import { CoasterPager } from './CoasterPager';
 import { GoogleReviewModal } from './GoogleReviewModal';
 import { LanguageSwitcher } from '../common/LanguageSwitcher';
 import { audioEngine } from '@/lib/audio-engine';
+import { vibrationEngine } from '@/lib/vibration-engine';
+import { speechEngine } from '@/lib/speech-engine';
 import { wakeLockManager } from '@/lib/wake-lock';
 import { useI18n } from '@/lib/i18n/context';
 import { getPlanFeatures, getCustomBrandingStyle } from '@/lib/feature-gates';
@@ -23,6 +25,7 @@ export function LivePagerView({ initialCafe, initialOrder }: LivePagerViewProps)
   const [order, setOrder] = useState<Order>(initialOrder);
   const [isAudioUnlocked, setIsAudioUnlocked] = useState<boolean>(false);
   const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
+  const [hasDismissedReview, setHasDismissedReview] = useState<boolean>(false);
 
   const planFeatures = useMemo(() => getPlanFeatures(cafe.subscription_tier), [cafe.subscription_tier]);
   // Google Review modal is available on Bronze, Silver, and Gold tiers
@@ -41,29 +44,44 @@ export function LivePagerView({ initialCafe, initialOrder }: LivePagerViewProps)
     const unsubscribe = dataService.subscribeToOrder(order.id, (updatedOrder, wasBuzzed) => {
       setOrder(updatedOrder);
 
-      // Trigger Review Modal if order is completed AND plan allows reviews
-      if (updatedOrder.status === 'completed' && canShowReview) {
-        setTimeout(() => setShowReviewModal(true), 1200);
+      // When order is completed, stop all alarms and trigger Review Modal once
+      if (updatedOrder.status === 'completed') {
+        audioEngine.stopAlarmLoop();
+        vibrationEngine.stop();
+        speechEngine.stop();
+        if (canShowReview && !hasDismissedReview) {
+          setTimeout(() => setShowReviewModal(true), 1000);
+        }
       }
     });
 
     return () => unsubscribe();
-  }, [order.id, canShowReview]);
+  }, [order.id, canShowReview, hasDismissedReview]);
 
-  // Guaranteed Trigger: Show Review Modal whenever order status is completed (on mount, refresh, or status change)
+  // Guaranteed Trigger: Show Review Modal once whenever order status becomes completed
   useEffect(() => {
-    if (order.status === 'completed' && canShowReview) {
-      const timer = setTimeout(() => setShowReviewModal(true), 1200);
-      return () => clearTimeout(timer);
+    if (order.status === 'completed') {
+      audioEngine.stopAlarmLoop();
+      vibrationEngine.stop();
+      speechEngine.stop();
+      if (canShowReview && !hasDismissedReview) {
+        const timer = setTimeout(() => setShowReviewModal(true), 1000);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [order.status, canShowReview]);
+  }, [order.status, canShowReview, hasDismissedReview]);
 
   const handleRefresh = async () => {
     const fresh = await dataService.getOrderById(order.id);
     if (fresh) {
       setOrder(fresh);
-      if (fresh.status === 'completed' && canShowReview) {
-        setShowReviewModal(true);
+      if (fresh.status === 'completed') {
+        audioEngine.stopAlarmLoop();
+        vibrationEngine.stop();
+        speechEngine.stop();
+        if (canShowReview && !hasDismissedReview) {
+          setShowReviewModal(true);
+        }
       }
     }
   };
@@ -155,12 +173,15 @@ export function LivePagerView({ initialCafe, initialOrder }: LivePagerViewProps)
           order={order}
           cafe={cafe}
           onRefresh={handleRefresh}
-          onRateExperience={canShowReview ? () => setShowReviewModal(true) : undefined}
+          onRateExperience={canShowReview ? () => {
+            setHasDismissedReview(false);
+            setShowReviewModal(true);
+          } : undefined}
           onAcknowledgeReady={() => {
-            // Suggest Google review after customer stops alarm (only if tier allows)
-            if (canShowReview) {
-              setTimeout(() => setShowReviewModal(true), 2000);
-            }
+            // Customer acknowledges pickup alarm; silence audio
+            audioEngine.stopAlarmLoop();
+            vibrationEngine.stop();
+            speechEngine.stop();
           }}
         />
       </main>
@@ -178,7 +199,10 @@ export function LivePagerView({ initialCafe, initialOrder }: LivePagerViewProps)
       {canShowReview && (
         <GoogleReviewModal
           isOpen={showReviewModal}
-          onClose={() => setShowReviewModal(false)}
+          onClose={() => {
+            setShowReviewModal(false);
+            setHasDismissedReview(true);
+          }}
           cafe={cafe}
           order={order}
         />

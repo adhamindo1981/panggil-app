@@ -1,8 +1,11 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Cafe, Order } from '@/types/database';
 import { useI18n } from '@/lib/i18n/context';
+import { audioEngine } from '@/lib/audio-engine';
+import { vibrationEngine } from '@/lib/vibration-engine';
+import { speechEngine } from '@/lib/speech-engine';
 import { Star, X, MapPin, ExternalLink, ThumbsUp, Coffee } from 'lucide-react';
 
 interface GoogleReviewModalProps {
@@ -15,11 +18,21 @@ interface GoogleReviewModalProps {
 export function GoogleReviewModal({ isOpen, onClose, cafe, order }: GoogleReviewModalProps) {
   const { lang, isRtl } = useI18n();
 
+  // Silence all audio, buzzer alarms, and vibrations whenever the review modal is displayed
+  useEffect(() => {
+    if (isOpen) {
+      audioEngine.stopAlarmLoop();
+      vibrationEngine.stop();
+      speechEngine.stop();
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
+  const cleanName = (cafe.name || '').split('/')[0].trim();
   const googleMapsUrl =
     cafe.google_maps_url ||
-    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cafe.name)}`;
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanName || cafe.name)}`;
 
   const titles = {
     id: 'Bagaimana Pengalaman Anda?',
@@ -45,6 +58,25 @@ export function GoogleReviewModal({ isOpen, onClose, cafe, order }: GoogleReview
     en: 'Maybe Later',
   };
 
+  const handleReviewClick = () => {
+    // 1. Forcefully kill any lingering buzzer sound & vibration immediately
+    audioEngine.stopAlarmLoop();
+    vibrationEngine.stop();
+    speechEngine.stop();
+
+    // 2. Allow native navigation to Google Maps to complete smoothly without abrupt DOM destruction
+    setTimeout(() => {
+      onClose();
+    }, 600);
+  };
+
+  const handleClose = () => {
+    audioEngine.stopAlarmLoop();
+    vibrationEngine.stop();
+    speechEngine.stop();
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
       <div className="relative w-full max-w-sm bg-[#0d121e] border border-amber-500/40 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-amber-500/10 text-center overflow-hidden">
@@ -54,8 +86,8 @@ export function GoogleReviewModal({ isOpen, onClose, cafe, order }: GoogleReview
 
         {/* Close Button */}
         <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-white bg-zinc-800/80 rounded-xl transition-colors"
+          onClick={handleClose}
+          className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-white bg-zinc-800/80 rounded-xl transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -90,8 +122,8 @@ export function GoogleReviewModal({ isOpen, onClose, cafe, order }: GoogleReview
             href={googleMapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={onClose}
-            className="w-full py-3.5 px-5 bg-gradient-to-r from-amber-500 via-amber-400 to-orange-400 hover:from-amber-400 hover:to-orange-300 text-zinc-950 font-black text-xs rounded-2xl shadow-xl shadow-amber-500/30 flex items-center justify-center gap-2 transition-transform active:scale-98"
+            onClick={handleReviewClick}
+            className="w-full py-3.5 px-5 bg-gradient-to-r from-amber-500 via-amber-400 to-orange-400 hover:from-amber-400 hover:to-orange-300 text-zinc-950 font-black text-xs rounded-2xl shadow-xl shadow-amber-500/30 flex items-center justify-center gap-2 transition-transform active:scale-98 cursor-pointer"
           >
             <MapPin className="w-4 h-4 fill-zinc-950" />
             <span>{ctaLabels[lang]}</span>
@@ -99,8 +131,8 @@ export function GoogleReviewModal({ isOpen, onClose, cafe, order }: GoogleReview
           </a>
 
           <button
-            onClick={onClose}
-            className="w-full py-2.5 px-4 text-xs font-semibold text-zinc-400 hover:text-zinc-200 transition-colors"
+            onClick={handleClose}
+            className="w-full py-2.5 px-4 text-xs font-semibold text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
           >
             {closeLabels[lang]}
           </button>

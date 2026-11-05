@@ -84,8 +84,43 @@ export function CoasterPager({ order, cafe, onRefresh, onAcknowledgeReady, onRat
 
   // 3. React to Order Status Change & Realtime Cashier Buzz (Sub-second Alarm, Buzzer, Vibration & TTS)
   useEffect(() => {
-    // If cashier triggers re-buzz or order newly ready
-    const hasNewBuzz = Boolean(order.buzzed_at && order.buzzed_at !== lastBuzzedAtRef.current);
+    // 1. If order is COMPLETED, unconditionally kill and silence all alarms, buzzers, and vibration!
+    if (isCompleted) {
+      hasTriggeredReadyAlert.current = false;
+      setIsMuted(true);
+      audioEngine.stopAlarmLoop();
+      vibrationEngine.stop();
+      speechEngine.stop();
+      try {
+        confetti({
+          particleCount: 140,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#f59e0b', '#10b981', '#ef4444', '#3b82f6'],
+        });
+      } catch (e) {
+        console.warn('Confetti error:', e);
+      }
+      return;
+    }
+
+    // 2. If order is PENDING (not yet ready), stop any alarm sounds
+    if (isPending || !isReady) {
+      hasTriggeredReadyAlert.current = false;
+      audioEngine.stopAlarmLoop();
+      vibrationEngine.stop();
+      speechEngine.stop();
+      return;
+    }
+
+    // 3. Order is READY from this point onwards:
+    // Check if cashier explicitly triggered a RE-BUZZ / RECALL
+    const hasNewBuzz = Boolean(
+      order.buzzed_at &&
+      lastBuzzedAtRef.current !== undefined &&
+      order.buzzed_at !== lastBuzzedAtRef.current
+    );
+
     if (hasNewBuzz) {
       lastBuzzedAtRef.current = order.buzzed_at;
       setIsMuted(false);
@@ -97,48 +132,24 @@ export function CoasterPager({ order, cafe, onRefresh, onAcknowledgeReady, onRat
       return;
     }
 
+    // Initial alert when transitioning to ready for the first time
     if (isReady && !hasTriggeredReadyAlert.current) {
       hasTriggeredReadyAlert.current = true;
+      lastBuzzedAtRef.current = order.buzzed_at;
 
-      // Start Commercial Pager Alarm Loop if sound allowed
       if (!isMuted) {
         audioEngine.startAlarmLoop(750);
       }
-
-      // Start Vibration Loop [500, 200, 500]
       vibrationEngine.startRepeatingVibration([500, 200, 500], 1800);
-
-      // Voice Announcement via Web Speech API
       speechEngine.announceOrderReady(order.order_number, order.customer_name, lang);
-
-      // Push Notification trigger
       triggerLocalNotification(order.order_number, order.customer_name);
-    } else if (!isReady) {
-      hasTriggeredReadyAlert.current = false;
-      audioEngine.stopAlarmLoop();
-      vibrationEngine.stop();
-    }
-
-    if (isCompleted) {
-      audioEngine.stopAlarmLoop();
-      vibrationEngine.stop();
-      try {
-        confetti({
-          particleCount: 140,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors: ['#f59e0b', '#10b981', '#ef4444', '#3b82f6'],
-        });
-      } catch (e) {
-        console.warn('Confetti error:', e);
-      }
     }
 
     return () => {
       audioEngine.stopAlarmLoop();
       vibrationEngine.stop();
     };
-  }, [isReady, isCompleted, isMuted, order.order_number, order.customer_name, order.buzzed_at, lang]);
+  }, [isReady, isCompleted, isPending, isMuted, order.order_number, order.customer_name, order.buzzed_at, lang]);
 
   // User interactions
   const handleEnableAudio = async () => {
@@ -147,7 +158,7 @@ export function CoasterPager({ order, cafe, onRefresh, onAcknowledgeReady, onRat
     await audioEngine.unlockAudioAndKeepAlive();
     // Test beep so user immediately verifies audio volume on their phone
     audioEngine.playTestPagerBeep();
-    if (isReady) {
+    if (isReady && !isCompleted) {
       audioEngine.startAlarmLoop(750);
       speechEngine.announceOrderReady(order.order_number, order.customer_name, lang);
     }
@@ -155,6 +166,7 @@ export function CoasterPager({ order, cafe, onRefresh, onAcknowledgeReady, onRat
 
   const handleMuteAlarm = () => {
     setIsMuted(true);
+    hasTriggeredReadyAlert.current = true;
     audioEngine.stopAlarmLoop();
     vibrationEngine.stop();
     speechEngine.stop();
