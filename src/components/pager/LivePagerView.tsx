@@ -25,7 +25,8 @@ export function LivePagerView({ initialCafe, initialOrder }: LivePagerViewProps)
   const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
 
   const planFeatures = useMemo(() => getPlanFeatures(cafe.subscription_tier), [cafe.subscription_tier]);
-  const canShowReview = planFeatures.canUseGoogleReview && Boolean(cafe.google_maps_url);
+  // Google Review modal is available on Bronze, Silver, and Gold tiers
+  const canShowReview = planFeatures.canUseGoogleReview;
   const brandStyle = useMemo(() => getCustomBrandingStyle(cafe), [cafe]);
 
   // Check initial audio state
@@ -42,12 +43,20 @@ export function LivePagerView({ initialCafe, initialOrder }: LivePagerViewProps)
 
       // Trigger Review Modal if order is completed AND plan allows reviews
       if (updatedOrder.status === 'completed' && canShowReview) {
-        setTimeout(() => setShowReviewModal(true), 1500);
+        setTimeout(() => setShowReviewModal(true), 1200);
       }
     });
 
     return () => unsubscribe();
   }, [order.id, canShowReview]);
+
+  // Guaranteed Trigger: Show Review Modal whenever order status is completed (on mount, refresh, or status change)
+  useEffect(() => {
+    if (order.status === 'completed' && canShowReview) {
+      const timer = setTimeout(() => setShowReviewModal(true), 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [order.status, canShowReview]);
 
   const handleRefresh = async () => {
     const fresh = await dataService.getOrderById(order.id);
@@ -146,6 +155,7 @@ export function LivePagerView({ initialCafe, initialOrder }: LivePagerViewProps)
           order={order}
           cafe={cafe}
           onRefresh={handleRefresh}
+          onRateExperience={canShowReview ? () => setShowReviewModal(true) : undefined}
           onAcknowledgeReady={() => {
             // Suggest Google review after customer stops alarm (only if tier allows)
             if (canShowReview) {

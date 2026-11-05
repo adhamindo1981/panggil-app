@@ -22,6 +22,20 @@ export async function PATCH(
     const { id } = await params;
     const body = (await request.json()) as { status: OrderStatus };
     const updated = updateServerOrderStatus(id, body.status);
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (url && key) {
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(url, key);
+        const updateData: Record<string, unknown> = { status: body.status };
+        if (body.status === 'ready') updateData.ready_at = new Date().toISOString();
+        if (body.status === 'completed') updateData.completed_at = new Date().toISOString();
+        await supabase.from('orders').update(updateData).eq('id', id);
+      } catch {}
+    }
+
     if (!updated) {
       return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
     }

@@ -1089,42 +1089,111 @@ class PanggilDataService {
       return a === b;
     };
 
+    const cleanSlug = cafeId.replace(/^cafe-/, '').trim().toLowerCase();
+    const matchingCafeIds = Array.from(new Set([cafeId, `cafe-${cleanSlug}`, cleanSlug]));
+
+    let supabaseOrders: Order[] = [];
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('cafe_id', cafeId)
-        .order('created_at', { ascending: false });
-      if (!error && data) return data as Order[];
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .in('cafe_id', matchingCafeIds)
+          .order('created_at', { ascending: false });
+        if (!error && data && Array.isArray(data)) {
+          supabaseOrders = data as Order[];
+        }
+      } catch (e) {
+        console.warn('Supabase getOrders warning:', e);
+      }
     }
 
+    let serverOrders: Order[] = [];
+    let cloudOrders: Order[] = [];
     if (typeof window !== 'undefined') {
       try {
-        const [apiRes, cloudOrders] = await Promise.all([
-          fetch(`/api/orders?cafe_id=${cafeId}`).then((r) => r.ok ? r.json() : null).catch(() => null),
-          cloudRelay.fetchRecentCafeOrders(cafeId),
+        const [apiRes, cOrders] = await Promise.all([
+          fetch(`/api/orders?cafe_id=${encodeURIComponent(cafeId)}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null),
+          cloudRelay.fetchRecentCafeOrders(cafeId).catch(() => []),
         ]);
 
-        const serverOrders = (apiRes?.orders && Array.isArray(apiRes.orders)) ? apiRes.orders as Order[] : [];
-        const localOrders = this.getLocalOrders();
-        const map = new Map<string, Order>();
-
-        serverOrders.forEach((o) => map.set(o.id, o));
-        cloudOrders.forEach((o) => map.set(o.id, o));
-        localOrders.forEach((o) => {
-          if (isMatchingCafe(o.cafe_id)) {
-            map.set(o.id, o);
-          }
-        });
-
-        return Array.from(map.values()).sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
+        if (apiRes?.orders && Array.isArray(apiRes.orders)) {
+          serverOrders = apiRes.orders as Order[];
+        }
+        if (Array.isArray(cOrders)) {
+          cloudOrders = cOrders;
+        }
+      } catch (e) {
+        console.warn('Network getOrders fetch warning:', e);
+      }
+    } else {
+      // Server-Side Execution (Node.js runtime / SSR)
+      try {
+        const { getServerOrders } = await import('./server-order-store');
+        serverOrders = getServerOrders(cafeId);
       } catch {}
     }
 
-    const local = this.getLocalOrders();
-    return local.filter((o) => isMatchingCafe(o.cafe_id));
+    const localOrders = this.getLocalOrders();
+    const map = new Map<string, Order>();
+
+    // 1. Populate Supabase orders
+    supabaseOrders.forEach((o) => map.set(o.id, o));
+
+    // 2. Populate and merge Server API / Disk orders
+    serverOrders.forEach((o) => {
+      if (isMatchingCafe(o.cafe_id)) {
+        const existing = map.get(o.id);
+        if (!existing) {
+          map.set(o.id, o);
+        } else {
+          const resolvedStatus =
+            o.status === 'completed' || existing.status === 'completed'
+              ? 'completed'
+              : o.status === 'ready' || existing.status === 'ready'
+              ? 'ready'
+              : o.status || existing.status;
+          map.set(o.id, { ...existing, ...o, status: resolvedStatus });
+        }
+      }
+    });
+
+    // 3. Merge Universal Cloud Relay orders
+    cloudOrders.forEach((o) => {
+      if (isMatchingCafe(o.cafe_id) && !map.has(o.id)) {
+        map.set(o.id, o);
+      }
+    });
+
+    // 4. Merge Local storage orders
+    localOrders.forEach((o) => {
+      if (isMatchingCafe(o.cafe_id) && !map.has(o.id)) {
+        map.set(o.id, o);
+      }
+    });
+
+    const mergedList = Array.from(map.values()).sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    // Persist into local storage cache
+    if (mergedList.length > 0) {
+      this.saveLocalOrders(mergedList);
+    }
+
+    // Auto-sync missing orders to Supabase in background
+    if (isSupabaseConfigured && supabase && typeof window !== 'undefined') {
+      const missingInSupabase = mergedList.filter(
+        (order) => !supabaseOrders.some((so) => so.id === order.id)
+      );
+      if (missingInSupabase.length > 0) {
+        Promise.resolve(supabase.from('orders').upsert(missingInSupabase)).catch(() => {});
+      }
+    }
+
+    return mergedList;
   }
 
   public async getOrderById(orderId: string): Promise<Order | null> {
@@ -1172,25 +1241,18 @@ class PanggilDataService {
       created_at: new Date().toISOString(),
     };
 
+    // 1. Insert into Supabase if configured
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase
-        .from('orders')
-        .insert([newOrder])
-        .select()
-        .single();
-      if (!error && data) {
-        cloudRelay.publish(newOrder.id, {
-          type: 'ORDER_CREATED',
-          orderId: newOrder.id,
-          orderNumber: newOrder.order_number,
-          status: newOrder.status,
-        });
-        cloudRelay.publishCafeOrder(newOrder.cafe_id, newOrder);
-        return data as Order;
+      try {
+        await supabase
+          .from('orders')
+          .insert([newOrder]);
+      } catch (err) {
+        console.warn('Supabase createOrder error:', err);
       }
     }
 
-    // Always register order on server API store for seamless multi-device & QR sync
+    // 2. Always register order on server API store for seamless multi-device & QR sync
     if (typeof window !== 'undefined') {
       try {
         fetch('/api/orders', {
@@ -1199,9 +1261,18 @@ class PanggilDataService {
           body: JSON.stringify(newOrder),
         }).catch(() => {});
       } catch {}
+    } else {
+      try {
+        const { createServerOrder } = await import('./server-order-store');
+        createServerOrder({
+          ...payload,
+          id: newOrder.id,
+          order_number: newOrder.order_number,
+        });
+      } catch {}
     }
 
-    // Publish to Universal Cloud Relay for instant multi-device recognition
+    // 3. Publish to Universal Cloud Relay for instant multi-device recognition
     cloudRelay.publish(newOrder.id, {
       type: 'ORDER_CREATED',
       orderId: newOrder.id,
@@ -1209,12 +1280,21 @@ class PanggilDataService {
       status: newOrder.status,
     });
 
-    // Broadcast new order to Cashier Dashboard via Cafe channel
+    // 4. Broadcast new order to Cashier Dashboard via Cafe channel
     cloudRelay.publishCafeOrder(newOrder.cafe_id, newOrder);
 
+    // 5. Update local storage & broadcast locally
     const localOrders = this.getLocalOrders();
-    const updated = [newOrder, ...localOrders];
+    const updated = [newOrder, ...localOrders.filter((o) => o.id !== newOrder.id)];
     this.saveLocalOrders(updated);
+
+    if (broadcastChannel) {
+      broadcastChannel.postMessage({ type: 'ORDERS_UPDATED' });
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('panggil_local_order_updated', { detail: newOrder }));
+    }
+
     return newOrder;
   }
 
@@ -1234,6 +1314,11 @@ class PanggilDataService {
           body: JSON.stringify({ status }),
         }).catch(() => {});
       } catch {}
+    } else {
+      try {
+        const { updateServerOrderStatus } = await import('./server-order-store');
+        updateServerOrderStatus(orderId, status);
+      } catch {}
     }
 
     // 2. Publish to Universal Cloud Relay (Cross-Device: Cashier PC -> Customer Phone)
@@ -1243,34 +1328,57 @@ class PanggilDataService {
       status,
     });
 
+    // 3. Update Supabase if configured
     if (isSupabaseConfigured && supabase) {
-      const updateData: Partial<Order> = { status };
-      if (readyAt) updateData.ready_at = readyAt;
-      if (completedAt) updateData.completed_at = completedAt;
+      try {
+        const updateData: Partial<Order> = { status };
+        if (readyAt) updateData.ready_at = readyAt;
+        if (completedAt) updateData.completed_at = completedAt;
 
-      const { data, error } = await supabase
-        .from('orders')
-        .update(updateData)
-        .eq('id', orderId)
-        .select()
-        .single();
-
-      if (!error && data) return data as Order;
+        await supabase
+          .from('orders')
+          .update(updateData)
+          .eq('id', orderId);
+      } catch (err) {
+        console.warn('Supabase updateOrderStatus error:', err);
+      }
     }
 
+    // 4. Update local storage & state
     const localOrders = this.getLocalOrders();
     const index = localOrders.findIndex((o) => o.id === orderId);
-    if (index === -1) return null;
+    let updatedOrder: Order;
+    if (index >= 0) {
+      updatedOrder = {
+        ...localOrders[index],
+        status,
+        ready_at: readyAt || localOrders[index].ready_at,
+        completed_at: completedAt || localOrders[index].completed_at,
+      };
+      localOrders[index] = updatedOrder;
+      this.saveLocalOrders([...localOrders]);
+    } else {
+      updatedOrder = {
+        id: orderId,
+        cafe_id: '',
+        order_number: '#' + orderId.slice(0, 5),
+        status,
+        total_amount: 0,
+        items: [],
+        created_at: new Date().toISOString(),
+        ready_at: readyAt,
+        completed_at: completedAt,
+      };
+      this.saveLocalOrders([updatedOrder, ...localOrders]);
+    }
 
-    const updatedOrder: Order = {
-      ...localOrders[index],
-      status,
-      ready_at: readyAt || localOrders[index].ready_at,
-      completed_at: completedAt || localOrders[index].completed_at,
-    };
+    if (broadcastChannel) {
+      broadcastChannel.postMessage({ type: 'ORDERS_UPDATED' });
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('panggil_local_order_updated', { detail: updatedOrder }));
+    }
 
-    localOrders[index] = updatedOrder;
-    this.saveLocalOrders([...localOrders]);
     return updatedOrder;
   }
 
@@ -1313,15 +1421,25 @@ class PanggilDataService {
     cafeId: string,
     onChange: () => void
   ): () => void {
+    const cleanSlug = (cafeId || '').replace(/^cafe-/, '').trim().toLowerCase();
+    const matchingIds = [cafeId, `cafe-${cleanSlug}`, cleanSlug];
+
     // 1. Supabase Realtime channel if available
     let supabaseChannel: RealtimeChannel | null = null;
     if (isSupabaseConfigured && supabase) {
       supabaseChannel = supabase
-        .channel(`orders_cafe_${cafeId}`)
+        .channel(`orders_cafe_${cleanSlug}_${Date.now()}`)
         .on(
           'postgres_changes',
-          { event: '*', schema: 'public', table: 'orders', filter: `cafe_id=eq.${cafeId}` },
-          () => onChange()
+          { event: '*', schema: 'public', table: 'orders' },
+          (payload) => {
+            const newRec = payload.new as Order | undefined;
+            const oldRec = payload.old as Order | undefined;
+            const targetCafe = (newRec?.cafe_id || oldRec?.cafe_id || '').toLowerCase();
+            if (!targetCafe || matchingIds.some((id) => id.toLowerCase() === targetCafe)) {
+              onChange();
+            }
+          }
         )
         .subscribe();
     }

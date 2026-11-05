@@ -21,6 +21,7 @@ import {
   RotateCw,
   BellRing,
   Coffee,
+  Star,
 } from 'lucide-react';
 import { InvoiceModal } from '../invoice/InvoiceModal';
 
@@ -29,9 +30,10 @@ interface CoasterPagerProps {
   cafe: Cafe;
   onRefresh?: () => void;
   onAcknowledgeReady?: () => void;
+  onRateExperience?: () => void;
 }
 
-export function CoasterPager({ order, cafe, onRefresh, onAcknowledgeReady }: CoasterPagerProps) {
+export function CoasterPager({ order, cafe, onRefresh, onAcknowledgeReady, onRateExperience }: CoasterPagerProps) {
   const { t, lang, formatCurrency, isRtl } = useI18n();
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
@@ -196,14 +198,25 @@ export function CoasterPager({ order, cafe, onRefresh, onAcknowledgeReady }: Coa
         )}
 
         {isCompleted && (
-          <div className="w-full p-5 rounded-3xl bg-emerald-950/70 border border-emerald-500/50 text-emerald-200 shadow-2xl flex items-center gap-3.5 backdrop-blur-xl">
-            <div className="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-2xl shrink-0">
-              <CheckCircle2 className="w-6 h-6" />
+          <div className="w-full p-5 rounded-3xl bg-emerald-950/70 border border-emerald-500/50 text-emerald-200 shadow-2xl flex items-center justify-between gap-3.5 backdrop-blur-xl">
+            <div className="flex items-center gap-3.5">
+              <div className="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-2xl shrink-0">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="font-extrabold text-sm text-white">{t.customer.thankYou}</p>
+                <p className="text-xs text-emerald-300/80 font-medium">{t.customer.orderCompletedMessage}</p>
+              </div>
             </div>
-            <div>
-              <p className="font-extrabold text-sm text-white">{t.customer.thankYou}</p>
-              <p className="text-xs text-emerald-300/80 font-medium">{t.customer.orderCompletedMessage}</p>
-            </div>
+            {onRateExperience && (
+              <button
+                onClick={onRateExperience}
+                className="px-3.5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-orange-400 text-zinc-950 font-black text-xs rounded-2xl shadow-lg shadow-amber-500/20 flex items-center gap-1.5 shrink-0 active:scale-95 transition-transform cursor-pointer"
+              >
+                <Star className="w-4 h-4 fill-zinc-950" />
+                <span>{lang === 'ar' ? '⭐ قيّم الآن' : lang === 'id' ? '⭐ Ulas Sekarang' : '⭐ Rate Now'}</span>
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -410,6 +423,23 @@ export function CoasterPager({ order, cafe, onRefresh, onAcknowledgeReady }: Coa
             </div>
           </button>
         </div>
+
+        {/* Google 5-Star Review Callout Button when Order is Completed */}
+        {isCompleted && onRateExperience && (
+          <button
+            onClick={onRateExperience}
+            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-orange-400 hover:from-amber-400 hover:to-orange-300 text-zinc-950 font-black text-sm shadow-2xl shadow-amber-500/30 transform active:scale-98 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+          >
+            <Star className="w-5 h-5 fill-zinc-950 stroke-zinc-950" />
+            <span>
+              {lang === 'ar'
+                ? '⭐ قيّم تجربتك على خرائط Google (5 نجوم)'
+                : lang === 'id'
+                ? '⭐ Beri Ulasan Bintang 5 di Google Maps'
+                : '⭐ Leave 5 Stars on Google Maps'}
+            </span>
+          </button>
+        )}
 
         {/* Receipt & Order Info Toggle */}
         <div className="flex gap-2.5">
