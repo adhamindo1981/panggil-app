@@ -77,10 +77,13 @@ export default function AdminLoginPage() {
       {/* Top Header Bar */}
       <header className="px-6 py-4 flex items-center justify-between border-b border-stone-800/80 bg-[#0d121e]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 p-0.5 shadow-lg shadow-amber-500/20">
-            <div className="w-full h-full bg-[#070a13] rounded-[10px] flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-amber-400" />
-            </div>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 p-0.5 shadow-lg shadow-amber-500/20 overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/panggil-logo.jpg"
+              alt="Panggil Official Logo"
+              className="w-full h-full object-cover rounded-[10px]"
+            />
           </div>
           <div>
             <h1 className="font-bold text-base tracking-wide flex items-center gap-2">

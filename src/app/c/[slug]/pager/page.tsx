@@ -47,8 +47,13 @@ export default async function StaticPagerPage({ params }: PageProps) {
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-gradient-to-tr from-amber-600 to-amber-400 text-zinc-950 rounded-xl shadow-md">
-              <BellRing className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl overflow-hidden border border-amber-500/40 shadow-md shrink-0 bg-zinc-950">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={cafe.custom_branding?.logo_url || '/panggil-logo.jpg'}
+                alt={cafe.name}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <h1 className="text-xs sm:text-sm font-black text-white">{cafe.name}</h1>

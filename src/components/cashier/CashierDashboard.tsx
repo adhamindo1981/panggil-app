@@ -389,10 +389,11 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
           ) : (
             <Link
               href="/"
-              className="p-2.5 bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 text-zinc-950 rounded-2xl shadow-lg shadow-amber-500/20 font-black hover:scale-105 transition-transform shrink-0"
-              title="الرئيسية"
+              className="w-10 h-10 rounded-2xl overflow-hidden border border-amber-500/40 shadow-lg shadow-amber-500/20 hover:scale-105 transition-transform shrink-0 bg-zinc-950 p-0.5"
+              title="Panggil App - الرئيسية"
             >
-              <BellRing className="w-5 h-5" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/panggil-logo.jpg" alt="Panggil Official Logo" className="w-full h-full object-cover rounded-[14px]" />
             </Link>
           )}
           <div>

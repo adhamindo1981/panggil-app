@@ -507,10 +507,13 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo & Brand Mark */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#FF6B2C] via-[#F59E0B] to-amber-300 p-0.5 shadow-lg shadow-[#FF6B2C]/25 group-hover:scale-105 transition-transform flex items-center justify-center">
-              <div className="w-full h-full bg-[#0b101d] rounded-[14px] flex items-center justify-center">
-                <BellRing className="w-5 h-5 text-[#FF6B2C] group-hover:rotate-12 transition-transform" />
-              </div>
+            <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#FF6B2C] via-[#F59E0B] to-amber-300 p-0.5 shadow-lg shadow-[#FF6B2C]/25 group-hover:scale-105 transition-transform flex items-center justify-center overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/panggil-logo.jpg"
+                alt="Panggil Official Logo"
+                className="w-full h-full object-cover rounded-[14px]"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -598,6 +601,21 @@ export default function HomePage() {
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-[#FF6B2C]/20 via-[#F59E0B]/10 to-transparent blur-[140px] pointer-events-none -z-10" />
 
         <div className="text-center max-w-3xl mx-auto space-y-6">
+          {/* Official Brand Logo Showcase */}
+          <div className="flex justify-center items-center pt-2">
+            <div className="relative group">
+              <div className="absolute -inset-2 bg-gradient-to-r from-[#FF6B2C] via-amber-500 to-[#FFA336] rounded-3xl blur-xl opacity-40 group-hover:opacity-75 transition duration-500"></div>
+              <div className="relative p-1 rounded-2xl bg-gradient-to-tr from-[#FF6B2C] via-amber-500 to-amber-300 shadow-2xl">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/panggil-logo.jpg"
+                  alt="Panggil Official Logo"
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-[14px] object-cover border border-white/20 shadow-inner group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Eyebrow Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0d1322] border border-[#FF6B2C]/30 text-xs font-bold text-zinc-200 shadow-xl shadow-[#FF6B2C]/5 animate-pulse">
             <Sparkles className="w-3.5 h-3.5 text-[#FF6B2C]" />
@@ -713,8 +731,15 @@ export default function HomePage() {
               {/* Phone Inner Screen */}
               <div className="bg-[#060911] rounded-[32px] p-6 border border-zinc-800 text-center relative overflow-hidden min-h-[380px] flex flex-col justify-between">
                 {/* Speaker Notch */}
-                <div className="w-20 h-4 bg-zinc-900 rounded-full mx-auto mb-4 border border-zinc-800/80 flex items-center justify-center">
+                <div className="w-20 h-4 bg-zinc-900 rounded-full mx-auto mb-2 border border-zinc-800/80 flex items-center justify-center">
                   <div className="w-3 h-3 rounded-full bg-zinc-800" />
+                </div>
+
+                {/* Micro Brand Header */}
+                <div className="flex items-center justify-center gap-1.5 pb-2 border-b border-zinc-800/60 mb-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/panggil-logo.jpg" alt="Panggil Logo" className="w-4 h-4 rounded-md object-cover" />
+                  <span className="text-[10px] font-mono font-bold text-zinc-400">PANGGIL SMART PAGER</span>
                 </div>
 
                 {/* STEP 1: SCAN QR */}
@@ -762,8 +787,12 @@ export default function HomePage() {
                 {/* STEP 3: BUZZING ALERT */}
                 {simStep === 3 && (
                   <div className="space-y-3 my-auto animate-in zoom-in">
-                    <div className="w-16 h-16 rounded-3xl bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-500 mx-auto animate-ping">
-                      <BellRing className="w-8 h-8" />
+                    <div className="relative w-16 h-16 mx-auto">
+                      <div className="absolute inset-0 rounded-2xl bg-red-600/30 border border-red-500/50 animate-ping" />
+                      <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-tr from-red-600 to-[#FF6B2C] p-0.5 shadow-2xl flex items-center justify-center overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/panggil-logo.jpg" alt="Panggil Buzzer" className="w-full h-full object-cover rounded-[14px]" />
+                      </div>
                     </div>
                     <span className="text-[11px] uppercase font-black tracking-widest text-red-400">
                       SIRENE AKTIF · BUZZING
@@ -1175,8 +1204,13 @@ export default function HomePage() {
       <footer className="border-t border-white/10 bg-[#04060c] py-12 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-zinc-500">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-[#FF6B2C]/20 border border-[#FF6B2C]/40 flex items-center justify-center text-[#FF6B2C]">
-              <BellRing className="w-4 h-4" />
+            <div className="w-9 h-9 rounded-xl overflow-hidden border border-[#FF6B2C]/40 shadow-lg shadow-[#FF6B2C]/20 shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/panggil-logo.jpg"
+                alt="Panggil Official Logo"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <p className="font-bold text-zinc-300">Panggil / نداء © 2026</p>
