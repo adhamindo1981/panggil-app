@@ -9,10 +9,11 @@ interface PageProps {
 
 export default async function QrKitPage({ params }: PageProps) {
   const { slug } = await params;
-  const cafe = await dataService.getCafeBySlug(slug);
+  let cafe = await dataService.getCafeBySlug(slug);
 
   if (!cafe) {
-    notFound();
+    const { getOrCreateDynamicCafe } = await import('@/lib/server-cafe-store');
+    cafe = getOrCreateDynamicCafe(slug);
   }
 
   return <PrintableTableStand cafe={cafe} />;

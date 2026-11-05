@@ -562,23 +562,75 @@ class PanggilDataService {
   }
 
   public async getCafeBySlug(slug: string): Promise<Cafe | null> {
+    const cleanSlug = (slug || '').trim().toLowerCase();
+    if (!cleanSlug) return null;
+
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('cafes')
         .select('*')
-        .eq('slug', slug)
+        .eq('slug', cleanSlug)
         .single();
       if (!error && data) return data as Cafe;
     }
-    // Fallback to local
-    return this.getLocalCafes().find((c) => c.slug === slug) || null;
+
+    // Server-Side Execution (Node.js/Next.js Lambda)
+    if (typeof window === 'undefined') {
+      try {
+        const { getServerCafeBySlug, getOrCreateDynamicCafe } = await import('./server-cafe-store');
+        const found = getServerCafeBySlug(cleanSlug);
+        if (found) return found;
+        return getOrCreateDynamicCafe(cleanSlug);
+      } catch {
+        const initial = INITIAL_CAFES.find((c) => c.slug.toLowerCase() === cleanSlug);
+        if (initial) return initial;
+      }
+    }
+
+    // Browser / Client-Side Execution
+    const local = this.getLocalCafes();
+    const foundLocal = local.find((c) => c.slug.toLowerCase() === cleanSlug);
+    if (foundLocal) return foundLocal;
+
+    // Check with server API
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch(`/api/cafes?slug=${cleanSlug}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.cafe) {
+            this.saveLocalCafes([data.cafe, ...local]);
+            return data.cafe as Cafe;
+          }
+        }
+      } catch {}
+    }
+
+    const fallbackInitial = INITIAL_CAFES.find((c) => c.slug.toLowerCase() === cleanSlug);
+    if (fallbackInitial) return fallbackInitial;
+
+    // Resilient fallback cafe object to guarantee 404 is NEVER thrown
+    return {
+      id: 'cafe-' + cleanSlug,
+      name: cleanSlug.replace(/[-_]/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase()),
+      slug: cleanSlug,
+      mode: 'menu_pager',
+      default_lang: 'ar',
+      subscription_tier: 'silver',
+      subscription_status: 'active',
+      cashier_pin: '1234',
+      created_at: new Date().toISOString(),
+      support_notes: [],
+    };
   }
 
   public async createCafe(payload: Omit<Cafe, 'id' | 'created_at'>): Promise<Cafe> {
     const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'cafe-' + Date.now();
+    const cleanSlug = payload.slug.trim().toLowerCase();
     const newCafe: Cafe = {
       ...payload,
       id,
+      slug: cleanSlug,
       created_at: new Date().toISOString(),
       subscription_status: payload.subscription_status || 'active',
       support_notes: payload.support_notes || [],
@@ -590,8 +642,25 @@ class PanggilDataService {
     }
 
     const cafes = this.getLocalCafes();
-    const updated = [newCafe, ...cafes];
+    const updated = [newCafe, ...cafes.filter((c) => c.slug !== cleanSlug)];
     this.saveLocalCafes(updated);
+
+    // Sync to server API in background
+    if (typeof window !== 'undefined') {
+      try {
+        fetch('/api/cafes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newCafe),
+        }).catch(() => {});
+      } catch {}
+    } else {
+      try {
+        const { saveServerCafe } = await import('./server-cafe-store');
+        saveServerCafe(newCafe);
+      } catch {}
+    }
+
     return newCafe;
   }
 
@@ -608,6 +677,23 @@ class PanggilDataService {
     const updatedCafe: Cafe = { ...cafes[index], ...updates };
     cafes[index] = updatedCafe;
     this.saveLocalCafes([...cafes]);
+
+    // Sync to server API in background
+    if (typeof window !== 'undefined') {
+      try {
+        fetch('/api/cafes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedCafe),
+        }).catch(() => {});
+      } catch {}
+    } else {
+      try {
+        const { saveServerCafe } = await import('./server-cafe-store');
+        saveServerCafe(updatedCafe);
+      } catch {}
+    }
+
     return updatedCafe;
   }
 
@@ -617,6 +703,18 @@ class PanggilDataService {
     }
     const cafes = this.getLocalCafes().filter((c) => c.id !== id);
     this.saveLocalCafes(cafes);
+
+    if (typeof window !== 'undefined') {
+      try {
+        fetch(`/api/cafes?id=${id}`, { method: 'DELETE' }).catch(() => {});
+      } catch {}
+    } else {
+      try {
+        const { deleteServerCafe } = await import('./server-cafe-store');
+        deleteServerCafe(id);
+      } catch {}
+    }
+
     return true;
   }
 

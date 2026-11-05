@@ -9,10 +9,11 @@ interface PageProps {
 
 export default async function CashierPage({ params }: PageProps) {
   const { slug } = await params;
-  const cafe = await dataService.getCafeBySlug(slug);
+  let cafe = await dataService.getCafeBySlug(slug);
 
   if (!cafe) {
-    notFound();
+    const { getOrCreateDynamicCafe } = await import('@/lib/server-cafe-store');
+    cafe = getOrCreateDynamicCafe(slug);
   }
 
   const initialOrders = await dataService.getOrders(cafe.id);

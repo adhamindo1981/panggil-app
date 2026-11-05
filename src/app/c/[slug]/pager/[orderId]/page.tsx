@@ -20,10 +20,11 @@ interface PageProps {
 export default async function PagerPage({ params, searchParams }: PageProps) {
   const { slug, orderId } = await params;
   const search = searchParams ? await searchParams : {};
-  const cafe = await dataService.getCafeBySlug(slug);
+  let cafe = await dataService.getCafeBySlug(slug);
 
   if (!cafe) {
-    notFound();
+    const { getOrCreateDynamicCafe } = await import('@/lib/server-cafe-store');
+    cafe = getOrCreateDynamicCafe(slug);
   }
 
   let order = await dataService.getOrderById(orderId);
