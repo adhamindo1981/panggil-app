@@ -39,6 +39,7 @@ export function CoasterPager({ order, cafe, onRefresh, onAcknowledgeReady }: Coa
   const [wakeLockActive, setWakeLockActive] = useState<boolean>(false);
   const [showInvoice, setShowInvoice] = useState<boolean>(false);
   const hasTriggeredReadyAlert = useRef<boolean>(false);
+  const lastBuzzedAtRef = useRef<number | undefined>(order.buzzed_at);
 
   // Status flags
   const isPending = order.status === 'pending';
@@ -79,14 +80,27 @@ export function CoasterPager({ order, cafe, onRefresh, onAcknowledgeReady }: Coa
     };
   }, [isCompleted]);
 
-  // 3. React to Order Status Change (Sub-second Alarm, Buzzer, Vibration & TTS)
+  // 3. React to Order Status Change & Realtime Cashier Buzz (Sub-second Alarm, Buzzer, Vibration & TTS)
   useEffect(() => {
+    // If cashier triggers re-buzz or order newly ready
+    const hasNewBuzz = Boolean(order.buzzed_at && order.buzzed_at !== lastBuzzedAtRef.current);
+    if (hasNewBuzz) {
+      lastBuzzedAtRef.current = order.buzzed_at;
+      setIsMuted(false);
+      hasTriggeredReadyAlert.current = true;
+      audioEngine.startAlarmLoop(750);
+      vibrationEngine.startRepeatingVibration([500, 200, 500], 1800);
+      speechEngine.announceOrderReady(order.order_number, order.customer_name, lang);
+      triggerLocalNotification(order.order_number, order.customer_name);
+      return;
+    }
+
     if (isReady && !hasTriggeredReadyAlert.current) {
       hasTriggeredReadyAlert.current = true;
 
-      // Start Audio Alarm Loop if sound allowed
+      // Start Commercial Pager Alarm Loop if sound allowed
       if (!isMuted) {
-        audioEngine.startAlarmLoop(1200);
+        audioEngine.startAlarmLoop(750);
       }
 
       // Start Vibration Loop [500, 200, 500]
@@ -122,16 +136,17 @@ export function CoasterPager({ order, cafe, onRefresh, onAcknowledgeReady }: Coa
       audioEngine.stopAlarmLoop();
       vibrationEngine.stop();
     };
-  }, [isReady, isCompleted, isMuted, order.order_number, order.customer_name, lang]);
+  }, [isReady, isCompleted, isMuted, order.order_number, order.customer_name, order.buzzed_at, lang]);
 
   // User interactions
   const handleEnableAudio = async () => {
     setSoundEnabled(true);
     setIsMuted(false);
     await audioEngine.unlockAudioAndKeepAlive();
-    audioEngine.playDualChime();
+    // Test beep so user immediately verifies audio volume on their phone
+    audioEngine.playTestPagerBeep();
     if (isReady) {
-      audioEngine.startAlarmLoop(1100);
+      audioEngine.startAlarmLoop(750);
       speechEngine.announceOrderReady(order.order_number, order.customer_name, lang);
     }
   };

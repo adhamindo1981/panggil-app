@@ -150,9 +150,10 @@ export function CashierDashboard({ initialCafe, initialOrders }: CashierDashboar
     }
   };
 
-  // Buzz / Call Pager
+  // Buzz / Call Pager (Sends realtime siren signal to customer's mobile phone)
   const handleBuzzOrder = async (orderId: string) => {
-    audioEngine.playDualChime();
+    // Subtle tactile click on cashier device (customer phone receives the loud siren)
+    audioEngine.playBeepPulse(750, 0.05, 'sine');
     await dataService.buzzOrder(orderId);
     refreshOrders();
   };

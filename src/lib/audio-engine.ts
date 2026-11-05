@@ -118,46 +118,51 @@ class PagerAudioEngine {
   }
 
   /**
-   * Plays a high-decibel synthesized square-wave pager double-beep (880Hz)
+   * Plays a high-urgency, piercing commercial coaster pager alarm burst
+   * Designed specifically to penetrate restaurant/cafe noise:
+   *  - 3 sharp, rapid square-wave pulses (960Hz -> 1200Hz -> 1440Hz)
+   *  - High audible gain (0.85) with fast attack and crisp decay
    */
-  public playPagerDoubleBeep(frequency = 880, duration = 0.15) {
+  public playPagerAlarmBurst() {
     try {
       const ctx = this.initContext();
       const now = ctx.currentTime;
 
-      // Beep 1
-      const osc1 = ctx.createOscillator();
-      const gain1 = ctx.createGain();
-      osc1.type = 'square';
-      osc1.frequency.setValueAtTime(frequency, now);
+      // Pulse frequencies: sharp industrial pager profile
+      const pulses = [
+        { freq: 980, start: 0, dur: 0.11, gain: 0.85 },
+        { freq: 1200, start: 0.15, dur: 0.11, gain: 0.85 },
+        { freq: 1470, start: 0.30, dur: 0.14, gain: 0.90 },
+      ];
 
-      gain1.gain.setValueAtTime(0, now);
-      gain1.gain.linearRampToValueAtTime(0.45, now + 0.02);
-      gain1.gain.exponentialRampToValueAtTime(0.001, now + duration);
+      pulses.forEach(({ freq, start, dur, gain: targetGain }) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
 
-      osc1.connect(gain1);
-      gain1.connect(ctx.destination);
-      osc1.start(now);
-      osc1.stop(now + duration);
+        // Square wave cuts through ambient room noise significantly better than sine/triangle
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, now + start);
 
-      // Beep 2 (Interspersed burst: 880Hz + 1760Hz harmonic)
-      const delay = duration + 0.08;
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
-      osc2.type = 'square';
-      osc2.frequency.setValueAtTime(frequency * 2, now + delay);
+        gain.gain.setValueAtTime(0, now + start);
+        gain.gain.linearRampToValueAtTime(targetGain, now + start + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + start + dur);
 
-      gain2.gain.setValueAtTime(0, now + delay);
-      gain2.gain.linearRampToValueAtTime(0.4, now + delay + 0.02);
-      gain2.gain.exponentialRampToValueAtTime(0.001, now + delay + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
 
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-      osc2.start(now + delay);
-      osc2.stop(now + delay + duration);
+        osc.start(now + start);
+        osc.stop(now + start + dur);
+      });
     } catch (e) {
-      console.warn('Pager beep playback error:', e);
+      console.warn('Pager alarm burst error:', e);
     }
+  }
+
+  /**
+   * Alias for backward compatibility
+   */
+  public playPagerDoubleBeep(frequency = 980, duration = 0.15) {
+    this.playPagerAlarmBurst();
   }
 
   /**
@@ -187,19 +192,26 @@ class PagerAudioEngine {
   }
 
   /**
-   * Starts high-urgency continuous pager buzzer alarm loop (880Hz double-beep pattern)
+   * Starts high-urgency continuous commercial coaster pager alarm loop
    */
-  public startAlarmLoop(intervalMs = 1100) {
+  public startAlarmLoop(intervalMs = 750) {
     if (this.isBuzzing) return;
     this.isBuzzing = true;
 
-    // Trigger immediate double-beep
-    this.playPagerDoubleBeep(880, 0.16);
+    // Trigger immediate alarm burst
+    this.playPagerAlarmBurst();
 
     this.timerId = setInterval(() => {
       if (!this.isBuzzing) return;
-      this.playPagerDoubleBeep(880, 0.16);
+      this.playPagerAlarmBurst();
     }, intervalMs);
+  }
+
+  /**
+   * Test beep for user preview
+   */
+  public playTestPagerBeep() {
+    this.playPagerAlarmBurst();
   }
 
   /**

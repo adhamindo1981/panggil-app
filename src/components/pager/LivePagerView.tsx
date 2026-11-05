@@ -59,18 +59,26 @@ export function LivePagerView({ initialCafe, initialOrder }: LivePagerViewProps)
     const unlocked = await audioEngine.unlockAudioAndKeepAlive();
     await wakeLockManager.requestWakeLock();
     setIsAudioUnlocked(unlocked);
+    // Instant test alert so user confirms phone speaker volume is unmuted
+    audioEngine.playTestPagerBeep();
   };
 
   const unlockBannerText = {
-    id: 'Ketuk untuk mengaktifkan bel suara & layar aktif',
-    ar: 'اضغط هنا لتفعيل جرس التنبيه الصوتي وقفل الشاشة',
-    en: 'Tap to activate audio alert & keep screen awake',
+    id: 'Ketuk untuk mengaktifkan bel suara keras & layar aktif (Pastikan HP tidak mode hening)',
+    ar: 'اضغط هنا لتفعيل صفارة التنبيه وقفل الشاشة (تأكد من إلغاء وضع الصامت)',
+    en: 'Tap to activate loud pager alarm & wake lock (Ensure phone is unmuted)',
+  };
+
+  const readyAlertBannerText = {
+    id: '🚨 PESANAN SIAP! Ketuk di sini untuk membunyikan alarm bel!',
+    ar: '🚨 طلبك جاهز الآن! اضغط هنا لإطلاق صفارة الإنذار والاستلام!',
+    en: '🚨 ORDER IS READY! Tap here to sound the pager alarm!',
   };
 
   const unlockedConfirmedText = {
-    id: 'Bel Suara & Layar Aktif',
-    ar: 'جرس التنبيه وقفل الشاشة مفعلان',
-    en: 'Audio Alert & Wake Lock Active',
+    id: 'Bel Suara Keras & Layar Aktif',
+    ar: 'صفارة التنبيه وقفل الشاشة مفعلان بنجاح',
+    en: 'Loud Pager Alarm & Wake Lock Active',
   };
 
   return (
@@ -95,13 +103,19 @@ export function LivePagerView({ initialCafe, initialOrder }: LivePagerViewProps)
 
       {/* PART 1: Interactive Unlock Gate Banner (if not yet unlocked by user gesture) */}
       {!isAudioUnlocked ? (
-        <div className="w-full bg-gradient-to-r from-amber-600 via-amber-500 to-orange-500 text-zinc-950 px-4 py-3 shadow-lg animate-pulse">
+        <div className={`w-full px-4 py-3 shadow-xl ${
+          order.status === 'ready'
+            ? 'bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 animate-bounce'
+            : 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600'
+        } text-zinc-950`}>
           <button
             onClick={handleUnlockGate}
             className="w-full max-w-md mx-auto flex items-center justify-center gap-2.5 text-xs sm:text-sm font-black tracking-wide cursor-pointer active:scale-98 transition-transform"
           >
             <Volume2 className="w-5 h-5 shrink-0 animate-bounce" />
-            <span>{unlockBannerText[lang]}</span>
+            <span className="text-center">
+              {order.status === 'ready' ? readyAlertBannerText[lang] : unlockBannerText[lang]}
+            </span>
           </button>
         </div>
       ) : (

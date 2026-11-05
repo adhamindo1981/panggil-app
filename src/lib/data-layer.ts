@@ -248,7 +248,10 @@ const broadcastChannel =
 
 class PanggilDataService {
   private getLocalOrders(): Order[] {
-    if (typeof window === 'undefined') return INITIAL_ORDERS;
+    if (typeof window === 'undefined') {
+      const g = global as unknown as { __GLOBAL_PANGGIL_ORDERS__?: Order[] };
+      return g.__GLOBAL_PANGGIL_ORDERS__ || INITIAL_ORDERS;
+    }
     try {
       const stored = localStorage.getItem('panggil_orders');
       if (!stored) {
@@ -329,6 +332,30 @@ class PanggilDataService {
         .order('created_at', { ascending: false });
       if (!error && data) return data as Order[];
     }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch(`/api/orders?cafe_id=${cafeId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.orders && Array.isArray(data.orders)) {
+            const serverOrders = data.orders as Order[];
+            const localOrders = this.getLocalOrders();
+            const map = new Map<string, Order>();
+            serverOrders.forEach((o) => map.set(o.id, o));
+            localOrders.forEach((o) => {
+              if (!map.has(o.id) && o.cafe_id === cafeId) {
+                map.set(o.id, o);
+              }
+            });
+            return Array.from(map.values()).sort(
+              (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            );
+          }
+        }
+      } catch {}
+    }
+
     const local = this.getLocalOrders();
     return local.filter((o) => o.cafe_id === cafeId);
   }
@@ -343,7 +370,21 @@ class PanggilDataService {
       if (!error && data) return data as Order;
     }
     const local = this.getLocalOrders();
-    return local.find((o) => o.id === orderId) || null;
+    const found = local.find((o) => o.id === orderId);
+    if (found) return found;
+
+    // Client-side fallback to server API store if not present in phone's local storage
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await fetch(`/api/orders/${orderId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.order) return data.order as Order;
+        }
+      } catch {}
+    }
+
+    return null;
   }
 
   public async createOrder(payload: CreateOrderPayload): Promise<Order> {
@@ -373,6 +414,17 @@ class PanggilDataService {
       if (!error && data) return data as Order;
     }
 
+    // Always register order on server API store for seamless multi-device & QR sync
+    if (typeof window !== 'undefined') {
+      try {
+        fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newOrder),
+        }).catch(() => {});
+      } catch {}
+    }
+
     const localOrders = this.getLocalOrders();
     const updated = [newOrder, ...localOrders];
     this.saveLocalOrders(updated);
@@ -385,6 +437,17 @@ class PanggilDataService {
   ): Promise<Order | null> {
     const readyAt = status === 'ready' ? new Date().toISOString() : undefined;
     const completedAt = status === 'completed' ? new Date().toISOString() : undefined;
+
+    // 1. Notify Server API for Cross-Device / Mobile sync
+    if (typeof window !== 'undefined') {
+      try {
+        fetch(`/api/orders/${orderId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status }),
+        }).catch(() => {});
+      } catch {}
+    }
 
     if (isSupabaseConfigured && supabase) {
       const updateData: Partial<Order> = { status };
@@ -418,10 +481,18 @@ class PanggilDataService {
   }
 
   /**
-   * Buzz order: Trigger readiness and send instant realtime buzz signal
+   * Buzz order: Trigger readiness and send instant realtime buzz signal across devices
    */
   public async buzzOrder(orderId: string): Promise<Order | null> {
     const updated = await this.updateOrderStatus(orderId, 'ready');
+
+    // Notify server buzz API immediately
+    if (typeof window !== 'undefined') {
+      try {
+        fetch(`/api/orders/${orderId}/buzz`, { method: 'POST' }).catch(() => {});
+      } catch {}
+    }
+
     // Send immediate buzz event for connected client listeners
     if (broadcastChannel) {
       broadcastChannel.postMessage({
@@ -434,7 +505,7 @@ class PanggilDataService {
   }
 
   /**
-   * Subscribe to all orders for a cafe with realtime updates
+   * Subscribe to all orders for a cafe with realtime updates & server polling fallback
    */
   public subscribeToOrders(
     cafeId: string,
@@ -465,7 +536,21 @@ class PanggilDataService {
     broadcastChannel?.addEventListener('message', handleBroadcast);
     window.addEventListener('panggil_local_order_updated', handleLocalEvent);
 
+    // 3. Fast Server Polling (every 2.5s) for multi-device sync
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/orders?cafe_id=${cafeId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.orders) {
+            onChange();
+          }
+        }
+      } catch {}
+    }, 2500);
+
     return () => {
+      clearInterval(pollInterval);
       supabaseChannel?.unsubscribe();
       broadcastChannel?.removeEventListener('message', handleBroadcast);
       window.removeEventListener('panggil_local_order_updated', handleLocalEvent);
@@ -473,12 +558,15 @@ class PanggilDataService {
   }
 
   /**
-   * Subscribe to a single order for the customer pager view
+   * Subscribe to a single order for the customer pager view (Mobile Device Realtime)
    */
   public subscribeToOrder(
     orderId: string,
     onUpdate: (order: Order, wasBuzzed?: boolean) => void
   ): () => void {
+    let lastKnownStatus: OrderStatus | null = null;
+    let lastKnownBuzzedAt: number | undefined = undefined;
+
     let supabaseChannel: RealtimeChannel | null = null;
     if (isSupabaseConfigured && supabase) {
       supabaseChannel = supabase
@@ -488,6 +576,7 @@ class PanggilDataService {
           { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` },
           (payload) => {
             const updated = payload.new as Order;
+            lastKnownStatus = updated.status;
             onUpdate(updated, updated.status === 'ready');
           }
         )
@@ -497,25 +586,56 @@ class PanggilDataService {
     const handleBroadcast = (event: MessageEvent) => {
       if (event.data?.type === 'ORDER_BUZZED' && event.data?.orderId === orderId) {
         this.getOrderById(orderId).then((ord) => {
-          if (ord) onUpdate(ord, true);
+          if (ord) {
+            lastKnownStatus = ord.status;
+            onUpdate(ord, true);
+          }
         });
       } else if (event.data?.type === 'ORDERS_UPDATED') {
         this.getOrderById(orderId).then((ord) => {
-          if (ord) onUpdate(ord, ord.status === 'ready');
+          if (ord) {
+            lastKnownStatus = ord.status;
+            onUpdate(ord, ord.status === 'ready');
+          }
         });
       }
     };
 
     const handleLocalEvent = () => {
       this.getOrderById(orderId).then((ord) => {
-        if (ord) onUpdate(ord, ord.status === 'ready');
+        if (ord) {
+          lastKnownStatus = ord.status;
+          onUpdate(ord, ord.status === 'ready');
+        }
       });
     };
 
     broadcastChannel?.addEventListener('message', handleBroadcast);
     window.addEventListener('panggil_local_order_updated', handleLocalEvent);
 
+    // 4. Ultra-Fast Sub-Second Mobile Server Polling (every 600ms) to sync PC cashier buzz to phone instantly
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/orders/${orderId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.order) {
+            const freshOrder = data.order as Order;
+            const statusChangedToReady = lastKnownStatus !== 'ready' && freshOrder.status === 'ready';
+            const wasReBuzzed = !!(freshOrder.buzzed_at && freshOrder.buzzed_at !== lastKnownBuzzedAt);
+
+            if (freshOrder.status !== lastKnownStatus || statusChangedToReady || wasReBuzzed) {
+              lastKnownStatus = freshOrder.status;
+              lastKnownBuzzedAt = freshOrder.buzzed_at;
+              onUpdate(freshOrder, statusChangedToReady || wasReBuzzed || freshOrder.status === 'ready');
+            }
+          }
+        }
+      } catch {}
+    }, 600);
+
     return () => {
+      clearInterval(pollInterval);
       supabaseChannel?.unsubscribe();
       broadcastChannel?.removeEventListener('message', handleBroadcast);
       window.removeEventListener('panggil_local_order_updated', handleLocalEvent);

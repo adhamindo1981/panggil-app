@@ -68,6 +68,7 @@ export interface Order {
   created_at: string;
   ready_at?: string | null;
   completed_at?: string | null;
+  buzzed_at?: number;
 }
 
 export interface PushSubscriptionJSON {
@@ -80,6 +81,7 @@ export interface PushSubscriptionJSON {
 }
 
 export interface CreateOrderPayload {
+  id?: string;
   cafe_id: string;
   order_number?: string;
   customer_name?: string;
