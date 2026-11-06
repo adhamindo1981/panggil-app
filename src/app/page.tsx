@@ -1,46 +1,39 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { audioEngine } from '@/lib/audio-engine';
 import {
   BellRing,
   Coffee,
   Smartphone,
-  Radio,
   Volume2,
-  Sparkles,
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  Sliders,
-  Utensils,
-  Layers,
-  Zap,
-  Flame,
-  ArrowUpRight,
   Check,
   X,
   Star,
-  Crown,
-  Lock,
-  Globe,
-  DollarSign,
-  TrendingDown,
-  RotateCcw,
   QrCode,
-  MapPin,
   Clock,
-  PhoneCall,
   ChevronDown,
   ChevronUp,
   MessageCircle,
   HelpCircle,
-  Award,
+  Activity,
+  Layers,
+  Sparkles,
+  Zap,
+  TrendingDown,
+  RotateCcw,
+  Sliders,
+  Store,
+  ExternalLink,
+  Flame,
+  Radio,
   Share2,
   ThumbsUp,
-  HeartHandshake,
-  Activity,
+  Award,
 } from 'lucide-react';
 
 type Lang = 'id' | 'ar' | 'en';
@@ -101,7 +94,7 @@ export default function HomePage() {
     setTimeout(() => {
       audioEngine.stopAlarmLoop();
       setIsSimBuzzing(false);
-    }, 4500);
+    }, 5000);
   };
 
   const handleStopBuzzer = () => {
@@ -110,134 +103,230 @@ export default function HomePage() {
   };
 
   // Calculate annual savings
-  // Average physical pager costs Rp 350.000 ($22 / 90 SAR), 20% lost/broken annually
+  // Average physical pager costs Rp 380.000 ($24 / 95 SAR), 25% lost/broken annually
   const hardwareUnitCostIDR = 380000;
   const initialHardwareSavedIDR = hardwarePagerCount * hardwareUnitCostIDR;
   const annualMaintenanceSavedIDR = Math.round(hardwarePagerCount * hardwareUnitCostIDR * 0.25);
   const totalSavingsIDR = initialHardwareSavedIDR + annualMaintenanceSavedIDR;
 
-  // Language Copy Dictionary
+  // Multilingual Copy Dictionary
   const content = {
     id: {
-      badge: "Sistem Pager Digital & Menu Cerdas No. 1 di Asia Tenggara",
-      heroTitlePrefix: "HP Pelanggan Adalah",
-      heroTitleHighlight: "Pager Anda.",
+      badge: "SISTEM PAGER DIGITAL & MENU CERDAS BERBASIS WEB",
+      heroTitlePrefix: "Ubah Ponsel Pelanggan Menjadi Pager.",
+      heroTitleHighlight: "Tanpa Perangkat Fisik.",
       heroSubtitle:
-        "Tinggalkan pager fisik kuno yang mahal, cepat rusak, dan ribet dicas. Panggil mengubah ponsel pelanggan menjadi pager nirkabel instan lewat scan QR tanpa instal aplikasi. Dilengkapi menu digital interaktif dan pengumpul ulasan bintang 5 Google Maps.",
-      ctaDemo: "Coba Demo Kasir (POS)",
-      ctaCustomer: "Lihat Layar Pelanggan",
+        "Solusi nirkabel berkinerja tinggi untuk kafe, restoran, food court, dan pusat layanan. Pelanggan cukup scan QR pada struk atau meja, menunggu tanpa cemas, dan ponsel mereka berdering kencang saat pesanan siap. Dilengkapi menu digital interaktif dan pendorong ulasan bintang 5 Google Maps.",
+      ctaDemo: "Buka Demo Kasir (POS)",
+      ctaCustomer: "Layar Tamu / Pelanggan",
       ctaTestBuzzer: "Uji Suara Pager",
-      simTitle: "Simulasi Langsung: Rasakan Bunyi & Getaran Pager",
-      simDesc: "Klik tombol di bawah untuk membunyikan pager virtual di ponsel:",
+      simTitle: "Simulasi Langsung Layar Pelanggan",
+      simDesc: "Interaksi real-time di browser tanpa perlu mengunduh aplikasi apapun:",
+      simSwitchLangLabel: "Bahasa Tampilan Layar:",
       step1: "1. Scan QR",
       step2: "2. Menunggu",
       step3: "3. Pager Bunyi",
       step4: "4. Ulasan Google",
       orderLabel: "NOMOR PESANAN",
+      orderStatusPreparing: "Sedang Disiapkan",
       orderWaiting: "Santai saja… Pesanan sedang diracik barista",
       orderReady: "Pesanan Anda Siap Diambil!",
-      orderAction: "Bunyikan Pager Sekarang",
-      orderStop: "Hentikan Suara",
+      orderPickupAt: "Silakan ambil di Counter Pengambilan",
+      orderAction: "Bunyikan Pager (Simulasi)",
+      orderStop: "Hentikan Suara Sirene",
       reviewTitle: "Bagikan Pengalaman Anda!",
       reviewDesc: "Kopi nikmat? Bantu kafe kami dengan memberi ulasan bintang 5 di Google Maps.",
-      calcTitle: "Hitung Berapa Biaya yang Anda Hemat",
-      calcSubtitle: "Bandingkan pengeluaran beli perangkat pager fisik vs berlangganan sistem Panggil",
+      metricsAppFree: "0 Aplikasi Diunduh",
+      metricsAppFreeDesc: "100% Web-Native di Safari & Chrome",
+      metricsLatency: "< 150ms Latensi",
+      metricsLatencyDesc: "Koneksi WebSocket real-time instan",
+      metricsSavings: "Hemat s/d 85%",
+      metricsSavingsDesc: "Bebas biaya beli & ganti pager fisik",
+      bentoTag: "ARSITEKTUR & FITUR UTAMA",
+      bentoTitle: "Satu Platform Utuh untuk Menggantikan Seluruh Pager Fisik",
+      bentoSubtitle: "Didesain dengan presisi Swiss: cepat, higienis, andal, dan mengeliminasi antrean menumpuk.",
+      bento1Tag: "DISPATCHER KASIR REAL-TIME",
+      bento1Title: "Manajemen Antrean Pesanan POS Satu-Klik",
+      bento1Desc: "Kasir melihat seluruh tiket antrean secara real-time. Cukup klik tombol panggil, sirene di ponsel pelanggan langsung berbunyi dan bergetar tanpa hambatan jarak.",
+      bento2Tag: "STAND AKRILIK MEJA ZERO-HARDWARE",
+      bento2Title: "Scan QR Langsung Buka Tiket",
+      bento2Desc: "Pelanggan menggunakan kamera ponsel bawaan. Tidak ada alat pager yang harus dicuci, dicas, atau takut hilang dibawa pulang.",
+      bento3Tag: "PENGUMPUL ULASAN OTOMATIS",
+      bento3Title: "Booster Rating 5-Bintang Google Maps",
+      bento3Desc: "Begitu pesanan diambil, layar secara otomatis mengajak pelanggan memberikan ulasan bintang 5, mendongkrak peringkat lokal kafe Anda.",
+      bento4Tag: "MENU DIGITAL & UPSELLING",
+      bento4Title: "Katalog Menu Interaktif Terintegrasi",
+      bento4Desc: "Pelanggan dapat menjelajahi foto menu beresolusi tinggi, memilih varian kopi (less sugar, oat milk), dan melakukan pesanan tambahan selagi menunggu.",
+      bento5Tag: "AUDIO KEEP-ALIVE SURVIVAL",
+      bento5Title: "Tetap Berdering Walau Layar Terkunci",
+      bento5Desc: "Teknologi audio background survival menjaga koneksi WebSocket tetap hidup di iOS Safari & Android saat ponsel dimasukkan ke saku.",
+      bento6Tag: "GOVERNANCE MULTI-CABANG",
+      bento6Title: "Kontrol Terpusat untuk Franchise & Jaringan",
+      bento6Desc: "Pantau waktu tunggu rata-rata, volume pesanan, dan hak akses staf kasir di seluruh cabang dalam satu dashboard admin tunggal.",
+      calcTag: "KALKULATOR ROI",
+      calcTitle: "Hitung Berapa Biaya yang Anda Hemat Setiap Tahun",
+      calcSubtitle: "Bandingkan biaya modal membeli perangkat pager fisik plastik vs berlangganan cloud Panggil",
       sliderPagers: "Jumlah Pager Fisik yang Digunakan:",
       sliderOrders: "Rata-rata Pesanan per Hari:",
-      calcSavedHeading: "Total Penghematan Kafe Anda:",
-      calcPerYear: "di tahun pertama (bebas beli alat & ganti baterai)",
-      featuresTitle: "Kenapa Ratusan Kafe Beralih ke Panggil?",
-      featuresSubtitle: "Satu platform terintegrasi yang meningkatkan efisiensi dan kepuasan pelanggan",
-      cmpTitle: "Panggil vs Pager Fisik Plastik Tradisional",
-      cmpSubtitle: "Perbandingan jelas antara sistem modern berbasis ponsel dan pager kuno",
-      pricingTitle: "Pilihan Paket yang Fleksibel & Terjangkau",
-      pricingSubtitle: "Mulai dengan paket dasar atau jadikan pengalaman beridentitas penuh merek Anda",
-      pricingAnnualNote: "Hemat 20% dengan langganan tahunan",
-      btnChoosePlan: "Mulai Berlangganan",
+      calcSavedHeading: "Total Estimasi Penghematan:",
+      calcPerYear: "di tahun pertama (bebas pembelian alat, baterai cadangan, dan penggantian pager rusak)",
+      cmpTag: "ANALISIS KOMPARASI",
+      cmpTitle: "Panggil Digital vs Pager Fisik Plastik Tradisional",
+      cmpSubtitle: "Perbandingan objektif parameter biaya, higienitas, jangkauan sinyal, dan fungsionalitas",
+      pricingTag: "TRANSPARAN & TANPA BIAYA TERSEMBUNYI",
+      pricingTitle: "Pilihan Paket Langganan Sesuai Skala Bisnis",
+      pricingSubtitle: "Mulai dari kedai kopi independen hingga jaringan franchise puluhan cabang",
+      pricingAnnualNote: "Hemat 20% dengan paket tahunan",
+      btnChoosePlan: "Pilih Paket Ini",
+      faqTag: "TANYA JAWAB",
       faqTitle: "Pertanyaan yang Sering Diajukan (FAQ)",
-      ctaBottomTitle: "Siap Tinggalkan Pager Plastik Kuno?",
-      ctaBottomSubtitle: "Bergabunglah dengan kafe modern di Jakarta, Bali, dan Riyadh hari ini.",
-      whatsappBtn: "Hubungi Tim Sales via WhatsApp",
+      ctaBottomTitle: "Siap Menghapus Biaya Pager Plastik dari Pengeluaran Anda?",
+      ctaBottomSubtitle: "Bergabunglah dengan ratusan pengusaha kafe dan restoran modern di Jakarta, Bali, dan Riyadh.",
+      whatsappBtn: "Konsultasi Cepat via WhatsApp",
     },
     ar: {
       badge: "المنظومة السحابية الأذكى للبيجر الرقمي والمنيو التفاعلي",
-      heroTitlePrefix: "جوال عميلك هو",
-      heroTitleHighlight: "جهاز ندائك.",
+      heroTitlePrefix: "حوّل هاتف عميلك إلى جهاز نداء.",
+      heroTitleHighlight: "بدون أي أجهزة إضافية.",
       heroSubtitle:
-        "ودّع أجهزة البيجر البلاستيكية المكلفة سريعة التلف وكثيرة الصيانة. يحوّل نظام نداء (Panggil) هاتف العميل إلى بيجر رقمي فوري بمجرد مسح رمز QR دون أي تحميل لتطبيق، مع منيو إلكتروني تفاعلي ودعوة تلقائية للتقييم على خرائط Google.",
+        "منظومة لاسلكية عالية الكفاءة للمطاعم، المقاهي، مجمعات الطعام، ومراكز الخدمة. يمسح العميل رمز QR على الفاتورة أو الطاولة، ويستريح في سيارته أو مقعده، ليرن جواله ويهتز فور جهوزية طلبه. مدعومة بمنيو رقمي تفاعلي ومحرك تقييمات Google Maps التلقائي.",
       ctaDemo: "تجربة لوحة الكاشير (POS)",
       ctaCustomer: "شاشة استدعاء الزبون",
       ctaTestBuzzer: "اختبر صوت الرنين",
-      simTitle: "محاكاة تفاعلية مباشرة: استمع لرنين واهتزاز البيجر",
-      simDesc: "اضغط على الزر لتجربة تنبيه استدعاء العميل في شاشة الهاتف مباشرة:",
+      simTitle: "محاكاة حية وتفاعلية لشاشة العميل",
+      simDesc: "تجربة واقعية تعمل مباشرة في المتصفح دون تنزيل أي برنامج:",
+      simSwitchLangLabel: "لغة شاشة البيجر المحاكية:",
       step1: "1. مسح QR",
-      step2: "2. انتظار",
+      step2: "2. في الانتظار",
       step3: "3. رنين البيجر",
       step4: "4. تقييم Google",
       orderLabel: "رقم الطلب",
-      orderWaiting: "خذ راحتك… طلبك يتم تحضيره بعناية",
+      orderStatusPreparing: "جاري التحضير",
+      orderWaiting: "خذ راحتك… طلبك يتم تحضيره بعناية من قِبل الباريستا",
       orderReady: "طلبك جاهز للاستلام الآن!",
-      orderAction: "إطلاق رنين التنبيه الآن",
+      orderPickupAt: "تفضل بالاستلام من نافذة التسليم الرئيسية",
+      orderAction: "إطلاق رنين التنبيه (تجربة)",
       orderStop: "إيقاف صوت الرنين",
-      reviewTitle: "رأيك يهمنا ويصنع الفرق!",
-      reviewDesc: "استمتعت بقهوتك؟ ساعدنا بدقيقة واحدة عبر تقييم منشأتنا على خرائط Google.",
-      calcTitle: "احسب كم ستوفّر منشأتك مع نظام نداء",
-      calcSubtitle: "قارن تكلفة شراء وصيانة أجهزة البيجر البلاستيكية باشتراك سحابي ذكي",
+      reviewTitle: "رأيك يصنع الفرق الكبير!",
+      reviewDesc: "استمتعت بقهوتك؟ ادعمنا بدقيقة واحدة عبر تقييم منشأتنا على خرائط Google.",
+      metricsAppFree: "0 تطبيق يتم تنزيله",
+      metricsAppFreeDesc: "يعمل 100% داخل Safari و Chrome فوراً",
+      metricsLatency: "استجابة < 150ms",
+      metricsLatencyDesc: "اتصال WebSocket لحظي سحابي",
+      metricsSavings: "توفير حتى 85%",
+      metricsSavingsDesc: "وداعاً لشراء وصيانة أجهزة البيجر البلاستيكية",
+      bentoTag: "البنية البرمجية والمزايا الأساسية",
+      bentoTitle: "منظومة متكاملة تُغنيك عن أجهزة البيجر البلاستيكية للأبد",
+      bentoSubtitle: "صُممت بمعايير السلاسة السويسرية: دقيقة، صحية، فائقة السرعة، وتقضي على التزاحم.",
+      bento1Tag: "لوحة توزيع الكاشير اللحظية",
+      bento1Title: "إدارة طابور الطلبات بنقرة زر واحدة",
+      bento1Desc: "يشاهد الكاشير جميع التذاكر النشطة في شاشة واحدة. بلمسة واحدة ينطلق الرنين والاهتزاز في جوال العميل دون قيود المسافة أو الجدران العازلة.",
+      bento2Tag: "ستاند الطاولة الأكريليك الذكي",
+      bento2Title: "مسح QR يفتح شاشة الطلب في 0.4 ثانية",
+      bento2Desc: "يعتمد العميل كاميرا جواله الأصلية. لا أجهزة تتطلب شحناً كهربائياً مستمراً أو تتعرض للكسر أو الضياع.",
+      bento3Tag: "محرك التقييم التلقائي",
+      bento3Title: "مضاعفة تقييمات خرائط Google بخمس نجوم",
+      bento3Desc: "فور تأكيد استلام الطلب، تظهر نافذة ذكية تدعو العميل لتقييم المنشأة بـ 5 نجوم لرفع ترتيب مقهاك في محركات البحث المحلية.",
+      bento4Tag: "منيو رقمي ومبيعات إضافية",
+      bento4Title: "قائمة طعام تفاعلية متزامنة بالكامل",
+      bento4Desc: "يتصفح العميل صور الأطباق العالية الدقة، ويختار التعديلات (حليب شوفان، سكر قليل)، مما يرفع متوسط قيمة الفاتورة بنسبة 28%.",
+      bento5Tag: "استقرار الصوت في الخلفية",
+      bento5Title: "يرن ويهتز حتى لو كان الهاتف في الجيب أو مقفلاً",
+      bento5Desc: "بروتوكول Audio Keep-Alive المتطور يحافظ على استمرار نفق WebSocket نشطاً في خلفية المتصفح على iOS و Android.",
+      bento6Tag: "إدارة الفروع المركزية",
+      bento6Title: "تحكم شامل لسلاسل الفروع والمطابخ السحابية",
+      bento6Desc: "مراقبة متوسط فترات الانتظار، أحجام المبيعات، وصلاحيات طاقم الكاشير برمز PIN لجميع الفروع في لوحة إدارة مركزية موحدة.",
+      calcTag: "حاسبة العائد المالي",
+      calcTitle: "احسب كم ستوفّر منشأتك سنوياً عند الاستغناء عن البيجر",
+      calcSubtitle: "مقارنة تكلفة شراء وصيانة أجهزة النداء البلاستيكية باشتراك سحابي ذكي",
       sliderPagers: "عدد أجهزة البيجر البلاستيكية الحالية:",
       sliderOrders: "متوسط عدد الطلبات اليومية:",
-      calcSavedHeading: "إجمالي وفورات مقهاك التقديرية:",
-      calcPerYear: "في السنة الأولى (توفير شراء أجهزة وبطاريات وصيانة)",
-      featuresTitle: "لماذا تتخلى المقاهي الرائدة عن البيجر البلاستيكي؟",
-      featuresSubtitle: "منظومة واحدة ذكية ترفع كفاءة تسليم الطلبات وسرعة دوران الطاولات",
-      cmpTitle: "نظام نداء (Panggil) مقابل أجهزة البيجر التقليدية",
-      cmpSubtitle: "مقارنة دقيقة توضح الفوارق الجوهرية في التكلفة والمدى والصيانة",
-      pricingTitle: "باقات اشتراك شفافة تناسب مختلف الاحتياجات",
-      pricingSubtitle: "اختر الباقة الأساسية أو خصص التجربة بالكامل بهوية مقهاك البصرية",
-      pricingAnnualNote: "وفر 20% عند اختيار الاشتراك السنوي",
-      btnChoosePlan: "ابدأ الاشتراك الآن",
+      calcSavedHeading: "إجمالي الوفورات السنوية التقديرية:",
+      calcPerYear: "في السنة الأولى (توفير شراء أجهزة جديدة، واستبدال البطاريات، وتكاليف الفقدان والتلف)",
+      cmpTag: "جدول المقارنة الموضوعية",
+      cmpTitle: "نظام نداء الرقمي مقابل أجهزة البيجر التقليدية",
+      cmpSubtitle: "مقارنة تحليلية دقيقة توضح الفوارق الجوهرية في التكلفة، الصحة، المدى، وهوية العلامة",
+      pricingTag: "شفافية مطلقة بدون رسوم خفية",
+      pricingTitle: "باقات اشتراك مصممة لمختلف أحجام الأعمال",
+      pricingSubtitle: "من المقاهي الفردية الناشئة وحتى سلاسل الامتياز التجاري المتعددة",
+      pricingAnnualNote: "وفّر 20% عند اختيار الاشتراك السنوي",
+      btnChoosePlan: "اختر هذه الباقة",
+      faqTag: "الأسئلة الأكثر شيوعاً",
       faqTitle: "الأسئلة الشائعة حول المنظومة (FAQ)",
-      ctaBottomTitle: "هل أنت مستعد لنقل تجربة عملائك للمستوى التالي؟",
-      ctaBottomSubtitle: "انضم إلى نخبة المقاهي والمطابخ السحابية في إندونيسيا والخليج اليوم.",
-      whatsappBtn: "تواصل مع فريق المبيعات عبر واتساب",
+      ctaBottomTitle: "هل أنت مستعد للتخلص من تكاليف البيجر البلاستيكي؟",
+      ctaBottomSubtitle: "انضم إلى نخبة المقاهي والمطاعم الرائدة في إندونيسيا والخليج اليوم.",
+      whatsappBtn: "تحدث مع فريق المبيعات عبر واتساب",
     },
     en: {
-      badge: "The #1 Zero-Hardware Smart Coaster Pager & Digital Menu",
-      heroTitlePrefix: "Your Customer’s Phone is",
-      heroTitleHighlight: "Your Pager.",
+      badge: "WEB-NATIVE DIGITAL COASTER PAGER & SMART MENU",
+      heroTitlePrefix: "Turn Customer Phones into Pagers.",
+      heroTitleHighlight: "Zero Hardware Required.",
       heroSubtitle:
-        "Replace expensive, breakable plastic pagers with a sleek digital coaster system. Customers scan a QR code with zero app downloads, receive instant buzzing alerts when orders are ready, browse your digital menu, and leave 5-star Google Reviews.",
-      ctaDemo: "Try Cashier POS Demo",
-      ctaCustomer: "View Customer Screen",
-      ctaTestBuzzer: "Test Pager Sound",
-      simTitle: "Live Interactive Simulator: Feel the Sound & Haptics",
-      simDesc: "Click below to trigger the real buzzer siren on the simulated mobile device:",
+        "High-performance cloud paging system for cafes, restaurants, food courts, and service centers. Guests scan a QR code on receipt or table, wait comfortably anywhere, and their phone rings & vibrates when orders are ready. Built-in digital menu & automated 5-star Google review booster.",
+      ctaDemo: "Open POS Cashier Demo",
+      ctaCustomer: "Guest Screen Demo",
+      ctaTestBuzzer: "Test Pager Chime",
+      simTitle: "Live Interactive Guest Screen Simulator",
+      simDesc: "Test the exact mobile web experience with real audio buzzer & haptics:",
+      simSwitchLangLabel: "Simulator Language:",
       step1: "1. Scan QR",
-      step2: "2. Relax & Wait",
-      step3: "3. Buzz Alert",
+      step2: "2. Waiting",
+      step3: "3. Pager Chime",
       step4: "4. Google Review",
       orderLabel: "ORDER NUMBER",
+      orderStatusPreparing: "In Preparation",
       orderWaiting: "Sit back and relax… Baristas are crafting your order",
       orderReady: "Your Order is Ready for Pickup!",
-      orderAction: "Buzz Customer Pager Now",
+      orderPickupAt: "Please proceed to Counter 01",
+      orderAction: "Trigger Buzzer (Simulation)",
       orderStop: "Stop Siren Sound",
       reviewTitle: "Share Your Experience!",
       reviewDesc: "Loved your coffee? Help us shine by leaving a 5-star review on Google Maps.",
-      calcTitle: "Calculate Your Venue’s Cost Savings",
-      calcSubtitle: "Compare the steep cost of purchasing hardware pagers against Panggil SaaS",
+      metricsAppFree: "0 App Downloads",
+      metricsAppFreeDesc: "100% Web-Native in Safari & Chrome",
+      metricsLatency: "< 150ms Latency",
+      metricsLatencyDesc: "Instant cloud WebSocket connection",
+      metricsSavings: "Save up to 85%",
+      metricsSavingsDesc: "Zero hardware purchase & battery fees",
+      bentoTag: "CORE ARCHITECTURE & CAPABILITIES",
+      bentoTitle: "An All-in-One Cloud Engine to Retire Hardware Pagers",
+      bentoSubtitle: "Engineered with Swiss precision: clean, hygienic, resilient, and eliminates service counter congestion.",
+      bento1Tag: "REAL-TIME CASHIER DISPATCHER",
+      bento1Title: "One-Click POS Order Queue Governance",
+      bento1Desc: "Cashiers manage all active tickets in a unified live queue. A single tap triggers an audible buzzer and vibration directly on the customer's phone.",
+      bento2Tag: "ZERO-HARDWARE ACRYLIC STAND",
+      bento2Title: "Native Camera Scan Opens Ticket in 0.4s",
+      bento2Desc: "Customers use their native camera. No plastic discs to sanitize, charge on bulky charging racks, or lose to accidental takeaway.",
+      bento3Tag: "AUTOMATED FEEDBACK LOOP",
+      bento3Title: "5-Star Google Maps Review Multiplier",
+      bento3Desc: "As soon as the customer confirms pickup, an elegant prompt routes satisfied guests directly to your Google Maps listing.",
+      bento4Tag: "INTEGRATED DIGITAL MENU",
+      bento4Title: "Visual Upselling & High-Res Catalog",
+      bento4Desc: "Guests browse signature drinks, select modifiers (oat milk, less sugar), and place repeat orders while waiting, lifting ticket sizes by 28%.",
+      bento5Tag: "BACKGROUND AUDIO KEEP-ALIVE",
+      bento5Title: "Alerts Sound Even With Pocketed & Locked Screens",
+      bento5Desc: "Our proprietary audio keep-alive protocol keeps the WebSocket stream alive in iOS Safari and Android Chrome when the screen sleeps.",
+      bento6Tag: "MULTI-OUTLET GOVERNANCE",
+      bento6Title: "Centralized Multi-Branch Enterprise Console",
+      bento6Desc: "Track average wait times, ticket volumes, and staff security PIN permissions across every franchise location from one central cockpit.",
+      calcTag: "ROI CALCULATOR",
+      calcTitle: "Calculate Your Venue’s Exact Annual Cost Savings",
+      calcSubtitle: "Compare the capital expense of buying plastic hardware pagers against Panggil SaaS",
       sliderPagers: "Physical Pagers Currently in Use:",
       sliderOrders: "Average Daily Orders:",
-      calcSavedHeading: "Total Estimated Venue Savings:",
-      calcPerYear: "in year one (zero hardware purchases & replacement fees)",
-      featuresTitle: "Why Modern Cafes are Replacing Hardware Pagers",
-      featuresSubtitle: "An integrated cloud solution that speeds up table turnover and customer happiness",
+      calcSavedHeading: "Total Estimated Annual Savings:",
+      calcPerYear: "in year one (zero equipment replacement, charging stations, or lost disc fees)",
+      cmpTag: "OBJECTIVE COMPARISON",
       cmpTitle: "Panggil Digital vs Traditional Plastic Hardware Pagers",
-      cmpSubtitle: "A side-by-side breakdown of cost, operating range, hygiene, and branding",
-      pricingTitle: "Simple, Transparent & Value-Driven Plans",
-      pricingSubtitle: "Start with essentials or customize the entire interface with your cafe brand",
+      cmpSubtitle: "A side-by-side breakdown of operational cost, hygiene, signal radius, and brand ownership",
+      pricingTag: "TRANSPARENT & PREDICTABLE",
+      pricingTitle: "Simple Plans Built for Hospitality Scale",
+      pricingSubtitle: "From single-counter specialty coffee shops to multi-branch franchise operations",
       pricingAnnualNote: "Save 20% with annual billing",
-      btnChoosePlan: "Subscribe to Plan",
-      faqTitle: "Frequently Asked Questions (FAQ)",
-      ctaBottomTitle: "Ready to Retire the Clunky Plastic Pager?",
+      btnChoosePlan: "Select This Plan",
+      faqTag: "FAQ",
+      faqTitle: "Frequently Asked Questions",
+      ctaBottomTitle: "Ready to Eliminate Plastic Pagers from Your Balance Sheet?",
       ctaBottomSubtitle: "Join modern cafes and cloud kitchens in Jakarta, Bali, and Riyadh today.",
       whatsappBtn: "Chat with Sales on WhatsApp",
     },
@@ -265,7 +354,7 @@ export default function HomePage() {
           'Notifikasi suara, getar, & visual',
           'Cetak QR order otomatis',
           'Analitik waktu tunggu dasar',
-          'Dukungan standar via email & chat',
+          'Dukungan standar via chat',
         ],
         ar: [
           'نداء بيجر رقمي غير محدود للعملاء',
@@ -281,7 +370,7 @@ export default function HomePage() {
           'Audio siren, vibration, & visual flashes',
           'Automated QR code order generation',
           'Basic wait-time analytics',
-          'Standard email & chat support',
+          'Standard chat support',
         ],
       },
       highlight: false,
@@ -452,9 +541,9 @@ export default function HomePage() {
         en: 'Does the customer need to install an app to receive alerts?',
       },
       a: {
-        id: 'Sama sekali tidak! Pelanggan cukup mengarahkan kamera ponsel ke kode QR pada struk atau meja. Halaman tiket pager akan langsung terbuka di browser mereka dalam 0,5 detik.',
-        ar: 'إطلاقاً! يمسح العميل رمز الـ QR بكاميرا هاتفه الذكي فقط، فتفتح صفحة تتبع الطلب في المتصفح فوراً خلال نصف ثانية دون تحميل تطبيق أو إنشاء حساب.',
-        en: 'Not at all! The customer simply points their mobile camera at the QR code. The live pager page opens instantly in their browser in under half a second.',
+        id: 'Sama sekali tidak! Pelanggan cukup mengarahkan kamera ponsel ke kode QR pada struk atau meja. Halaman tiket pager akan langsung terbuka di browser mereka dalam 0,4 detik.',
+        ar: 'إطلاقاً! يمسح العميل رمز الـ QR بكاميرا هاتفه الذكي فقط، فتفتح صفحة تتبع الطلب في المتصفح فوراً خلال 0.4 ثانية دون تحميل تطبيق أو إنشاء حساب.',
+        en: 'Not at all! The customer simply points their mobile camera at the QR code. The live pager page opens instantly in their browser in under 0.4 seconds.',
       },
     },
     {
@@ -498,65 +587,68 @@ export default function HomePage() {
   return (
     <div
       dir={isRtl ? 'rtl' : 'ltr'}
-      className="min-h-screen bg-[#060911] text-zinc-100 flex flex-col justify-between selection:bg-[#FF6B2C] selection:text-white font-sans antialiased overflow-x-hidden"
+      className="min-h-screen bg-[#FAFAFA] text-[#09090B] flex flex-col justify-between selection:bg-orange-600 selection:text-white font-sans antialiased overflow-x-hidden"
     >
       {/* ======================================================== */}
-      {/* TOP NAVIGATION BAR */}
+      {/* 1. TOP NAVIGATION BAR (SWISS MINIMALIST) */}
       {/* ======================================================== */}
-      <header className="sticky top-0 z-50 bg-[#060911]/90 border-b border-white/10 backdrop-blur-xl px-4 sm:px-8 py-3.5 transition-all">
+      <header className="sticky top-0 z-50 bg-[#FAFAFA]/90 border-b border-zinc-200 backdrop-blur-md px-4 sm:px-8 py-3.5 transition-all">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo & Brand Mark */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#FF6B2C] via-[#F59E0B] to-amber-300 p-0.5 shadow-lg shadow-[#FF6B2C]/25 group-hover:scale-105 transition-transform flex items-center justify-center overflow-hidden">
+            <div className="w-10 h-10 rounded-xl border border-zinc-300 overflow-hidden bg-white shadow-xs group-hover:border-zinc-500 transition-colors flex items-center justify-center p-0.5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/panggil-logo.jpg"
                 alt="Panggil Official Logo"
-                className="w-full h-full object-cover rounded-[14px]"
+                className="w-full h-full object-cover rounded-lg"
               />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xl font-black tracking-tight text-white font-mono">
+                <span className="text-lg font-bold tracking-tight text-[#09090B] font-mono">
                   PANGGIL
                 </span>
-                <span className="text-xs font-bold text-zinc-400">/ نداء</span>
-                <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[9px] font-black bg-[#FF6B2C]/15 text-[#FF6B2C] border border-[#FF6B2C]/30 uppercase tracking-widest">
-                  Smart SaaS
+                <span className="text-xs font-medium text-zinc-500 font-arabic">/ نداء</span>
+                <span className="hidden sm:inline-block px-2 py-0.5 rounded-md text-[10px] font-mono font-medium bg-zinc-100 text-zinc-700 border border-zinc-200 uppercase">
+                  v2.4
                 </span>
               </div>
-              <p className="text-[10px] text-zinc-400 font-medium">Digital Coaster & Smart Menu</p>
+              <p className="text-[11px] text-zinc-500 font-medium">Digital Coaster & Smart Menu</p>
             </div>
           </Link>
 
           {/* Quick Nav Links (Desktop) */}
-          <nav className="hidden md:flex items-center gap-7 text-xs font-bold text-zinc-300">
-            <a href="#simulator" className="hover:text-[#FF6B2C] transition-colors">
-              {lang === 'id' ? 'Simulasi Pager' : lang === 'ar' ? 'محاكاة البيجر' : 'Live Simulator'}
+          <nav className="hidden lg:flex items-center gap-7 text-xs font-semibold text-zinc-600 font-mono">
+            <a href="#simulator" className="hover:text-[#09090B] transition-colors">
+              {lang === 'id' ? 'SIMULATOR' : lang === 'ar' ? 'المحاكي' : 'SIMULATOR'}
             </a>
-            <a href="#calculator" className="hover:text-[#FF6B2C] transition-colors">
-              {lang === 'id' ? 'Hitung Penghematan' : lang === 'ar' ? 'حاسبة التوفير' : 'Savings Calculator'}
+            <a href="#bento" className="hover:text-[#09090B] transition-colors">
+              {lang === 'id' ? 'FITUR' : lang === 'ar' ? 'المزايا' : 'FEATURES'}
             </a>
-            <a href="#comparison" className="hover:text-[#FF6B2C] transition-colors">
-              {lang === 'id' ? 'Bandingkan' : lang === 'ar' ? 'المقارنة' : 'Comparison'}
+            <a href="#calculator" className="hover:text-[#09090B] transition-colors">
+              {lang === 'id' ? 'KALKULATOR ROI' : lang === 'ar' ? 'حاسبة التوفير' : 'ROI CALCULATOR'}
             </a>
-            <a href="#pricing" className="hover:text-[#FF6B2C] transition-colors">
-              {lang === 'id' ? 'Beli / Paket' : lang === 'ar' ? 'الباقات والأسعار' : 'Pricing'}
+            <a href="#comparison" className="hover:text-[#09090B] transition-colors">
+              {lang === 'id' ? 'KOMPARASI' : lang === 'ar' ? 'المقارنة' : 'COMPARISON'}
+            </a>
+            <a href="#pricing" className="hover:text-[#09090B] transition-colors">
+              {lang === 'id' ? 'HARGA' : lang === 'ar' ? 'الباقات' : 'PRICING'}
             </a>
           </nav>
 
-          {/* Actions & Switchers */}
+          {/* Controls: Currency, Language & Admin Portal */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Currency Selector */}
-            <div className="flex bg-[#0d1322] p-1 rounded-xl border border-white/10 text-[11px] font-bold">
+            <div className="flex bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 text-[11px] font-mono font-semibold">
               {(['IDR', 'SAR', 'USD'] as Currency[]).map((curr) => (
                 <button
                   key={curr}
                   onClick={() => setCurrency(curr)}
-                  className={`px-2 py-1 rounded-lg transition-all cursor-pointer font-mono ${
+                  className={`px-2 py-1 rounded-md transition-colors cursor-pointer ${
                     currency === curr
-                      ? 'bg-[#FF6B2C] text-white shadow-md'
-                      : 'text-zinc-400 hover:text-white'
+                      ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200'
+                      : 'text-zinc-500 hover:text-zinc-950'
                   }`}
                 >
                   {curr === 'IDR' ? 'Rp' : curr === 'SAR' ? 'SAR' : '$'}
@@ -565,15 +657,15 @@ export default function HomePage() {
             </div>
 
             {/* Language Switcher */}
-            <div className="flex bg-[#0d1322] p-1 rounded-xl border border-white/10 text-[11px] font-bold">
+            <div className="flex bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 text-[11px] font-mono font-semibold">
               {(['id', 'ar', 'en'] as Lang[]).map((l) => (
                 <button
                   key={l}
                   onClick={() => setLang(l)}
-                  className={`px-2 py-1 rounded-lg transition-all cursor-pointer uppercase ${
+                  className={`px-2 py-1 rounded-md transition-colors cursor-pointer uppercase ${
                     lang === l
-                      ? 'bg-white text-zinc-950 font-black shadow-md'
-                      : 'text-zinc-400 hover:text-white'
+                      ? 'bg-zinc-950 text-white shadow-xs'
+                      : 'text-zinc-500 hover:text-zinc-950'
                   }`}
                 >
                   {l}
@@ -581,253 +673,268 @@ export default function HomePage() {
               ))}
             </div>
 
-            {/* Admin Login Shortcut */}
+            {/* Admin Login Button */}
             <Link
               href="/admin/login"
-              className="hidden lg:flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-xs transition-all cursor-pointer"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-zinc-100 border border-zinc-200 text-zinc-900 font-mono font-medium text-xs transition-colors"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-[#FF6B2C]" />
-              <span>{lang === 'ar' ? 'دخول الإدارة' : lang === 'id' ? 'Panel Admin' : 'Admin'}</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-zinc-700" />
+              <span>{lang === 'ar' ? 'الإدارة' : lang === 'id' ? 'Admin' : 'Admin'}</span>
             </Link>
           </div>
         </div>
       </header>
 
       {/* ======================================================== */}
-      {/* HERO SECTION WITH AUTHENTIC BESPOKE ART DIRECTION */}
+      {/* 2. HERO SECTION (2-COLUMN SWISS EDITORIAL LAYOUT) */}
       {/* ======================================================== */}
-      <section className="relative pt-12 pb-20 px-4 sm:px-8 max-w-7xl mx-auto w-full overflow-hidden">
-        {/* Ambient Glows */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-[#FF6B2C]/20 via-[#F59E0B]/10 to-transparent blur-[140px] pointer-events-none -z-10" />
+      <section className="relative pt-10 pb-16 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          {/* COLUMN 1: DIRECT VALUE HEADLINE & CTAS (7 COLS) */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* System Status Tag */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-zinc-100 border border-zinc-200 text-xs font-mono font-medium text-zinc-800">
+              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+              <span>{t.badge}</span>
+            </div>
 
-        <div className="text-center max-w-3xl mx-auto space-y-6">
-          {/* Official Brand Logo Showcase */}
-          <div className="flex justify-center items-center pt-2">
-            <div className="relative group">
-              <div className="absolute -inset-2 bg-gradient-to-r from-[#FF6B2C] via-amber-500 to-[#FFA336] rounded-3xl blur-xl opacity-40 group-hover:opacity-75 transition duration-500"></div>
-              <div className="relative p-1 rounded-2xl bg-gradient-to-tr from-[#FF6B2C] via-amber-500 to-amber-300 shadow-2xl">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/panggil-logo.jpg"
-                  alt="Panggil Official Logo"
-                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-[14px] object-cover border border-white/20 shadow-inner group-hover:scale-105 transition-transform duration-300"
-                />
+            {/* Swiss High-Contrast Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[#09090B] leading-[1.12]">
+              {t.heroTitlePrefix}{' '}
+              <span className="text-orange-600 underline decoration-orange-600/30 underline-offset-8">
+                {t.heroTitleHighlight}
+              </span>
+            </h1>
+
+            {/* Authoritative Subheading */}
+            <p className="text-base sm:text-lg text-zinc-600 font-normal leading-relaxed max-w-2xl">
+              {t.heroSubtitle}
+            </p>
+
+            {/* CTA Group */}
+            <div className="pt-2 flex flex-wrap items-center gap-3">
+              <Link
+                href="/c/ubk/cashier"
+                target="_blank"
+                className="py-3.5 px-6 bg-orange-600 hover:bg-orange-700 text-white font-mono font-bold text-sm rounded-xl shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
+              >
+                <Zap className="w-4 h-4 fill-white" />
+                <span>{t.ctaDemo}</span>
+                <ArrowRight className={`w-4 h-4 ${isRtl ? 'rotate-180' : ''}`} />
+              </Link>
+
+              <Link
+                href="/c/ubk/menu"
+                target="_blank"
+                className="py-3.5 px-5 bg-white hover:bg-zinc-50 text-zinc-900 border border-zinc-300 font-mono font-semibold text-sm rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
+              >
+                <Smartphone className="w-4 h-4 text-zinc-700" />
+                <span>{t.ctaCustomer}</span>
+              </Link>
+
+              <button
+                onClick={handleTriggerBuzzer}
+                className="py-3.5 px-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border border-zinc-200 font-mono font-semibold text-sm rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
+              >
+                <Volume2 className="w-4 h-4 text-orange-600" />
+                <span>{t.ctaTestBuzzer}</span>
+              </button>
+            </div>
+
+            {/* Micro Metrics Line */}
+            <div className="pt-4 grid grid-cols-3 gap-4 border-t border-zinc-200 text-zinc-600">
+              <div>
+                <p className="font-mono text-xl sm:text-2xl font-bold text-[#09090B]">0</p>
+                <p className="text-xs text-zinc-500 font-medium">{t.metricsAppFreeDesc}</p>
+              </div>
+              <div>
+                <p className="font-mono text-xl sm:text-2xl font-bold text-emerald-600">&lt; 150ms</p>
+                <p className="text-xs text-zinc-500 font-medium">{t.metricsLatencyDesc}</p>
+              </div>
+              <div>
+                <p className="font-mono text-xl sm:text-2xl font-bold text-[#09090B]">85%</p>
+                <p className="text-xs text-zinc-500 font-medium">{t.metricsSavingsDesc}</p>
               </div>
             </div>
           </div>
 
-          {/* Eyebrow Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0d1322] border border-[#FF6B2C]/30 text-xs font-bold text-zinc-200 shadow-xl shadow-[#FF6B2C]/5 animate-pulse">
-            <Sparkles className="w-3.5 h-3.5 text-[#FF6B2C]" />
-            <span>{t.badge}</span>
-          </div>
-
-          {/* Editorial Headline */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.15]">
-            {t.heroTitlePrefix}{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B2C] via-[#FFA336] to-amber-300">
-              {t.heroTitleHighlight}
-            </span>
-          </h1>
-
-          {/* Authoritative Subheading */}
-          <p className="text-base sm:text-lg text-zinc-300 font-normal leading-relaxed max-w-2xl mx-auto">
-            {t.heroSubtitle}
-          </p>
-
-          {/* Quick CTA Buttons */}
-          <div className="pt-4 flex flex-wrap items-center justify-center gap-3.5">
-            <Link
-              href="/c/ubk/cashier"
-              target="_blank"
-              className="py-4 px-7 bg-gradient-to-r from-[#FF6B2C] to-[#FFA336] hover:from-[#f55a1b] hover:to-[#f09525] text-white font-black text-sm rounded-2xl shadow-2xl shadow-[#FF6B2C]/30 transition-all hover:scale-102 active:scale-98 flex items-center gap-2.5 cursor-pointer"
-            >
-              <Zap className="w-4 h-4 fill-white" />
-              <span>{t.ctaDemo}</span>
-              <ArrowRight className={`w-4 h-4 ${isRtl ? 'rotate-180' : ''}`} />
-            </Link>
-
-            <Link
-              href="/c/ubk/menu"
-              target="_blank"
-              className="py-4 px-6 bg-[#0d1322] hover:bg-[#131c30] text-zinc-200 border border-white/15 font-bold text-sm rounded-2xl transition-all flex items-center gap-2 cursor-pointer"
-            >
-              <Smartphone className="w-4 h-4 text-[#10B981]" />
-              <span>{t.ctaCustomer}</span>
-            </Link>
-
-            <a
-              href="#simulator"
-              className="py-4 px-5 bg-white/5 hover:bg-white/10 text-amber-300 border border-amber-500/30 font-bold text-sm rounded-2xl transition-all flex items-center gap-2 cursor-pointer"
-            >
-              <Volume2 className="w-4 h-4 animate-bounce" />
-              <span>{t.ctaTestBuzzer}</span>
-            </a>
-          </div>
-
-          {/* Micro Social Proof Row */}
-          <div className="pt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-zinc-400 font-medium">
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-              <span>{lang === 'id' ? '100% Tanpa Unduh Aplikasi' : lang === 'ar' ? 'بدون تحميل أي تطبيق للعميل' : 'Zero App Downloads Required'}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-              <span>{lang === 'id' ? 'Aktif dalam 5 Menit' : lang === 'ar' ? 'تفعيل فوري خلال 5 دقائق' : 'Ready in 5 Minutes'}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-              <span>{lang === 'id' ? 'Garansi Uptime 99.9%' : lang === 'ar' ? 'ضمان استقرار 99.9%' : '99.9% Uptime Guarantee'}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ======================================================== */}
-      {/* INTERACTIVE LIVE PAGER SIMULATOR (OUT OF THE BOX) */}
-      {/* ======================================================== */}
-      <section id="simulator" className="py-16 px-4 sm:px-8 max-w-5xl mx-auto w-full">
-        <div className="bg-gradient-to-b from-[#0d1322] to-[#070b14] border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden">
-          <div className="text-center max-w-xl mx-auto mb-8 space-y-2">
-            <span className="text-[11px] font-black uppercase tracking-widest text-[#FF6B2C]">
-              {lang === 'id' ? 'Uji Coba Langsung di Browser' : lang === 'ar' ? 'تجربة حية ومباشرة' : 'Interactive Live Demo'}
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">{t.simTitle}</h2>
-            <p className="text-xs sm:text-sm text-zinc-400">{t.simDesc}</p>
-          </div>
-
-          {/* Interactive Steps Tabs */}
-          <div className="flex items-center justify-center gap-2 mb-8 overflow-x-auto pb-2">
-            {[
-              { s: 1, label: t.step1 },
-              { s: 2, label: t.step2 },
-              { s: 3, label: t.step3 },
-              { s: 4, label: t.step4 },
-            ].map(({ s, label }) => (
-              <button
-                key={s}
-                onClick={() => {
-                  setSimStep(s as 1 | 2 | 3 | 4);
-                  if (s !== 3) handleStopBuzzer();
-                }}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                  simStep === s
-                    ? 'bg-[#FF6B2C] text-white shadow-lg shadow-[#FF6B2C]/20 scale-105'
-                    : 'bg-white/5 text-zinc-400 hover:text-white border border-white/5'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {/* Phone Frame Mockup */}
-          <div className="flex flex-col items-center justify-center">
+          {/* COLUMN 2: LIVE REACT PHONE SIMULATOR COMPONENT (5 COLS) */}
+          <div id="simulator" className="lg:col-span-5 flex flex-col items-center">
+            {/* Phone Exterior Frame */}
             <div
-              className={`w-full max-w-xs sm:max-w-sm rounded-[40px] p-3.5 bg-gradient-to-b from-zinc-700 via-zinc-900 to-black border-2 border-zinc-700 shadow-2xl transition-all duration-300 ${
-                isSimBuzzing ? 'ring-4 ring-[#FF6B2C] animate-bounce shadow-[#FF6B2C]/40' : ''
+              className={`w-full max-w-[340px] sm:max-w-[360px] rounded-[42px] p-3.5 bg-white border-2 border-zinc-300 shadow-xl transition-all duration-300 ${
+                isSimBuzzing ? 'ring-4 ring-orange-600/40 border-orange-600' : ''
               }`}
             >
-              {/* Phone Inner Screen */}
-              <div className="bg-[#060911] rounded-[32px] p-6 border border-zinc-800 text-center relative overflow-hidden min-h-[380px] flex flex-col justify-between">
-                {/* Speaker Notch */}
-                <div className="w-20 h-4 bg-zinc-900 rounded-full mx-auto mb-2 border border-zinc-800/80 flex items-center justify-center">
-                  <div className="w-3 h-3 rounded-full bg-zinc-800" />
+              {/* Phone Inner Display */}
+              <div className="bg-[#FAFAFA] rounded-[32px] p-5 border border-zinc-200 text-center relative overflow-hidden min-h-[460px] flex flex-col justify-between">
+                {/* Speaker Notch & Dynamic Clock */}
+                <div>
+                  <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500 px-1 mb-2">
+                    <span>12:45</span>
+                    <div className="w-16 h-3 bg-zinc-200 rounded-full mx-auto" />
+                    <span>5G · 98%</span>
+                  </div>
+
+                  {/* Simulator Language Switcher Bar */}
+                  <div className="flex items-center justify-center gap-1 bg-white p-1 rounded-lg border border-zinc-200 text-[10px] font-mono mb-3">
+                    <span className="text-zinc-500 text-[9px] mr-1">Lang:</span>
+                    {(['id', 'ar', 'en'] as Lang[]).map((simLang) => (
+                      <button
+                        key={simLang}
+                        onClick={() => setLang(simLang)}
+                        className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                          lang === simLang
+                            ? 'bg-orange-600 text-white font-bold'
+                            : 'text-zinc-600 hover:text-zinc-950'
+                        }`}
+                      >
+                        {simLang.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Step Selector Pills */}
+                  <div className="grid grid-cols-4 gap-1 mb-4 text-[10px] font-mono">
+                    {[
+                      { s: 1, label: t.step1.split('.')[1] || 'Scan' },
+                      { s: 2, label: t.step2.split('.')[1] || 'Wait' },
+                      { s: 3, label: t.step3.split('.')[1] || 'Buzzer' },
+                      { s: 4, label: t.step4.split('.')[1] || 'Review' },
+                    ].map(({ s, label }) => (
+                      <button
+                        key={s}
+                        onClick={() => {
+                          setSimStep(s as 1 | 2 | 3 | 4);
+                          if (s !== 3) handleStopBuzzer();
+                        }}
+                        className={`py-1 px-1 rounded border transition-colors cursor-pointer truncate ${
+                          simStep === s
+                            ? 'bg-zinc-900 text-white border-zinc-900 font-bold'
+                            : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-100'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Micro Brand Header */}
-                <div className="flex items-center justify-center gap-1.5 pb-2 border-b border-zinc-800/60 mb-2">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/panggil-logo.jpg" alt="Panggil Logo" className="w-4 h-4 rounded-md object-cover" />
-                  <span className="text-[10px] font-mono font-bold text-zinc-400">PANGGIL SMART PAGER</span>
-                </div>
-
-                {/* STEP 1: SCAN QR */}
-                {simStep === 1 && (
-                  <div className="space-y-4 my-auto animate-in fade-in">
-                    <div className="w-20 h-20 mx-auto bg-white p-2 rounded-2xl shadow-xl">
-                      <QrCode className="w-full h-full text-zinc-950" />
+                {/* SIMULATOR SCREEN CONTENT (DYNAMIC STEPS) */}
+                <div className="my-auto py-2">
+                  {/* STEP 1: SCAN QR */}
+                  {simStep === 1 && (
+                    <div className="space-y-3 animate-in fade-in">
+                      <div className="w-16 h-16 mx-auto bg-white p-2 rounded-xl border border-zinc-300 shadow-xs flex items-center justify-center">
+                        <QrCode className="w-12 h-12 text-zinc-900" />
+                      </div>
+                      <h3 className="font-bold text-zinc-950 text-sm">
+                        {lang === 'id'
+                          ? 'Scan QR di Meja / Struk'
+                          : lang === 'ar'
+                          ? 'امسح رمز QR على الطاولة'
+                          : 'Scan QR at Table / Receipt'}
+                      </h3>
+                      <p className="text-xs text-zinc-500 leading-normal max-w-[220px] mx-auto">
+                        {lang === 'id'
+                          ? 'Kamera otomatis membuka tiket pesanan web tanpa instal aplikasi.'
+                          : lang === 'ar'
+                          ? 'تفتح صفحة تتبع الطلب مباشرة في متصفح جوالك بدون أي تطبيق.'
+                          : 'Camera instantly launches web ticket without installing apps.'}
+                      </p>
+                      <button
+                        onClick={() => setSimStep(2)}
+                        className="mt-2 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white font-mono text-xs font-semibold rounded-lg cursor-pointer"
+                      >
+                        {lang === 'id' ? 'Lanjut ke Antrean →' : lang === 'ar' ? 'التالي: شاشة الانتظار ←' : 'Next: Waiting Screen →'}
+                      </button>
                     </div>
-                    <h3 className="font-extrabold text-white text-base">
-                      {lang === 'id' ? 'Arahkan Kamera ke QR' : lang === 'ar' ? 'امسح الرمز بكاميرا الجوال' : 'Scan QR at Table'}
-                    </h3>
-                    <p className="text-xs text-zinc-400">
-                      {lang === 'id'
-                        ? 'Cukup buka kamera bawaan, tanpa unduh aplikasi apapun.'
-                        : lang === 'ar'
-                        ? 'افتح كاميرا الهاتف فقط، دون تنزيل أي برنامج.'
-                        : 'Use native camera, zero app downloads.'}
-                    </p>
-                    <button
-                      onClick={() => setSimStep(2)}
-                      className="mt-3 px-4 py-2 bg-[#FF6B2C] text-white text-xs font-bold rounded-xl cursor-pointer"
-                    >
-                      {lang === 'id' ? 'Lanjut ke Antrean' : lang === 'ar' ? 'التالي: شاشة الانتظار' : 'Next: Waiting Screen'}
-                    </button>
-                  </div>
-                )}
+                  )}
 
-                {/* STEP 2: WAITING */}
-                {simStep === 2 && (
-                  <div className="space-y-3 my-auto animate-in fade-in">
-                    <span className="text-[10px] uppercase font-black tracking-widest text-[#FF6B2C]">
-                      {t.orderLabel}
-                    </span>
-                    <div className="text-6xl font-black font-mono text-white tracking-wider my-2">
-                      #27
-                    </div>
-                    <div className="p-3 bg-[#0d1322] border border-white/10 rounded-2xl text-xs text-zinc-300">
-                      <Coffee className="w-5 h-5 text-[#F59E0B] mx-auto mb-1.5" />
-                      <p className="font-bold">{t.orderWaiting}</p>
-                    </div>
-                    <p className="text-[11px] text-zinc-500">Kopi Kenangan / مقهى روعة</p>
-                  </div>
-                )}
+                  {/* STEP 2: WAITING IN QUEUE */}
+                  {simStep === 2 && (
+                    <div className="space-y-2 animate-in fade-in">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-200/70 border border-zinc-300 text-[10px] font-mono text-zinc-700 font-semibold">
+                        <Clock className="w-3 h-3 text-zinc-600" />
+                        <span>{t.orderStatusPreparing}</span>
+                      </div>
 
-                {/* STEP 3: BUZZING ALERT */}
-                {simStep === 3 && (
-                  <div className="space-y-3 my-auto animate-in zoom-in">
-                    <div className="relative w-16 h-16 mx-auto">
-                      <div className="absolute inset-0 rounded-2xl bg-red-600/30 border border-red-500/50 animate-ping" />
-                      <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-tr from-red-600 to-[#FF6B2C] p-0.5 shadow-2xl flex items-center justify-center overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/panggil-logo.jpg" alt="Panggil Buzzer" className="w-full h-full object-cover rounded-[14px]" />
+                      <div className="py-2">
+                        <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+                          {t.orderLabel}
+                        </p>
+                        <p className="text-5xl font-mono font-black text-zinc-950 tracking-tight">
+                          #27
+                        </p>
+                      </div>
+
+                      <div className="p-2.5 bg-white border border-zinc-200 rounded-xl text-xs text-zinc-700 space-y-1 shadow-xs">
+                        <Coffee className="w-4 h-4 text-orange-600 mx-auto" />
+                        <p className="font-medium text-xs">{t.orderWaiting}</p>
+                      </div>
+
+                      <p className="text-[11px] text-zinc-500 font-mono">
+                        Kopi Kenangan · Grand Indonesia
+                      </p>
+                    </div>
+                  )}
+
+                  {/* STEP 3: ORDER READY / PANGGIL BUZZER */}
+                  {simStep === 3 && (
+                    <div className="space-y-2 animate-in zoom-in">
+                      {/* Status Ready Emerald Badge */}
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-[11px] font-mono font-bold">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>{t.orderReady}</span>
+                      </div>
+
+                      {/* Buzzer Chime Siren Icon */}
+                      <div className="relative w-16 h-16 mx-auto my-1">
+                        <div className="w-16 h-16 rounded-2xl bg-orange-600 text-white flex items-center justify-center shadow-md animate-pulse">
+                          <BellRing className="w-8 h-8 animate-bounce" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+                          {t.orderLabel}
+                        </p>
+                        <p className="text-5xl font-mono font-black text-orange-600 tracking-tight">
+                          #27
+                        </p>
+                      </div>
+
+                      <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-semibold text-emerald-900">
+                        {t.orderPickupAt}
                       </div>
                     </div>
-                    <span className="text-[11px] uppercase font-black tracking-widest text-red-400">
-                      SIRENE AKTIF · BUZZING
-                    </span>
-                    <div className="text-6xl font-black font-mono text-white tracking-wider">
-                      #27
-                    </div>
-                    <div className="p-3 bg-red-950/60 border border-red-500/60 rounded-2xl text-xs text-red-200 font-bold">
-                      {t.orderReady}
-                    </div>
-                  </div>
-                )}
+                  )}
 
-                {/* STEP 4: GOOGLE REVIEWS */}
-                {simStep === 4 && (
-                  <div className="space-y-3 my-auto animate-in fade-in">
-                    <div className="flex justify-center gap-1 text-amber-400">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <Star key={i} className="w-5 h-5 fill-amber-400" />
-                      ))}
+                  {/* STEP 4: 5-STAR GOOGLE REVIEW */}
+                  {simStep === 4 && (
+                    <div className="space-y-2.5 animate-in fade-in">
+                      <div className="flex justify-center gap-1 text-amber-500">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <Star key={i} className="w-5 h-5 fill-amber-400" />
+                        ))}
+                      </div>
+                      <h4 className="font-bold text-zinc-950 text-sm">{t.reviewTitle}</h4>
+                      <p className="text-xs text-zinc-500 leading-normal max-w-[210px] mx-auto">
+                        {t.reviewDesc}
+                      </p>
+                      <div className="p-2 bg-white border border-zinc-200 rounded-lg text-xs font-mono font-bold text-zinc-800">
+                        ⭐ 4.9/5 · Google Maps Rating
+                      </div>
                     </div>
-                    <h3 className="font-extrabold text-white text-base">{t.reviewTitle}</h3>
-                    <p className="text-xs text-zinc-400">{t.reviewDesc}</p>
-                    <div className="p-3 bg-[#10B981]/10 border border-[#10B981]/30 rounded-2xl text-xs text-[#10B981] font-bold">
-                      ⭐ 4.9/5 di Google Maps
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
-                {/* Interactive Simulator Controller */}
-                <div className="pt-3 border-t border-zinc-800/80">
+                {/* Simulator Interaction Trigger */}
+                <div className="pt-2 border-t border-zinc-200">
                   {!isSimBuzzing ? (
                     <button
                       onClick={handleTriggerBuzzer}
-                      className="w-full py-3 px-4 bg-gradient-to-r from-[#FF6B2C] to-[#FFA336] text-white font-black text-xs rounded-xl shadow-lg shadow-[#FF6B2C]/30 flex items-center justify-center gap-2 cursor-pointer hover:opacity-90 active:scale-95"
+                      className="w-full py-2.5 px-4 bg-orange-600 hover:bg-orange-700 text-white font-mono font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-colors"
                     >
                       <BellRing className="w-4 h-4" />
                       <span>{t.orderAction}</span>
@@ -835,7 +942,7 @@ export default function HomePage() {
                   ) : (
                     <button
                       onClick={handleStopBuzzer}
-                      className="w-full py-3 px-4 bg-zinc-800 text-zinc-200 font-black text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer hover:bg-zinc-700"
+                      className="w-full py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 text-white font-mono font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
                     >
                       <X className="w-4 h-4 text-red-400" />
                       <span>{t.orderStop}</span>
@@ -844,103 +951,354 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
+            <p className="text-xs text-zinc-400 font-mono mt-3 text-center">
+              {lang === 'id' ? '↑ Coba klik tombol di atas untuk uji suara' : lang === 'ar' ? '↑ اضغط الزر بالأعلى لتجربة الرنين الصوتي' : '↑ Tap button to trigger real audio siren'}
+            </p>
           </div>
         </div>
       </section>
 
       {/* ======================================================== */}
-      {/* INTERACTIVE ROI / SAVINGS CALCULATOR */}
+      {/* 3. ASYMMETRIC BENTO GRID (REAL UI SNAPSHOTS & FEATURES) */}
       {/* ======================================================== */}
-      <section id="calculator" className="py-16 px-4 sm:px-8 max-w-5xl mx-auto w-full">
-        <div className="bg-[#0b101d] border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8">
-          <div className="text-center max-w-2xl mx-auto space-y-2">
-            <span className="text-[11px] font-black uppercase tracking-widest text-[#10B981]">
-              {lang === 'id' ? 'Kalkulator ROI & Penghematan' : lang === 'ar' ? 'حاسبة التوفير الذكية' : 'Smart ROI Calculator'}
+      <section id="bento" className="py-16 px-4 sm:px-8 max-w-7xl mx-auto w-full border-t border-zinc-200">
+        <div className="mb-12 space-y-2">
+          <span className="text-xs font-mono font-semibold text-orange-600 uppercase tracking-wider">
+            {t.bentoTag}
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-black text-[#09090B] tracking-tight">
+            {t.bentoTitle}
+          </h2>
+          <p className="text-sm sm:text-base text-zinc-600 max-w-3xl">
+            {t.bentoSubtitle}
+          </p>
+        </div>
+
+        {/* The Asymmetric Bento Grid Container */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+          {/* BENTO CARD 1: LARGE CASHIER POS DISPATCHER (SPAN 8) */}
+          <div className="md:col-span-8 bg-white border border-zinc-200 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[11px] font-mono font-bold text-orange-600 uppercase tracking-wider">
+                  {t.bento1Tag}
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-[10px] font-mono font-bold text-emerald-800">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                  Live WebSocket
+                </span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold text-[#09090B] mb-2">
+                {t.bento1Title}
+              </h3>
+              <p className="text-sm text-zinc-600 leading-relaxed mb-6">
+                {t.bento1Desc}
+              </p>
+            </div>
+
+            {/* REALISTIC POS QUEUE INTERFACE MOCKUP */}
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-mono text-xs">
+              <div className="flex items-center justify-between pb-3 border-b border-zinc-200 text-zinc-500 text-[11px]">
+                <span>ANTREAN KASIR (4 AKTIF)</span>
+                <span className="text-zinc-700 font-semibold">Cabang Grand Indonesia</span>
+              </div>
+              <div className="divide-y divide-zinc-200">
+                {/* Order Item 1 - Buzzed */}
+                <div className="py-2.5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-sm text-orange-600">#27</span>
+                    <div>
+                      <p className="font-sans font-semibold text-zinc-900 text-xs">Latte Aren + Croissant</p>
+                      <p className="text-[10px] text-zinc-400">Tamu: Adham · 0812***</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                      SIAP DIAMBIL
+                    </span>
+                    <button className="px-2.5 py-1 rounded bg-orange-600 text-white font-bold text-[10px] hover:bg-orange-700 transition-colors">
+                      PANGGIL ULANG
+                    </button>
+                  </div>
+                </div>
+
+                {/* Order Item 2 - In Preparation */}
+                <div className="py-2.5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-sm text-zinc-800">#28</span>
+                    <div>
+                      <p className="font-sans font-semibold text-zinc-900 text-xs">V60 Gayo Wine Manual Brew</p>
+                      <p className="text-[10px] text-zinc-400">Tamu: Walk-in Meja 04</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-zinc-200 text-zinc-700 font-medium text-[10px]">
+                      DIRACIK (2m)
+                    </span>
+                    <button className="px-2.5 py-1 rounded bg-zinc-900 text-white font-bold text-[10px] hover:bg-zinc-800 transition-colors">
+                      PANGGIL
+                    </button>
+                  </div>
+                </div>
+
+                {/* Order Item 3 - Inbound */}
+                <div className="py-2.5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-sm text-zinc-800">#29</span>
+                    <div>
+                      <p className="font-sans font-semibold text-zinc-900 text-xs">Matcha Oat Latte</p>
+                      <p className="text-[10px] text-zinc-400">Tamu: Online QR</p>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded bg-zinc-100 text-zinc-500 font-medium text-[10px]">
+                    BARU MASUK
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* BENTO CARD 2: ZERO-HARDWARE ACRYLIC TABLE STAND (SPAN 4) */}
+          <div className="md:col-span-4 bg-white border border-zinc-200 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs">
+            <div>
+              <span className="text-[11px] font-mono font-bold text-orange-600 uppercase tracking-wider block mb-4">
+                {t.bento2Tag}
+              </span>
+              <h3 className="text-xl font-bold text-[#09090B] mb-2">
+                {t.bento2Title}
+              </h3>
+              <p className="text-sm text-zinc-600 leading-relaxed mb-6">
+                {t.bento2Desc}
+              </p>
+            </div>
+
+            {/* ACRYLIC STAND GRAPHIC MOCKUP */}
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+              <div className="w-24 h-32 bg-white border-2 border-zinc-300 rounded-lg p-2 shadow-sm flex flex-col justify-between items-center relative">
+                <div className="w-6 h-6 rounded-md bg-zinc-100 border border-zinc-200 flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/panggil-logo.jpg" alt="Logo" className="w-full h-full object-cover rounded-md" />
+                </div>
+                <div className="w-14 h-14 bg-zinc-900 rounded p-1 flex items-center justify-center">
+                  <QrCode className="w-full h-full text-white" />
+                </div>
+                <span className="text-[8px] font-mono font-bold text-zinc-500">MEJA 12</span>
+              </div>
+              <p className="text-xs font-mono font-semibold text-zinc-700 mt-3">
+                100% Bebas Cuci & Baterai
+              </p>
+            </div>
+          </div>
+
+          {/* BENTO CARD 3: 5-STAR GOOGLE REVIEW BOOSTER (SPAN 4) */}
+          <div className="md:col-span-4 bg-white border border-zinc-200 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs">
+            <div>
+              <span className="text-[11px] font-mono font-bold text-orange-600 uppercase tracking-wider block mb-4">
+                {t.bento3Tag}
+              </span>
+              <h3 className="text-xl font-bold text-[#09090B] mb-2">
+                {t.bento3Title}
+              </h3>
+              <p className="text-sm text-zinc-600 leading-relaxed mb-6">
+                {t.bento3Desc}
+              </p>
+            </div>
+
+            {/* REVIEW MODAL INTERACTION MOCKUP */}
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 space-y-2.5">
+              <div className="flex justify-between items-center text-xs font-mono text-zinc-500">
+                <span>KONVERSI ULASAN</span>
+                <span className="text-emerald-700 font-bold">+35% REVIEW</span>
+              </div>
+              <div className="bg-white p-3 rounded-lg border border-zinc-200 text-center shadow-xs">
+                <div className="flex justify-center gap-1 text-amber-500 mb-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star key={s} className="w-4 h-4 fill-amber-400" />
+                  ))}
+                </div>
+                <p className="text-xs font-bold text-zinc-900">Ulasan Google Maps</p>
+                <p className="text-[10px] text-zinc-500">Buka Google Maps otomatis saat rating 5★</p>
+              </div>
+            </div>
+          </div>
+
+          {/* BENTO CARD 4: INTERACTIVE DIGITAL MENU (SPAN 8) */}
+          <div className="md:col-span-8 bg-white border border-zinc-200 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs">
+            <div>
+              <span className="text-[11px] font-mono font-bold text-orange-600 uppercase tracking-wider block mb-4">
+                {t.bento4Tag}
+              </span>
+              <h3 className="text-xl sm:text-2xl font-bold text-[#09090B] mb-2">
+                {t.bento4Title}
+              </h3>
+              <p className="text-sm text-zinc-600 leading-relaxed mb-6">
+                {t.bento4Desc}
+              </p>
+            </div>
+
+            {/* DIGITAL MENU PREVIEW GRID */}
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4">
+              <div className="flex gap-2 mb-3 overflow-x-auto pb-1 text-xs font-mono">
+                <span className="px-2.5 py-1 bg-zinc-900 text-white rounded-md font-semibold">Semua</span>
+                <span className="px-2.5 py-1 bg-white text-zinc-600 border border-zinc-200 rounded-md">Kopi</span>
+                <span className="px-2.5 py-1 bg-white text-zinc-600 border border-zinc-200 rounded-md">Pastry</span>
+                <span className="px-2.5 py-1 bg-white text-zinc-600 border border-zinc-200 rounded-md">Makanan</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-white p-3 rounded-lg border border-zinc-200 flex items-center justify-between shadow-xs">
+                  <div>
+                    <p className="font-semibold text-xs text-zinc-900">Spanish Latte Signature</p>
+                    <p className="text-[11px] font-mono text-zinc-500">Rp 38.000 / 9.5 ر.س</p>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 bg-orange-100 text-orange-800 rounded">
+                    BEST SELLER
+                  </span>
+                </div>
+                <div className="bg-white p-3 rounded-lg border border-zinc-200 flex items-center justify-between shadow-xs">
+                  <div>
+                    <p className="font-semibold text-xs text-zinc-900">Butter Croissant Almond</p>
+                    <p className="text-[11px] font-mono text-zinc-500">Rp 32.000 / 8 ر.س</p>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 bg-zinc-100 text-zinc-700 rounded">
+                    FRESH BAKE
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* BENTO CARD 5: AUDIO KEEP-ALIVE SURVIVAL (SPAN 6) */}
+          <div className="md:col-span-6 bg-white border border-zinc-200 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs">
+            <div>
+              <span className="text-[11px] font-mono font-bold text-orange-600 uppercase tracking-wider block mb-4">
+                {t.bento5Tag}
+              </span>
+              <h3 className="text-xl font-bold text-[#09090B] mb-2">
+                {t.bento5Title}
+              </h3>
+              <p className="text-sm text-zinc-600 leading-relaxed mb-6">
+                {t.bento5Desc}
+              </p>
+            </div>
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-mono text-xs text-zinc-700 space-y-2">
+              <div className="flex items-center justify-between">
+                <span>iOS Safari Silent WebAudio Loop</span>
+                <span className="text-emerald-700 font-bold">ACTIVE</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Android Vibration Haptic API</span>
+                <span className="text-emerald-700 font-bold">SUPPORTED</span>
+              </div>
+            </div>
+          </div>
+
+          {/* BENTO CARD 6: MULTI-OUTLET GOVERNANCE (SPAN 6) */}
+          <div className="md:col-span-6 bg-white border border-zinc-200 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs">
+            <div>
+              <span className="text-[11px] font-mono font-bold text-orange-600 uppercase tracking-wider block mb-4">
+                {t.bento6Tag}
+              </span>
+              <h3 className="text-xl font-bold text-[#09090B] mb-2">
+                {t.bento6Title}
+              </h3>
+              <p className="text-sm text-zinc-600 leading-relaxed mb-6">
+                {t.bento6Desc}
+              </p>
+            </div>
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 font-mono text-xs text-zinc-700 space-y-2">
+              <div className="flex items-center justify-between">
+                <span>Multi-Tenant Branch Switcher</span>
+                <span className="text-zinc-900 font-bold">Jakarta · Bali · Riyadh</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Cashier Staff Isolation PIN</span>
+                <span className="text-zinc-900 font-bold">4-Digit Security</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ======================================================== */}
+      {/* 4. INTERACTIVE ROI CALCULATOR (SWISS MINIMALIST CARDS) */}
+      {/* ======================================================== */}
+      <section id="calculator" className="py-16 px-4 sm:px-8 max-w-5xl mx-auto w-full border-t border-zinc-200">
+        <div className="bg-white border border-zinc-200 rounded-2xl p-6 sm:p-10 shadow-xs">
+          <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
+            <span className="text-xs font-mono font-semibold text-orange-600 uppercase tracking-wider">
+              {t.calcTag}
             </span>
-            <h2 className="text-2xl sm:text-4xl font-black text-white">{t.calcTitle}</h2>
-            <p className="text-xs sm:text-sm text-zinc-400">{t.calcSubtitle}</p>
+            <h2 className="text-2xl sm:text-3xl font-black text-[#09090B] tracking-tight">
+              {t.calcTitle}
+            </h2>
+            <p className="text-sm text-zinc-600">{t.calcSubtitle}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            {/* Sliders Input */}
-            <div className="space-y-6 bg-[#060911] p-6 rounded-2xl border border-white/5">
+            {/* Sliders Input Column */}
+            <div className="space-y-6">
               {/* Slider 1: Hardware Pager Count */}
               <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-xs font-bold text-zinc-300">{t.sliderPagers}</label>
-                  <span className="font-mono text-lg font-black text-[#FF6B2C]">
-                    {hardwarePagerCount} Pager
+                <div className="flex justify-between items-center text-xs font-mono mb-2">
+                  <span className="font-semibold text-zinc-700">{t.sliderPagers}</span>
+                  <span className="font-bold text-orange-600 text-sm bg-orange-50 px-2.5 py-0.5 rounded border border-orange-200">
+                    {hardwarePagerCount} unit
                   </span>
                 </div>
                 <input
                   type="range"
                   min="5"
-                  max="60"
+                  max="100"
                   step="5"
                   value={hardwarePagerCount}
                   onChange={(e) => setHardwarePagerCount(Number(e.target.value))}
-                  className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-[#FF6B2C]"
+                  className="w-full accent-orange-600 cursor-pointer h-2 bg-zinc-200 rounded-lg appearance-none"
                 />
-                <div className="flex justify-between text-[10px] text-zinc-500 mt-1">
-                  <span>5 pager</span>
-                  <span>30 pager</span>
-                  <span>60 pager</span>
-                </div>
               </div>
 
               {/* Slider 2: Daily Order Count */}
               <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-xs font-bold text-zinc-300">{t.sliderOrders}</label>
-                  <span className="font-mono text-lg font-black text-[#10B981]">
-                    {dailyOrderCount} Pesanan/hari
+                <div className="flex justify-between items-center text-xs font-mono mb-2">
+                  <span className="font-semibold text-zinc-700">{t.sliderOrders}</span>
+                  <span className="font-bold text-zinc-900 text-sm bg-zinc-100 px-2.5 py-0.5 rounded border border-zinc-200">
+                    {dailyOrderCount} order/hari
                   </span>
                 </div>
                 <input
                   type="range"
-                  min="30"
+                  min="20"
                   max="500"
                   step="10"
                   value={dailyOrderCount}
                   onChange={(e) => setDailyOrderCount(Number(e.target.value))}
-                  className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-[#10B981]"
+                  className="w-full accent-zinc-900 cursor-pointer h-2 bg-zinc-200 rounded-lg appearance-none"
                 />
-                <div className="flex justify-between text-[10px] text-zinc-500 mt-1">
-                  <span>30</span>
-                  <span>250</span>
-                  <span>500+</span>
-                </div>
+              </div>
+
+              <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-600 font-mono space-y-1">
+                <p>• Estimasi harga beli 1 pager fisik: Rp 380.000 (~$24 / 95 ر.س)</p>
+                <p>• Rata-rata kerusakan & baterai drop: 25% per tahun</p>
               </div>
             </div>
 
-            {/* Results Card */}
-            <div className="bg-gradient-to-br from-[#10B981]/15 via-[#0d1322] to-[#060911] border border-[#10B981]/40 rounded-2xl p-6 sm:p-8 text-center relative overflow-hidden shadow-2xl">
-              <TrendingDown className="w-8 h-8 text-[#10B981] mx-auto mb-2" />
-              <p className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+            {/* Savings Result Card */}
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-6 sm:p-8 text-center space-y-3">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-500">
                 {t.calcSavedHeading}
-              </p>
-              <div className="text-3xl sm:text-5xl font-black font-mono text-[#10B981] my-3">
+              </span>
+              <div className="text-3xl sm:text-4xl lg:text-5xl font-mono font-black text-emerald-700">
                 {formatPrice(totalSavingsIDR, currency)}
               </div>
-              <p className="text-xs text-zinc-400 font-medium mb-4">{t.calcPerYear}</p>
-
-              <div className="pt-4 border-t border-white/10 grid grid-cols-2 gap-3 text-left rtl:text-right text-xs">
-                <div>
-                  <span className="text-zinc-500 text-[10px] block">
-                    {lang === 'id' ? 'Biaya Beli Alat Awal:' : lang === 'ar' ? 'تكلفة شراء الأجهزة:' : 'Hardware Unit Saved:'}
-                  </span>
-                  <span className="font-mono font-bold text-zinc-200">
-                    {formatPrice(initialHardwareSavedIDR, currency)}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-zinc-500 text-[10px] block">
-                    {lang === 'id' ? 'Penggantian Rusak/Hilang:' : lang === 'ar' ? 'صيانة واستبدال سنوي:' : 'Annual Breakage Saved:'}
-                  </span>
-                  <span className="font-mono font-bold text-zinc-200">
-                    {formatPrice(annualMaintenanceSavedIDR, currency)}
-                  </span>
-                </div>
+              <p className="text-xs text-zinc-600 max-w-xs mx-auto leading-relaxed">
+                {t.calcPerYear}
+              </p>
+              <div className="pt-2">
+                <a
+                  href="#pricing"
+                  className="inline-block py-2.5 px-6 bg-zinc-950 hover:bg-zinc-800 text-white font-mono font-bold text-xs rounded-xl transition-colors cursor-pointer"
+                >
+                  {lang === 'id' ? 'Lihat Pilihan Paket →' : lang === 'ar' ? 'عرض باقات الاشتراك ←' : 'Explore Plans →'}
+                </a>
               </div>
             </div>
           </div>
@@ -948,180 +1306,181 @@ export default function HomePage() {
       </section>
 
       {/* ======================================================== */}
-      {/* COMPARISON MATRIX (PANGGIL VS HARDWARE PAGERS) */}
+      {/* 5. SIDE-BY-SIDE COMPARISON MATRIX */}
       {/* ======================================================== */}
-      <section id="comparison" className="py-16 px-4 sm:px-8 max-w-6xl mx-auto w-full">
+      <section id="comparison" className="py-16 px-4 sm:px-8 max-w-6xl mx-auto w-full border-t border-zinc-200">
         <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
-          <span className="text-[11px] font-black uppercase tracking-widest text-[#FF6B2C]">
-            {lang === 'id' ? 'Analisis Komparatif' : lang === 'ar' ? 'مقارنة دقيقة وشاملة' : 'Head-to-Head Comparison'}
+          <span className="text-xs font-mono font-semibold text-orange-600 uppercase tracking-wider">
+            {t.cmpTag}
           </span>
-          <h2 className="text-2xl sm:text-4xl font-black text-white">{t.cmpTitle}</h2>
-          <p className="text-xs sm:text-sm text-zinc-400">{t.cmpSubtitle}</p>
+          <h2 className="text-2xl sm:text-3xl font-black text-[#09090B] tracking-tight">
+            {t.cmpTitle}
+          </h2>
+          <p className="text-sm text-zinc-600">{t.cmpSubtitle}</p>
         </div>
 
-        <div className="bg-[#0b101d] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 bg-[#0d1322] border-b border-white/10 p-4 sm:p-6 text-xs sm:text-sm font-black text-zinc-400">
-            <div>{lang === 'id' ? 'Faktor Penilaian' : lang === 'ar' ? 'وجه المقارنة' : 'Comparison Factor'}</div>
-            <div className="text-[#FF6B2C] flex items-center gap-1.5 mt-2 md:mt-0 font-bold">
-              <CheckCircle2 className="w-4 h-4 text-[#FF6B2C]" />
-              <span>{lang === 'id' ? 'Panggil (Pager Digital)' : lang === 'ar' ? 'نظام نداء (Panggil)' : 'Panggil Digital System'}</span>
-            </div>
-            <div className="text-zinc-500 flex items-center gap-1.5 mt-2 md:mt-0">
-              <X className="w-4 h-4 text-red-500" />
-              <span>{lang === 'id' ? 'Pager Plastik Tradisional' : lang === 'ar' ? 'البيجر البلاستيكي القديم' : 'Traditional Plastic Pagers'}</span>
-            </div>
-          </div>
-
-          <div className="divide-y divide-white/5">
-            {comparisonData.map((row, idx) => (
-              <div
-                key={idx}
-                className="grid grid-cols-1 md:grid-cols-3 p-4 sm:p-6 gap-2 md:gap-4 hover:bg-white/[0.02] transition-colors text-xs sm:text-sm"
-              >
-                <div className="font-bold text-zinc-200">{row.label[lang]}</div>
-                <div className="text-zinc-200 font-medium flex items-start gap-2 bg-[#FF6B2C]/5 p-2.5 rounded-xl border border-[#FF6B2C]/20">
-                  <Check className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5" />
-                  <span>{row.panggil[lang]}</span>
-                </div>
-                <div className="text-zinc-400 flex items-start gap-2 p-2.5">
-                  <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-                  <span>{row.hardware[lang]}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Clean Swiss Comparison Table */}
+        <div className="overflow-x-auto bg-white border border-zinc-200 rounded-2xl shadow-xs">
+          <table className="w-full text-left rtl:text-right text-xs">
+            <thead>
+              <tr className="border-b border-zinc-200 bg-zinc-50 text-zinc-700 font-mono">
+                <th className="py-4 px-6 font-bold uppercase w-1/3">Parameter</th>
+                <th className="py-4 px-6 font-bold uppercase w-1/3 text-orange-700 bg-orange-50/50">
+                  PANGGIL (DIGITAL)
+                </th>
+                <th className="py-4 px-6 font-bold uppercase w-1/3 text-zinc-500">
+                  PAGER FISIK PLASTIK
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-200 font-sans">
+              {comparisonData.map((row, idx) => (
+                <tr key={idx} className="hover:bg-zinc-50/60 transition-colors">
+                  <td className="py-3.5 px-6 font-bold text-zinc-900">
+                    {row.label[lang]}
+                  </td>
+                  <td className="py-3.5 px-6 font-semibold text-emerald-800 bg-orange-50/20">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{row.panggil[lang]}</span>
+                    </div>
+                  </td>
+                  <td className="py-3.5 px-6 text-zinc-500">
+                    <div className="flex items-center gap-2">
+                      <X className="w-4 h-4 text-red-500 shrink-0" />
+                      <span>{row.hardware[lang]}</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
       {/* ======================================================== */}
-      {/* PRICING PLANS SECTION */}
+      {/* 6. TRANSPARENT PRICING PLANS */}
       {/* ======================================================== */}
-      <section id="pricing" className="py-16 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+      <section id="pricing" className="py-16 px-4 sm:px-8 max-w-7xl mx-auto w-full border-t border-zinc-200">
         <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
-          <span className="text-[11px] font-black uppercase tracking-widest text-[#F59E0B]">
-            {lang === 'id' ? 'Harga Transparan' : lang === 'ar' ? 'باقات شفافة ومدروسة' : 'Transparent Pricing'}
+          <span className="text-xs font-mono font-semibold text-orange-600 uppercase tracking-wider">
+            {t.pricingTag}
           </span>
-          <h2 className="text-3xl sm:text-5xl font-black text-white">{t.pricingTitle}</h2>
-          <p className="text-xs sm:text-sm text-zinc-400">{t.pricingSubtitle}</p>
+          <h2 className="text-3xl sm:text-4xl font-black text-[#09090B] tracking-tight">
+            {t.pricingTitle}
+          </h2>
+          <p className="text-sm text-zinc-600">{t.pricingSubtitle}</p>
 
-          {/* Billing Cycle Switcher */}
-          <div className="inline-flex items-center p-1 bg-[#0d1322] border border-white/10 rounded-2xl text-xs font-bold mt-4">
-            <button
-              onClick={() => setBillingCycle('annual')}
-              className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
-                billingCycle === 'annual'
-                  ? 'bg-gradient-to-r from-[#FF6B2C] to-[#FFA336] text-white shadow-md'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              {lang === 'id' ? 'Tahunan (Hemat 20%)' : lang === 'ar' ? 'سنوي (خصم 20%)' : 'Annual (Save 20%)'}
-            </button>
-            <button
-              onClick={() => setBillingCycle('monthly')}
-              className={`px-4 py-2 rounded-xl transition-all cursor-pointer ${
-                billingCycle === 'monthly'
-                  ? 'bg-gradient-to-r from-[#FF6B2C] to-[#FFA336] text-white shadow-md'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              {lang === 'id' ? 'Bulanan' : lang === 'ar' ? 'شهري' : 'Monthly'}
-            </button>
-          </div>
-        </div>
-
-        {/* 4 Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {plans.map((plan) => {
-            const rawPrice =
-              billingCycle === 'annual' ? plan.priceAnnualIDR : plan.priceMonthlyIDR;
-            const periodLabel =
-              billingCycle === 'annual'
-                ? lang === 'id'
-                  ? '/ tahun'
-                  : lang === 'ar'
-                  ? '/ سنة'
-                  : '/ year'
-                : lang === 'id'
-                ? '/ bulan'
-                : lang === 'ar'
-                ? '/ شهر'
-                : '/ month';
-
-            return (
-              <div
-                key={plan.id}
-                className={`rounded-3xl p-6 sm:p-7 flex flex-col justify-between relative transition-all duration-300 ${
-                  plan.highlight
-                    ? 'bg-gradient-to-b from-[#131d33] to-[#0a101d] border-2 border-[#FF6B2C] shadow-2xl shadow-[#FF6B2C]/20 scale-102 lg:-translate-y-2'
-                    : 'bg-[#0b101d] border border-white/10 hover:border-white/20'
+          {/* Billing Cycle Toggle */}
+          <div className="pt-2 flex justify-center">
+            <div className="inline-flex items-center bg-zinc-100 p-1 rounded-xl border border-zinc-200 text-xs font-mono font-semibold">
+              <button
+                onClick={() => setBillingCycle('annual')}
+                className={`py-1.5 px-4 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+                  billingCycle === 'annual'
+                    ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200'
+                    : 'text-zinc-600 hover:text-zinc-950'
                 }`}
               >
-                {plan.badge && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-[#FF6B2C] to-[#FFA336] text-white font-black text-[10px] rounded-full uppercase tracking-wider shadow-lg">
-                    {plan.badge[lang]}
-                  </div>
-                )}
+                <span>{lang === 'id' ? 'Tahunan (Hemat 20%)' : lang === 'ar' ? 'سنوي (وفر 20%)' : 'Annual (Save 20%)'}</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-600" />
+              </button>
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                className={`py-1.5 px-4 rounded-lg transition-colors cursor-pointer ${
+                  billingCycle === 'monthly'
+                    ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200'
+                    : 'text-zinc-600 hover:text-zinc-950'
+                }`}
+              >
+                {lang === 'id' ? 'Bulanan' : lang === 'ar' ? 'شهري' : 'Monthly'}
+              </button>
+            </div>
+          </div>
+        </div>
 
+        {/* Pricing Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {plans.map((p) => {
+            const price = billingCycle === 'annual' ? p.priceAnnualIDR : p.priceMonthlyIDR;
+            return (
+              <div
+                key={p.id}
+                className={`bg-white rounded-2xl p-6 border flex flex-col justify-between transition-colors shadow-xs ${
+                  p.highlight
+                    ? 'border-orange-600 ring-2 ring-orange-600/10'
+                    : 'border-zinc-200 hover:border-zinc-300'
+                }`}
+              >
                 <div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black uppercase tracking-wider text-zinc-400">
-                      {plan.tier}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-500">
+                      {p.tier}
                     </span>
-                    {plan.highlight && <Crown className="w-4 h-4 text-[#F59E0B]" />}
+                    {p.badge && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-orange-100 text-orange-800 border border-orange-200">
+                        {p.badge[lang]}
+                      </span>
+                    )}
                   </div>
+                  <h3 className="text-xl font-bold text-zinc-950 mb-1">{p.name[lang]}</h3>
+                  <p className="text-xs text-zinc-500 mb-5 leading-normal">{p.desc[lang]}</p>
 
-                  <h3 className="text-lg font-black text-white mt-1">{plan.name[lang]}</h3>
-                  <p className="text-xs text-zinc-400 mt-2 min-h-[36px]">{plan.desc[lang]}</p>
-
-                  {/* Price display */}
-                  <div className="my-5 pb-5 border-b border-white/10">
-                    {!plan.isCustom ? (
+                  <div className="mb-6 pb-6 border-b border-zinc-200">
+                    {!p.isCustom ? (
                       <>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-2xl sm:text-3xl font-black font-mono text-white">
-                            {formatPrice(rawPrice, currency)}
-                          </span>
-                          <span className="text-xs text-zinc-400 font-bold">{periodLabel}</span>
+                        <div className="text-3xl font-mono font-black text-zinc-950">
+                          {formatPrice(price, currency)}
                         </div>
-                        {/* Sub-equivalents in other currencies */}
-                        <div className="text-[11px] font-mono text-zinc-400 mt-1">
-                          {currency !== 'SAR' && `≈ ${formatPrice(rawPrice, 'SAR')} `}
-                          {currency !== 'USD' && `· ${formatPrice(rawPrice, 'USD')}`}
-                        </div>
+                        <span className="text-[11px] font-mono text-zinc-500">
+                          {billingCycle === 'annual'
+                            ? lang === 'id'
+                              ? '/ tahun (Rp ' + Math.round(price / 12).toLocaleString('id-ID') + '/bln)'
+                              : lang === 'ar'
+                              ? '/ سنوياً'
+                              : '/ year'
+                            : lang === 'id'
+                            ? '/ bulan'
+                            : lang === 'ar'
+                            ? '/ شهرياً'
+                            : '/ month'}
+                        </span>
                       </>
                     ) : (
-                      <div className="text-2xl font-black text-white my-2">
-                        {lang === 'id' ? 'Kustomisasi' : lang === 'ar' ? 'حسب الفروع' : 'Custom Quote'}
-                      </div>
+                      <>
+                        <div className="text-2xl font-mono font-bold text-zinc-900">Custom Quote</div>
+                        <span className="text-[11px] text-zinc-500 font-mono">
+                          {lang === 'id' ? 'Sesuai jumlah cabang' : lang === 'ar' ? 'بحسب عدد الفروع' : 'Per outlet scale'}
+                        </span>
+                      </>
                     )}
                   </div>
 
-                  {/* Feature List */}
-                  <ul className="space-y-2.5 text-xs text-zinc-300">
-                    {plan.features[lang].map((f, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <Check className="w-3.5 h-3.5 text-[#10B981] shrink-0 mt-0.5" />
+                  {/* Feature Checklist */}
+                  <ul className="space-y-2.5 text-xs text-zinc-700 mb-8">
+                    {p.features[lang].map((f, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                         <span>{f}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="mt-7 pt-4 border-t border-white/5">
-                  <a
-                    href="https://wa.me/966553865899?text=Halo%20Panggil%20App,%20saya%20tertarik%20dengan%20paket%20langganan"
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`w-full py-3 px-4 rounded-xl font-black text-xs text-center flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                      plan.highlight
-                        ? 'bg-gradient-to-r from-[#FF6B2C] to-[#FFA336] text-white shadow-lg shadow-[#FF6B2C]/25 hover:opacity-95'
-                        : 'bg-white/10 hover:bg-white/20 text-white'
-                    }`}
-                  >
-                    <span>{t.btnChoosePlan}</span>
-                    <ArrowRight className={`w-3.5 h-3.5 ${isRtl ? 'rotate-180' : ''}`} />
-                  </a>
-                </div>
+                <a
+                  href={`https://wa.me/966553865899?text=${encodeURIComponent(
+                    `Halo Panggil App, saya tertarik berlangganan paket ${p.tier} (${billingCycle})`
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`w-full py-3 px-4 rounded-xl text-center font-mono font-bold text-xs transition-colors cursor-pointer ${
+                    p.highlight
+                      ? 'bg-orange-600 hover:bg-orange-700 text-white shadow-xs'
+                      : 'bg-zinc-900 hover:bg-zinc-800 text-white'
+                  }`}
+                >
+                  {t.btnChoosePlan}
+                </a>
               </div>
             );
           })}
@@ -1129,12 +1488,16 @@ export default function HomePage() {
       </section>
 
       {/* ======================================================== */}
-      {/* FAQ ACCORDION SECTION */}
+      {/* 7. FREQUENTLY ASKED QUESTIONS (FAQ) */}
       {/* ======================================================== */}
-      <section className="py-16 px-4 sm:px-8 max-w-4xl mx-auto w-full">
-        <div className="text-center mb-10 space-y-2">
-          <HelpCircle className="w-8 h-8 text-[#FF6B2C] mx-auto mb-1" />
-          <h2 className="text-2xl sm:text-3xl font-black text-white">{t.faqTitle}</h2>
+      <section className="py-16 px-4 sm:px-8 max-w-4xl mx-auto w-full border-t border-zinc-200">
+        <div className="text-center max-w-xl mx-auto mb-10 space-y-2">
+          <span className="text-xs font-mono font-semibold text-orange-600 uppercase tracking-wider">
+            {t.faqTag}
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-black text-[#09090B] tracking-tight">
+            {t.faqTitle}
+          </h2>
         </div>
 
         <div className="space-y-3">
@@ -1143,21 +1506,21 @@ export default function HomePage() {
             return (
               <div
                 key={idx}
-                className="bg-[#0b101d] border border-white/10 rounded-2xl overflow-hidden transition-all"
+                className="bg-white border border-zinc-200 rounded-xl overflow-hidden transition-colors shadow-xs"
               >
                 <button
                   onClick={() => setOpenFaq(isOpen ? null : idx)}
-                  className="w-full p-5 text-left rtl:text-right flex items-center justify-between text-sm font-bold text-white cursor-pointer hover:bg-white/[0.02]"
+                  className="w-full py-4 px-6 text-left rtl:text-right flex items-center justify-between gap-4 font-bold text-sm text-zinc-900 cursor-pointer"
                 >
                   <span>{faq.q[lang]}</span>
                   {isOpen ? (
-                    <ChevronUp className="w-4 h-4 text-[#FF6B2C] shrink-0" />
+                    <ChevronUp className="w-4 h-4 text-orange-600 shrink-0" />
                   ) : (
                     <ChevronDown className="w-4 h-4 text-zinc-400 shrink-0" />
                   )}
                 </button>
                 {isOpen && (
-                  <div className="px-5 pb-5 text-xs text-zinc-400 leading-relaxed border-t border-white/5 pt-3 animate-in fade-in">
+                  <div className="px-6 pb-4 pt-1 text-xs text-zinc-600 leading-relaxed border-t border-zinc-100">
                     {faq.a[lang]}
                   </div>
                 )}
@@ -1168,43 +1531,48 @@ export default function HomePage() {
       </section>
 
       {/* ======================================================== */}
-      {/* BOTTOM CTA BANNER & WHATSAPP PIPELINE */}
+      {/* 8. BOTTOM CALL TO ACTION */}
       {/* ======================================================== */}
-      <section className="py-16 px-4 sm:px-8 max-w-5xl mx-auto w-full">
-        <div className="bg-gradient-to-r from-[#FF6B2C]/20 via-[#F59E0B]/10 to-[#10B981]/15 border border-[#FF6B2C]/40 rounded-3xl p-8 sm:p-12 text-center relative overflow-hidden shadow-2xl">
-          <div className="max-w-2xl mx-auto space-y-4">
-            <h2 className="text-3xl sm:text-4xl font-black text-white">{t.ctaBottomTitle}</h2>
-            <p className="text-sm text-zinc-300 font-medium">{t.ctaBottomSubtitle}</p>
-            <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
-              <a
-                href="https://wa.me/966553865899?text=Halo%20Panggil%20App,%20saya%20ingin%20berlangganan%20untuk%20kafe%20saya"
-                target="_blank"
-                rel="noreferrer"
-                className="py-4 px-8 bg-[#25D366] hover:bg-[#20bd5a] text-zinc-950 font-black text-sm rounded-2xl shadow-xl shadow-[#25D366]/20 transition-all hover:scale-102 flex items-center gap-2 cursor-pointer"
-              >
-                <MessageCircle className="w-5 h-5 fill-zinc-950" />
-                <span>{t.whatsappBtn}</span>
-              </a>
+      <section className="py-16 px-4 sm:px-8 max-w-7xl mx-auto w-full border-t border-zinc-200">
+        <div className="bg-zinc-900 text-white rounded-3xl p-8 sm:p-12 text-center space-y-6">
+          <div className="max-w-2xl mx-auto space-y-2">
+            <h2 className="text-2xl sm:text-4xl font-black tracking-tight">
+              {t.ctaBottomTitle}
+            </h2>
+            <p className="text-sm text-zinc-400">
+              {t.ctaBottomSubtitle}
+            </p>
+          </div>
 
-              <Link
-                href="/c/ubk/cashier"
-                target="_blank"
-                className="py-4 px-6 bg-white/10 hover:bg-white/15 text-white font-bold text-sm rounded-2xl border border-white/15 transition-all cursor-pointer"
-              >
-                {t.ctaDemo}
-              </Link>
-            </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <a
+              href="https://wa.me/966553865899?text=Halo%20Panggil%20App,%20saya%20ingin%20berlangganan%20sistem%20pager"
+              target="_blank"
+              rel="noreferrer"
+              className="py-3.5 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-mono font-bold text-sm rounded-xl shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>{t.whatsappBtn}</span>
+            </a>
+
+            <Link
+              href="/c/ubk/cashier"
+              target="_blank"
+              className="py-3.5 px-6 bg-white/10 hover:bg-white/20 text-white font-mono font-semibold text-sm rounded-xl border border-white/20 transition-colors cursor-pointer"
+            >
+              {t.ctaDemo}
+            </Link>
           </div>
         </div>
       </section>
 
       {/* ======================================================== */}
-      {/* FOOTER */}
+      {/* 9. SWISS MINIMALIST FOOTER */}
       {/* ======================================================== */}
-      <footer className="border-t border-white/10 bg-[#04060c] py-12 px-4 sm:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-zinc-500">
+      <footer className="border-t border-zinc-200 bg-white py-10 px-4 sm:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-zinc-500 font-mono">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl overflow-hidden border border-[#FF6B2C]/40 shadow-lg shadow-[#FF6B2C]/20 shrink-0">
+            <div className="w-8 h-8 rounded-lg overflow-hidden border border-zinc-300 shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/panggil-logo.jpg"
@@ -1213,25 +1581,25 @@ export default function HomePage() {
               />
             </div>
             <div>
-              <p className="font-bold text-zinc-300">Panggil / نداء © 2026</p>
-              <p className="text-[10px]">Smart Digital Pager & Interactive Menu Platform</p>
+              <p className="font-bold text-zinc-900 font-sans">Panggil / نداء © 2026</p>
+              <p className="text-[11px] text-zinc-500">Zero-Hardware Coaster Pager & Smart Menu</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-6 text-zinc-400">
-            <Link href="/admin/login" className="hover:text-white transition-colors">
+          <div className="flex items-center gap-6">
+            <Link href="/admin/login" className="hover:text-zinc-950 transition-colors">
               Admin Portal
             </Link>
-            <Link href="/c/ubk/cashier" className="hover:text-white transition-colors">
+            <Link href="/c/ubk/cashier" className="hover:text-zinc-950 transition-colors">
               Demo POS
             </Link>
-            <Link href="/c/ubk/menu" className="hover:text-white transition-colors">
+            <Link href="/c/ubk/menu" className="hover:text-zinc-950 transition-colors">
               Demo Menu
             </Link>
           </div>
 
-          <div className="text-center md:text-right rtl:md:text-left text-[11px]">
-            <span>Designed for Modern Hospitality in Southeast Asia & GCC</span>
+          <div className="text-center md:text-right rtl:md:text-left text-[11px] text-zinc-400">
+            <span>Swiss Minimalist Precision · Southeast Asia & GCC</span>
           </div>
         </div>
       </footer>
