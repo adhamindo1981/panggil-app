@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { SpatialCard } from '@/components/cinematic/SpatialCard';
 
 type Lang = 'id' | 'ar' | 'en';
 
@@ -86,43 +87,47 @@ export function FaqAccordion({ lang }: Props) {
     <section
       id="faq"
       dir={isRtl ? 'rtl' : 'ltr'}
-      className="py-20 px-4 sm:px-8 max-w-4xl mx-auto w-full border-t border-zinc-200"
+      className="py-24 px-4 sm:px-8 max-w-4xl mx-auto w-full border-t border-zinc-200/80 relative"
     >
       <div className="text-center max-w-xl mx-auto mb-12 space-y-2">
-        <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest">
+        <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest block">
           {t.tag}
         </span>
-        <h2 className="text-3xl sm:text-4xl font-black text-zinc-950 ltr:tracking-tight rtl:tracking-normal rtl:leading-[1.4]">
+        <h2 className="text-3xl sm:text-4xl font-black text-zinc-950 ltr:tracking-tight rtl:tracking-normal rtl:leading-[1.44]">
           {t.title}
         </h2>
       </div>
 
-      <div className="space-y-3.5">
+      <div className="space-y-4">
         {faqs.map((faq, idx) => {
           const isOpen = openFaq === idx;
           return (
-            <div
+            <SpatialCard
               key={idx}
-              className="bg-white border border-zinc-200 rounded-2xl overflow-hidden transition-colors shadow-xs"
+              tiltIntensity={2}
+              showCrosshairs={false}
+              className="w-full"
             >
               <button
                 type="button"
                 onClick={() => setOpenFaq(isOpen ? null : idx)}
-                className="w-full py-4.5 px-6 text-left rtl:text-right flex items-center justify-between gap-4 font-bold text-sm sm:text-base text-zinc-900 cursor-pointer"
+                className="w-full text-left rtl:text-right flex items-center justify-between gap-4 font-bold text-sm sm:text-base text-zinc-900 cursor-pointer p-1"
               >
                 <span>{faq.q[lang]}</span>
-                {isOpen ? (
-                  <ChevronUp className="w-4 h-4 text-orange-600 shrink-0" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-zinc-400 shrink-0" />
-                )}
+                <span className="p-1 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-600">
+                  {isOpen ? (
+                    <ChevronUp className="w-4 h-4 text-orange-600 shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-zinc-400 shrink-0" />
+                  )}
+                </span>
               </button>
               {isOpen && (
-                <div className="px-6 pb-5 pt-1 text-xs sm:text-sm text-zinc-600 leading-relaxed border-t border-zinc-100">
+                <div className="pt-3.5 pb-1 text-xs sm:text-sm text-zinc-600 leading-relaxed border-t border-zinc-100 mt-3 font-sans">
                   {faq.a[lang]}
                 </div>
               )}
-            </div>
+            </SpatialCard>
           );
         })}
       </div>

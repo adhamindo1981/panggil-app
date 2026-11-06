@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ShieldCheck } from 'lucide-react';
 import { AnimatedBrandLogo } from './AnimatedBrandLogo';
+import { MagneticButton } from '@/components/cinematic/MagneticButton';
 
 type Lang = 'id' | 'ar' | 'en';
 type Currency = 'IDR' | 'SAR' | 'USD';
@@ -53,7 +54,7 @@ export function LandingNavbar({
   const t = navLabels[lang];
 
   return (
-    <header className="sticky top-0 z-50 bg-[#FAFAFA]/95 border-b border-zinc-200 backdrop-blur-md px-4 sm:px-8 py-3 transition-all">
+    <header className="sticky top-0 z-50 bg-[#FAFAFA]/90 border-b border-zinc-200/80 backdrop-blur-xl px-4 sm:px-8 py-3 transition-all">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Brand & Animated Logo */}
         <Link href="/" className="flex items-center gap-3.5 group">
@@ -94,7 +95,7 @@ export function LandingNavbar({
         {/* Currency & Language Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Currency Toggle */}
-          <div className="flex bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 text-[11px] font-mono font-semibold">
+          <div className="flex bg-zinc-100/90 p-0.5 rounded-lg border border-zinc-200/90 text-[11px] font-mono font-semibold shadow-xs">
             {(['IDR', 'SAR', 'USD'] as Currency[]).map((curr) => (
               <button
                 key={curr}
@@ -112,7 +113,7 @@ export function LandingNavbar({
           </div>
 
           {/* Language Toggle */}
-          <div className="flex bg-zinc-100 p-0.5 rounded-lg border border-zinc-200 text-[11px] font-mono font-semibold">
+          <div className="flex bg-zinc-100/90 p-0.5 rounded-lg border border-zinc-200/90 text-[11px] font-mono font-semibold shadow-xs">
             {(['id', 'ar', 'en'] as Lang[]).map((l) => (
               <button
                 key={l}
@@ -129,14 +130,17 @@ export function LandingNavbar({
             ))}
           </div>
 
-          {/* Admin Login 3D Button */}
-          <Link
-            href="/admin/login"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl btn-3d-white text-zinc-900 font-mono font-bold text-xs"
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-zinc-700" />
-            <span>{t.admin}</span>
-          </Link>
+          {/* Admin Login Magnetic Button */}
+          <div className="hidden sm:block">
+            <MagneticButton
+              variant="secondary"
+              href="/admin/login"
+              icon={<ShieldCheck className="w-3.5 h-3.5 text-zinc-700" />}
+              className="py-1.5! px-3.5! text-xs!"
+            >
+              {t.admin}
+            </MagneticButton>
+          </div>
         </div>
       </div>
     </header>

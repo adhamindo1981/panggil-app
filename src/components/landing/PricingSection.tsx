@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
+import { SpatialCard } from '@/components/cinematic/SpatialCard';
+import { MagneticButton } from '@/components/cinematic/MagneticButton';
 
 type Lang = 'id' | 'ar' | 'en';
 type Currency = 'IDR' | 'SAR' | 'USD';
@@ -237,38 +239,38 @@ export function PricingSection({ lang, currency }: Props) {
     <section
       id="pricing"
       dir={isRtl ? 'rtl' : 'ltr'}
-      className="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full border-t border-zinc-200"
+      className="py-24 px-4 sm:px-8 max-w-7xl mx-auto w-full border-t border-zinc-200/80 relative"
     >
-      <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-        <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest">
+      <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
+        <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest block">
           {t.tag}
         </span>
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-950 ltr:tracking-tight rtl:tracking-normal rtl:leading-[1.4]">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-950 ltr:tracking-tight rtl:tracking-normal rtl:leading-[1.44]">
           {t.title}
         </h2>
-        <p className="text-sm sm:text-base text-zinc-600">{t.subtitle}</p>
+        <p className="text-sm sm:text-base text-zinc-600 leading-relaxed">{t.subtitle}</p>
 
         {/* Billing Cycle Toggle */}
-        <div className="pt-3 flex justify-center">
-          <div className="inline-flex items-center bg-zinc-100 p-1 rounded-xl border border-zinc-200 text-xs font-mono font-semibold">
+        <div className="pt-4 flex justify-center">
+          <div className="inline-flex items-center bg-zinc-100 p-1.5 rounded-2xl border border-zinc-200/80 text-xs font-mono font-semibold shadow-xs">
             <button
               type="button"
               onClick={() => setBillingCycle('annual')}
-              className={`py-1.5 px-4 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+              className={`py-2 px-4 rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
                 billingCycle === 'annual'
-                  ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200'
+                  ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200 font-bold'
                   : 'text-zinc-600 hover:text-zinc-950'
               }`}
             >
               <span>{t.toggleAnnual}</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-600" />
+              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
             </button>
             <button
               type="button"
               onClick={() => setBillingCycle('monthly')}
-              className={`py-1.5 px-4 rounded-lg transition-colors cursor-pointer ${
+              className={`py-2 px-4 rounded-xl transition-all cursor-pointer ${
                 billingCycle === 'monthly'
-                  ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200'
+                  ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200 font-bold'
                   : 'text-zinc-600 hover:text-zinc-950'
               }`}
             >
@@ -278,81 +280,80 @@ export function PricingSection({ lang, currency }: Props) {
         </div>
       </div>
 
-      {/* Pricing Cards Grid */}
+      {/* Pricing Cards Grid with SpatialCard 3D tilt */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {plans.map((p) => {
           const price = billingCycle === 'annual' ? p.priceAnnualIDR : p.priceMonthlyIDR;
           return (
-            <div
+            <SpatialCard
               key={p.id}
-              className={`bg-white rounded-3xl p-6 sm:p-7 border flex flex-col justify-between transition-colors shadow-xs ${
-                p.highlight
-                  ? 'border-orange-600 ring-2 ring-orange-600/10'
-                  : 'border-zinc-200 hover:border-zinc-300'
-              }`}
+              tiltIntensity={5}
+              telemetryCode={`PLAN_${p.tier.toUpperCase()} // PANGGIL`}
+              badge={p.badge ? p.badge[lang] : undefined}
+              className={`h-full ${p.highlight ? 'ring-2 ring-orange-500/40 rounded-2xl' : ''}`}
             >
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-500">
+              <div className="flex flex-col justify-between h-full space-y-6">
+                <div>
+                  <span className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-400 block mb-1">
                     {p.tier}
                   </span>
-                  {p.badge && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-orange-100 text-orange-800 border border-orange-200">
-                      {p.badge[lang]}
-                    </span>
-                  )}
-                </div>
-                <h3 className="text-xl font-bold text-zinc-950 mb-1">{p.name[lang]}</h3>
-                <p className="text-xs text-zinc-500 mb-6 leading-normal min-h-[32px]">{p.desc[lang]}</p>
+                  <h3 className="text-xl font-bold text-zinc-950 mb-1">{p.name[lang]}</h3>
+                  <p className="text-xs text-zinc-500 mb-6 leading-normal min-h-[34px]">
+                    {p.desc[lang]}
+                  </p>
 
-                <div className="mb-6 pb-6 border-b border-zinc-200">
-                  {!p.isCustom ? (
-                    <>
-                      <div className="text-3xl font-mono font-black text-zinc-950">
-                        {formatPrice(price, currency)}
-                      </div>
-                      <span className="text-[11px] font-mono text-zinc-500">
-                        {billingCycle === 'annual'
-                          ? lang === 'id'
-                            ? '/ tahun (Rp ' + Math.round(price / 12).toLocaleString('id-ID') + '/bln)'
-                            : t.perYear
-                          : t.perMonth}
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-2xl font-mono font-bold text-zinc-900">{t.customQuote}</div>
-                      <span className="text-[11px] text-zinc-500 font-mono">
-                        {t.customQuoteSub}
-                      </span>
-                    </>
-                  )}
+                  <div className="mb-6 pb-6 border-b border-zinc-100">
+                    {!p.isCustom ? (
+                      <>
+                        <div className="text-3xl font-mono font-black text-zinc-950">
+                          {formatPrice(price, currency)}
+                        </div>
+                        <span className="text-[11px] font-mono text-zinc-500">
+                          {billingCycle === 'annual'
+                            ? lang === 'id'
+                              ? '/ tahun (Rp ' + Math.round(price / 12).toLocaleString('id-ID') + '/bln)'
+                              : t.perYear
+                            : t.perMonth}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-2xl font-mono font-bold text-zinc-900">
+                          {t.customQuote}
+                        </div>
+                        <span className="text-[11px] text-zinc-500 font-mono">
+                          {t.customQuoteSub}
+                        </span>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Feature Checklist */}
+                  <ul className="space-y-3 text-xs text-zinc-700">
+                    {p.features[lang].map((f, idx) => (
+                      <li key={idx} className="flex items-start gap-2.5">
+                        <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span className="leading-snug">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
-                {/* Feature Checklist */}
-                <ul className="space-y-3 text-xs text-zinc-700 mb-8">
-                  {p.features[lang].map((f, idx) => (
-                    <li key={idx} className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <span className="leading-snug">{f}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="pt-2">
+                  <MagneticButton
+                    variant={p.highlight ? 'primary' : 'secondary'}
+                    glowColor={p.highlight ? '#EA580C' : '#71717A'}
+                    href={`https://wa.me/966553865899?text=${encodeURIComponent(
+                      `Halo Panggil App, saya tertarik berlangganan paket ${p.tier} (${billingCycle})`
+                    )}`}
+                    target="_blank"
+                    className="w-full"
+                  >
+                    {t.btnChoose}
+                  </MagneticButton>
+                </div>
               </div>
-
-              <a
-                href={`https://wa.me/966553865899?text=${encodeURIComponent(
-                  `Halo Panggil App, saya tertarik berlangganan paket ${p.tier} (${billingCycle})`
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className={`w-full py-3.5 px-4 rounded-xl text-center font-mono font-bold text-xs ${
-                  p.highlight ? 'btn-3d-orange' : 'btn-3d-dark'
-                }`}
-              >
-                {t.btnChoose}
-              </a>
-            </div>
+            </SpatialCard>
           );
         })}
       </div>

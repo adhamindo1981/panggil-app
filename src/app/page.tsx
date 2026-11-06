@@ -18,6 +18,10 @@ import { ComparisonTable } from '@/components/landing/ComparisonTable';
 import { PricingSection } from '@/components/landing/PricingSection';
 import { FaqAccordion } from '@/components/landing/FaqAccordion';
 import { AnimatedBrandLogo } from '@/components/landing/AnimatedBrandLogo';
+import { SmoothScrollProvider } from '@/components/cinematic/SmoothScrollProvider';
+import { LivingBackground } from '@/components/cinematic/LivingBackground';
+import { MagneticButton } from '@/components/cinematic/MagneticButton';
+import { SpatialCard } from '@/components/cinematic/SpatialCard';
 
 type Lang = 'id' | 'ar' | 'en';
 type Currency = 'IDR' | 'SAR' | 'USD';
@@ -94,198 +98,218 @@ export default function HomePage() {
   const t = heroStrings[lang];
 
   return (
-    <div
-      dir={isRtl ? 'rtl' : 'ltr'}
-      className="min-h-screen bg-panggil-pattern text-zinc-950 flex flex-col justify-between selection:bg-orange-600 selection:text-white font-sans antialiased overflow-x-hidden"
-    >
-      {/* ======================================================== */}
-      {/* 1. TOP NAVBAR WITH ANIMATED BRAND LOGO */}
-      {/* ======================================================== */}
-      <LandingNavbar
-        lang={lang}
-        onLangChange={setLang}
-        currency={currency}
-        onCurrencyChange={setCurrency}
-      />
+    <SmoothScrollProvider>
+      <div
+        dir={isRtl ? 'rtl' : 'ltr'}
+        className="min-h-screen text-zinc-950 flex flex-col justify-between selection:bg-orange-600 selection:text-white font-sans antialiased overflow-x-hidden relative"
+      >
+        {/* ======================================================== */}
+        {/* LIVING ATMOSPHERIC BACKGROUND (FILM GRAIN + 3D GRID + AURORA) */}
+        {/* ======================================================== */}
+        <LivingBackground
+          showGrid={true}
+          showNoise={true}
+          showAurora={true}
+          accentColor="#EA580C"
+          theme="light"
+        />
 
-      {/* ======================================================== */}
-      {/* 2. HERO SECTION (2-COLUMN SWISS EDITORIAL LAYOUT) */}
-      {/* ======================================================== */}
-      <section className="relative pt-10 pb-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
-          {/* COLUMN 1: DIRECT VALUE HEADLINE & 3D CTAS (7 COLS) */}
-          <div className="lg:col-span-7 space-y-6">
-            {/* Animated Brand Emblem & Micro System Status */}
-            <div className="flex items-center gap-3.5 flex-wrap">
-              <AnimatedBrandLogo size="md" showRays={true} interactive={true} />
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-zinc-200 text-xs font-mono font-medium text-zinc-800 shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
-                <span>{t.badge}</span>
+        {/* ======================================================== */}
+        {/* 1. TOP NAVBAR WITH STUDIO GLASSMORPHISM & BRAND LOGO */}
+        {/* ======================================================== */}
+        <LandingNavbar
+          lang={lang}
+          onLangChange={setLang}
+          currency={currency}
+          onCurrencyChange={setCurrency}
+        />
+
+        {/* ======================================================== */}
+        {/* 2. HERO SECTION (2-COLUMN AWWWARDS SPATIAL LAYOUT) */}
+        {/* ======================================================== */}
+        <section className="relative pt-12 pb-24 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
+            {/* COLUMN 1: DIRECT VALUE HEADLINE & MAGNETIC CONTROLS (7 COLS) */}
+            <div className="lg:col-span-7 space-y-7">
+              {/* Animated Brand Emblem & Micro System Status */}
+              <div className="flex items-center gap-3.5 flex-wrap">
+                <AnimatedBrandLogo size="md" showRays={true} interactive={true} />
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 backdrop-blur-md border border-zinc-200/90 text-xs font-mono font-medium text-zinc-800 shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
+                  <span>{t.badge}</span>
+                </div>
+              </div>
+
+              {/* Swiss High-Contrast Headline with strict line-height spacing */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-zinc-950 ltr:tracking-tight rtl:tracking-normal leading-[1.25] sm:leading-[1.2] rtl:leading-[1.48] sm:rtl:leading-[1.44] lg:rtl:leading-[1.4]">
+                {t.heroTitlePrefix}{' '}
+                <span className="text-orange-600 underline decoration-orange-600/30 underline-offset-8 rtl:underline-offset-[14px]">
+                  {t.heroTitleHighlight}
+                </span>
+              </h1>
+
+              {/* Authoritative Subheading */}
+              <p className="text-base sm:text-lg text-zinc-600 font-normal leading-relaxed max-w-2xl">
+                {t.heroSubtitle}
+              </p>
+
+              {/* Magnetic Spring Physics CTA Group */}
+              <div className="pt-2 flex flex-wrap items-center gap-3.5">
+                <MagneticButton
+                  variant="primary"
+                  glowColor="#EA580C"
+                  href="/c/ubk/cashier"
+                  target="_blank"
+                  icon={<Zap className="w-4 h-4 fill-white" />}
+                >
+                  {t.ctaDemo}
+                </MagneticButton>
+
+                <MagneticButton
+                  variant="secondary"
+                  href="/c/ubk/menu"
+                  target="_blank"
+                  icon={<Smartphone className="w-4 h-4 text-zinc-700" />}
+                >
+                  {t.ctaCustomer}
+                </MagneticButton>
+
+                <MagneticButton
+                  variant="secondary"
+                  href="#simulator"
+                  icon={<Volume2 className="w-4 h-4 text-orange-600 animate-pulse" />}
+                >
+                  {t.ctaTestBuzzer}
+                </MagneticButton>
+              </div>
+
+              {/* Micro Metrics Line */}
+              <div className="pt-6 grid grid-cols-3 gap-4 border-t border-zinc-200/80 text-zinc-600">
+                <div>
+                  <p className="font-mono text-xl sm:text-2xl font-bold text-zinc-950">0</p>
+                  <p className="text-xs text-zinc-500 font-medium">{t.metricsAppFreeDesc}</p>
+                </div>
+                <div>
+                  <p className="font-mono text-xl sm:text-2xl font-bold text-emerald-600">&lt; 150ms</p>
+                  <p className="text-xs text-zinc-500 font-medium">{t.metricsLatencyDesc}</p>
+                </div>
+                <div>
+                  <p className="font-mono text-xl sm:text-2xl font-bold text-zinc-950">85%</p>
+                  <p className="text-xs text-zinc-500 font-medium">{t.metricsSavingsDesc}</p>
+                </div>
               </div>
             </div>
 
-            {/* Swiss High-Contrast Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-zinc-950 ltr:tracking-tight rtl:tracking-normal leading-[1.25] sm:leading-[1.2] rtl:leading-[1.48] sm:rtl:leading-[1.44] lg:rtl:leading-[1.4]">
-              {t.heroTitlePrefix}{' '}
-              <span className="text-orange-600 underline decoration-orange-600/30 underline-offset-8 rtl:underline-offset-[14px]">
-                {t.heroTitleHighlight}
-              </span>
-            </h1>
+            {/* COLUMN 2: INTERACTIVE LIVE PAGER & 3D COASTER SIMULATOR (5 COLS) */}
+            <div id="simulator" className="lg:col-span-5 flex flex-col items-center">
+              <InteractiveHeroPager initialLang={lang} />
+            </div>
+          </div>
+        </section>
 
-            {/* Authoritative Subheading */}
-            <p className="text-base sm:text-lg text-zinc-600 font-normal leading-relaxed max-w-2xl">
-              {t.heroSubtitle}
-            </p>
+        {/* ======================================================== */}
+        {/* 3. ASYMMETRIC BENTO GRID (WITH SPATIAL 3D TILT & MINIATURES) */}
+        {/* ======================================================== */}
+        <AsymmetricBentoGrid lang={lang} />
 
-            {/* Tactile 3D CTA Group */}
-            <div className="pt-2 flex flex-wrap items-center gap-3.5">
-              <Link
-                href="/c/ubk/cashier"
-                target="_blank"
-                className="py-3.5 px-6 rounded-xl font-mono font-bold text-sm btn-3d-orange flex items-center gap-2.5"
-              >
-                <Zap className="w-4 h-4 fill-white" />
-                <span>{t.ctaDemo}</span>
-                <ArrowRight className={`w-4 h-4 ${isRtl ? 'rotate-180' : ''}`} />
+        {/* ======================================================== */}
+        {/* 4. INTERACTIVE ROI CALCULATOR (WITH SPATIAL CARD) */}
+        {/* ======================================================== */}
+        <InteractiveRoiCalculator lang={lang} currency={currency} />
+
+        {/* ======================================================== */}
+        {/* 5. SIDE-BY-SIDE BENCHMARK COMPARISON TABLE */}
+        {/* ======================================================== */}
+        <ComparisonTable lang={lang} />
+
+        {/* ======================================================== */}
+        {/* 6. TRANSPARENT PRICING PLANS (WITH SPATIAL 3D CARDS) */}
+        {/* ======================================================== */}
+        <PricingSection lang={lang} currency={currency} />
+
+        {/* ======================================================== */}
+        {/* 7. FREQUENTLY ASKED QUESTIONS (FAQ) */}
+        {/* ======================================================== */}
+        <FaqAccordion lang={lang} />
+
+        {/* ======================================================== */}
+        {/* 8. BOTTOM CALL TO ACTION WITH SPATIAL 3D DEPTH */}
+        {/* ======================================================== */}
+        <section className="py-24 px-4 sm:px-8 max-w-7xl mx-auto w-full border-t border-zinc-200/80">
+          <SpatialCard
+            theme="dark"
+            tiltIntensity={3}
+            telemetryCode="CONVERSION_GATEWAY // PROD_2026"
+            badge="ZERO-RISK ROLLOUT"
+          >
+            <div className="text-white p-6 sm:p-12 text-center space-y-6 relative overflow-hidden">
+              {/* Subtle background radar ring decor */}
+              <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full border border-white/5 pointer-events-none" />
+              <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full border border-white/5 pointer-events-none" />
+
+              <div className="max-w-2xl mx-auto space-y-3 relative z-10">
+                <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
+                  {t.ctaBottomTitle}
+                </h2>
+                <p className="text-sm sm:text-base text-zinc-400">
+                  {t.ctaBottomSubtitle}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center gap-4 pt-3 relative z-10">
+                <MagneticButton
+                  variant="emerald"
+                  href="https://wa.me/966553865899?text=Halo%20Panggil%20App,%20saya%20ingin%20berlangganan%20sistem%20pager"
+                  target="_blank"
+                  icon={<MessageCircle className="w-4 h-4" />}
+                >
+                  {t.whatsappBtn}
+                </MagneticButton>
+
+                <MagneticButton
+                  variant="glass"
+                  href="/c/ubk/cashier"
+                  target="_blank"
+                  icon={<ArrowRight className={`w-4 h-4 ${isRtl ? 'rotate-180' : ''}`} />}
+                >
+                  {t.ctaDemo}
+                </MagneticButton>
+              </div>
+            </div>
+          </SpatialCard>
+        </section>
+
+        {/* ======================================================== */}
+        {/* 9. SWISS MINIMALIST FOOTER WITH ANIMATED BRAND MARK */}
+        {/* ======================================================== */}
+        <footer className="border-t border-zinc-200/80 bg-white/80 backdrop-blur-md py-12 px-4 sm:px-8">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-zinc-500 font-mono">
+            <div className="flex items-center gap-3.5">
+              <AnimatedBrandLogo size="sm" showRays={false} interactive={true} />
+              <div>
+                <p className="font-bold text-zinc-950 font-sans text-sm">Panggil / نداء © 2026</p>
+                <p className="text-[11px] text-zinc-500">Zero-Hardware Coaster Pager & Smart Menu Platform</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-6 text-zinc-600">
+              <Link href="/admin/login" className="hover:text-orange-600 transition-colors">
+                Admin Portal
               </Link>
-
-              <Link
-                href="/c/ubk/menu"
-                target="_blank"
-                className="py-3.5 px-5 rounded-xl font-mono font-bold text-sm btn-3d-white flex items-center gap-2"
-              >
-                <Smartphone className="w-4 h-4 text-zinc-700" />
-                <span>{t.ctaCustomer}</span>
+              <Link href="/c/ubk/cashier" className="hover:text-orange-600 transition-colors">
+                Demo POS
               </Link>
-
-              <a
-                href="#simulator"
-                className="py-3.5 px-5 rounded-xl font-mono font-bold text-sm btn-3d-white flex items-center gap-2"
-              >
-                <Volume2 className="w-4 h-4 text-orange-600 animate-pulse" />
-                <span>{t.ctaTestBuzzer}</span>
-              </a>
+              <Link href="/c/ubk/menu" className="hover:text-orange-600 transition-colors">
+                Demo Menu
+              </Link>
             </div>
 
-            {/* Micro Metrics Line */}
-            <div className="pt-6 grid grid-cols-3 gap-4 border-t border-zinc-200 text-zinc-600">
-              <div>
-                <p className="font-mono text-xl sm:text-2xl font-bold text-zinc-950">0</p>
-                <p className="text-xs text-zinc-500 font-medium">{t.metricsAppFreeDesc}</p>
-              </div>
-              <div>
-                <p className="font-mono text-xl sm:text-2xl font-bold text-emerald-600">&lt; 150ms</p>
-                <p className="text-xs text-zinc-500 font-medium">{t.metricsLatencyDesc}</p>
-              </div>
-              <div>
-                <p className="font-mono text-xl sm:text-2xl font-bold text-zinc-950">85%</p>
-                <p className="text-xs text-zinc-500 font-medium">{t.metricsSavingsDesc}</p>
-              </div>
+            <div className="text-center md:text-right rtl:md:text-left text-[11px] text-zinc-400">
+              <span>Swiss Minimalist Precision · Southeast Asia & GCC</span>
             </div>
           </div>
-
-          {/* COLUMN 2: INTERACTIVE LIVE PAGER SIMULATOR (5 COLS) */}
-          <div id="simulator" className="lg:col-span-5 flex flex-col items-center">
-            <InteractiveHeroPager initialLang={lang} />
-          </div>
-        </div>
-      </section>
-
-      {/* ======================================================== */}
-      {/* 3. ASYMMETRIC BENTO GRID (REAL MINIATURE UI ELEMENTS) */}
-      {/* ======================================================== */}
-      <AsymmetricBentoGrid lang={lang} />
-
-      {/* ======================================================== */}
-      {/* 4. INTERACTIVE ROI CALCULATOR */}
-      {/* ======================================================== */}
-      <InteractiveRoiCalculator lang={lang} currency={currency} />
-
-      {/* ======================================================== */}
-      {/* 5. SIDE-BY-SIDE BENCHMARK COMPARISON TABLE */}
-      {/* ======================================================== */}
-      <ComparisonTable lang={lang} />
-
-      {/* ======================================================== */}
-      {/* 6. TRANSPARENT PRICING PLANS */}
-      {/* ======================================================== */}
-      <PricingSection lang={lang} currency={currency} />
-
-      {/* ======================================================== */}
-      {/* 7. FREQUENTLY ASKED QUESTIONS (FAQ) */}
-      {/* ======================================================== */}
-      <FaqAccordion lang={lang} />
-
-      {/* ======================================================== */}
-      {/* 8. BOTTOM CALL TO ACTION WITH 3D BUTTONS */}
-      {/* ======================================================== */}
-      <section className="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full border-t border-zinc-200">
-        <div className="bg-zinc-950 text-white rounded-3xl p-8 sm:p-14 text-center space-y-6 shadow-md relative overflow-hidden">
-          {/* Subtle background radar ring decor */}
-          <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full border border-white/5 pointer-events-none" />
-          <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full border border-white/5 pointer-events-none" />
-
-          <div className="max-w-2xl mx-auto space-y-3 relative z-10">
-            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight">
-              {t.ctaBottomTitle}
-            </h2>
-            <p className="text-sm sm:text-base text-zinc-400">
-              {t.ctaBottomSubtitle}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2 relative z-10">
-            <a
-              href="https://wa.me/966553865899?text=Halo%20Panggil%20App,%20saya%20ingin%20berlangganan%20sistem%20pager"
-              target="_blank"
-              rel="noreferrer"
-              className="py-4 px-7 rounded-xl font-mono font-bold text-sm btn-3d-emerald flex items-center gap-2.5"
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>{t.whatsappBtn}</span>
-            </a>
-
-            <Link
-              href="/c/ubk/cashier"
-              target="_blank"
-              className="py-4 px-6 rounded-xl font-mono font-bold text-sm btn-3d-white flex items-center gap-2"
-            >
-              {t.ctaDemo}
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ======================================================== */}
-      {/* 9. SWISS MINIMALIST FOOTER WITH ANIMATED BRAND MARK */}
-      {/* ======================================================== */}
-      <footer className="border-t border-zinc-200 bg-white py-12 px-4 sm:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-zinc-500 font-mono">
-          <div className="flex items-center gap-3.5">
-            <AnimatedBrandLogo size="sm" showRays={false} interactive={true} />
-            <div>
-              <p className="font-bold text-zinc-950 font-sans text-sm">Panggil / نداء © 2026</p>
-              <p className="text-[11px] text-zinc-500">Zero-Hardware Coaster Pager & Smart Menu Platform</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-6 text-zinc-600">
-            <Link href="/admin/login" className="hover:text-orange-600 transition-colors">
-              Admin Portal
-            </Link>
-            <Link href="/c/ubk/cashier" className="hover:text-orange-600 transition-colors">
-              Demo POS
-            </Link>
-            <Link href="/c/ubk/menu" className="hover:text-orange-600 transition-colors">
-              Demo Menu
-            </Link>
-          </div>
-
-          <div className="text-center md:text-right rtl:md:text-left text-[11px] text-zinc-400">
-            <span>Swiss Minimalist Precision · Southeast Asia & GCC</span>
-          </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
+    </SmoothScrollProvider>
   );
 }

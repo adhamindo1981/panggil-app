@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import { Check, X } from 'lucide-react';
+import { SpatialCard } from '@/components/cinematic/SpatialCard';
 
 type Lang = 'id' | 'ar' | 'en';
 
@@ -84,54 +87,61 @@ export function ComparisonTable({ lang }: Props) {
     <section
       id="comparison"
       dir={isRtl ? 'rtl' : 'ltr'}
-      className="py-20 px-4 sm:px-8 max-w-6xl mx-auto w-full border-t border-zinc-200"
+      className="py-24 px-4 sm:px-8 max-w-6xl mx-auto w-full border-t border-zinc-200/80 relative"
     >
       <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
-        <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest">
+        <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest block">
           {t.tag}
         </span>
-        <h2 className="text-3xl sm:text-4xl font-black text-zinc-950 ltr:tracking-tight rtl:tracking-normal rtl:leading-[1.4]">
+        <h2 className="text-3xl sm:text-4xl font-black text-zinc-950 ltr:tracking-tight rtl:tracking-normal rtl:leading-[1.44]">
           {t.title}
         </h2>
-        <p className="text-sm text-zinc-600">{t.subtitle}</p>
+        <p className="text-sm text-zinc-600 leading-relaxed">{t.subtitle}</p>
       </div>
 
-      <div className="overflow-x-auto bg-white border border-zinc-200 rounded-3xl shadow-xs">
-        <table className="w-full text-left rtl:text-right text-xs">
-          <thead>
-            <tr className="border-b border-zinc-200 bg-zinc-50 text-zinc-700 font-mono">
-              <th className="py-4.5 px-6 font-bold uppercase w-1/3 text-[11px]">{t.thParam}</th>
-              <th className="py-4.5 px-6 font-bold uppercase w-1/3 text-orange-700 bg-orange-50/50 text-[11px]">
-                {t.thPanggil}
-              </th>
-              <th className="py-4.5 px-6 font-bold uppercase w-1/3 text-zinc-500 text-[11px]">
-                {t.thHardware}
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-200 font-sans">
-            {comparisonData.map((row, idx) => (
-              <tr key={idx} className="hover:bg-zinc-50/60 transition-colors">
-                <td className="py-4 px-6 font-bold text-zinc-900 text-xs sm:text-sm">
-                  {row.label[lang]}
-                </td>
-                <td className="py-4 px-6 font-semibold text-emerald-800 bg-orange-50/20 text-xs sm:text-sm">
-                  <div className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>{row.panggil[lang]}</span>
-                  </div>
-                </td>
-                <td className="py-4 px-6 text-zinc-500 text-xs sm:text-sm">
-                  <div className="flex items-center gap-2.5">
-                    <X className="w-4 h-4 text-red-500 shrink-0" />
-                    <span>{row.hardware[lang]}</span>
-                  </div>
-                </td>
+      <SpatialCard
+        tiltIntensity={3}
+        telemetryCode="BENCHMARK_MATRIX // PARITY_V2"
+        badge="OBJECTIVE AUDIT"
+        className="w-full"
+      >
+        <div className="overflow-x-auto -m-2">
+          <table className="w-full text-left rtl:text-right text-xs">
+            <thead>
+              <tr className="border-b border-zinc-200 bg-zinc-50/80 text-zinc-700 font-mono">
+                <th className="py-4.5 px-6 font-bold uppercase w-1/3 text-[11px]">{t.thParam}</th>
+                <th className="py-4.5 px-6 font-bold uppercase w-1/3 text-orange-700 bg-orange-50/40 text-[11px]">
+                  {t.thPanggil}
+                </th>
+                <th className="py-4.5 px-6 font-bold uppercase w-1/3 text-zinc-500 text-[11px]">
+                  {t.thHardware}
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-zinc-200/80 font-sans">
+              {comparisonData.map((row, idx) => (
+                <tr key={idx} className="hover:bg-zinc-50/70 transition-colors">
+                  <td className="py-4 px-6 font-bold text-zinc-900 text-xs sm:text-sm">
+                    {row.label[lang]}
+                  </td>
+                  <td className="py-4 px-6 font-semibold text-emerald-800 bg-orange-50/15 text-xs sm:text-sm">
+                    <div className="flex items-center gap-2.5">
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{row.panggil[lang]}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6 text-zinc-500 text-xs sm:text-sm">
+                    <div className="flex items-center gap-2.5">
+                      <X className="w-4 h-4 text-red-500 shrink-0" />
+                      <span>{row.hardware[lang]}</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SpatialCard>
     </section>
   );
 }
