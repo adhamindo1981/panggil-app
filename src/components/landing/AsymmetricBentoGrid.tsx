@@ -130,7 +130,7 @@ export function AsymmetricBentoGrid({ lang }: Props) {
         <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest">
           {t.tag}
         </span>
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-950 tracking-tight leading-tight">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-zinc-950 ltr:tracking-tight rtl:tracking-normal leading-tight rtl:leading-[1.42]">
           {t.title}
         </h2>
         <p className="text-sm sm:text-base text-zinc-600 leading-relaxed">

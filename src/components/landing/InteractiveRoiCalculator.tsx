@@ -99,7 +99,7 @@ export function InteractiveRoiCalculator({ lang, currency }: Props) {
           <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-widest">
             {t.tag}
           </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-zinc-950 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-zinc-950 ltr:tracking-tight rtl:tracking-normal rtl:leading-[1.4]">
             {t.title}
           </h2>
           <p className="text-sm text-zinc-600">{t.subtitle}</p>

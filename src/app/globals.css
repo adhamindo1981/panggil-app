@@ -28,6 +28,22 @@ body {
   line-height: 1.65;
 }
 
+[dir="rtl"] h1 {
+  line-height: 1.48 !important;
+  letter-spacing: 0 !important;
+  text-underline-offset: 14px !important;
+}
+
+[dir="rtl"] h2 {
+  line-height: 1.42 !important;
+  letter-spacing: 0 !important;
+}
+
+[dir="rtl"] h3, [dir="rtl"] h4 {
+  line-height: 1.4 !important;
+  letter-spacing: 0 !important;
+}
+
 .font-mono {
   font-family: var(--font-mono) !important;
 }

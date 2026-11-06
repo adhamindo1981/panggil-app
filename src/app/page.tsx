@@ -125,9 +125,9 @@ export default function HomePage() {
             </div>
 
             {/* Swiss High-Contrast Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-zinc-950 leading-[1.12]">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-zinc-950 ltr:tracking-tight rtl:tracking-normal leading-[1.25] sm:leading-[1.2] rtl:leading-[1.48] sm:rtl:leading-[1.44] lg:rtl:leading-[1.4]">
               {t.heroTitlePrefix}{' '}
-              <span className="text-orange-600 underline decoration-orange-600/30 underline-offset-8">
+              <span className="text-orange-600 underline decoration-orange-600/30 underline-offset-8 rtl:underline-offset-[14px]">
                 {t.heroTitleHighlight}
               </span>
             </h1>
