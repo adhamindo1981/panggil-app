@@ -61,6 +61,139 @@ body {
   animation: pager-buzz 0.4s infinite ease-in-out;
 }
 
+/* ======================================================== */
+/* PANGGIL ARCHITECTURAL REPEATING WATERMARK PATTERN */
+/* ======================================================== */
+.bg-panggil-pattern {
+  background-color: #fafafa;
+  background-image: url("data:image/svg+xml,%3Csvg width='96' height='96' viewBox='0 0 96 96' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%2309090b' stroke-width='1.2' stroke-opacity='0.035'%3E%3C!-- Architectural Letter P --%3E%3Cpath d='M26 18 h16 a14 14 0 0 1 0 28 h-16 v30' /%3E%3Cpath d='M26 46 h16' /%3E%3C!-- Radiating Concentric Radar Arcs --%3E%3Cpath d='M46 24 a16 16 0 0 1 14 16' /%3E%3Cpath d='M46 16 a24 24 0 0 1 22 24' /%3E%3Cpath d='M46 8 a32 32 0 0 1 30 32' /%3E%3C!-- Signaling Nodes --%3E%3Ccircle cx='60' cy='40' r='2' fill='%23ea580c' fill-opacity='0.15' stroke='none' /%3E%3Ccircle cx='68' cy='40' r='2' fill='%23ea580c' fill-opacity='0.15' stroke='none' /%3E%3Ccircle cx='76' cy='40' r='2.2' fill='%2316a34a' fill-opacity='0.20' stroke='none' /%3E%3C!-- Precision Grid Registration Crosshairs --%3E%3Cpath d='M8 8 h6 M8 8 v6' stroke-width='0.8' /%3E%3Cpath d='M88 88 h-6 M88 88 v-6' stroke-width='0.8' /%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ======================================================== */
+/* TACTILE 3D BUTTON SYSTEM (COMMERCIAL HARDWARE STYLE) */
+/* ======================================================== */
+.btn-3d-orange {
+  position: relative;
+  background-color: #ea580c;
+  color: #ffffff;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 5px 0 0 #9a3412, 0 8px 12px rgba(154, 52, 18, 0.2);
+  transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  user-select: none;
+}
+.btn-3d-orange:hover {
+  background-color: #f97316;
+  transform: translateY(1px);
+  box-shadow: 0 4px 0 0 #9a3412, 0 6px 10px rgba(154, 52, 18, 0.18);
+}
+.btn-3d-orange:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 0 #9a3412, 0 2px 4px rgba(154, 52, 18, 0.15);
+}
+
+.btn-3d-white {
+  position: relative;
+  background-color: #ffffff;
+  color: #09090b;
+  border: 1px solid #d4d4d8;
+  border-top: 1px solid #ffffff;
+  box-shadow: 0 5px 0 0 #d4d4d8, 0 8px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  user-select: none;
+}
+.btn-3d-white:hover {
+  background-color: #fafafa;
+  border-color: #a1a1aa;
+  transform: translateY(1px);
+  box-shadow: 0 4px 0 0 #a1a1aa, 0 6px 10px rgba(0, 0, 0, 0.06);
+}
+.btn-3d-white:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 0 #a1a1aa, 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.btn-3d-emerald {
+  position: relative;
+  background-color: #16a34a;
+  color: #ffffff;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 5px 0 0 #14532d, 0 8px 12px rgba(20, 83, 45, 0.25);
+  transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  user-select: none;
+}
+.btn-3d-emerald:hover {
+  background-color: #22c55e;
+  transform: translateY(1px);
+  box-shadow: 0 4px 0 0 #14532d, 0 6px 10px rgba(20, 83, 45, 0.2);
+}
+.btn-3d-emerald:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 0 #14532d, 0 2px 4px rgba(20, 83, 45, 0.15);
+}
+
+.btn-3d-dark {
+  position: relative;
+  background-color: #09090b;
+  color: #ffffff;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 5px 0 0 #27272a, 0 8px 14px rgba(0, 0, 0, 0.3);
+  transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  user-select: none;
+}
+.btn-3d-dark:hover {
+  background-color: #18181b;
+  transform: translateY(1px);
+  box-shadow: 0 4px 0 0 #27272a, 0 6px 10px rgba(0, 0, 0, 0.25);
+}
+.btn-3d-dark:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 0 #27272a, 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ======================================================== */
+/* RADAR PULSE WAVES & LOGO MOTION ANIMATIONS */
+/* ======================================================== */
+@keyframes radar-ripple {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.animate-radar-1 {
+  animation: radar-ripple 2.4s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+.animate-radar-2 {
+  animation: radar-ripple 2.4s cubic-bezier(0, 0.2, 0.8, 1) 0.8s infinite;
+}
+.animate-radar-3 {
+  animation: radar-ripple 2.4s cubic-bezier(0, 0.2, 0.8, 1) 1.6s infinite;
+}
+
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(0.4deg);
+  }
+}
+
+.animate-float {
+  animation: float-gentle 4s ease-in-out infinite;
+}
+
 /* Thermal Receipt 80mm Print Rules */
 @media print {
   body * {

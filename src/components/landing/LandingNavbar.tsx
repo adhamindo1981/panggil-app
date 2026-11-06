@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ShieldCheck } from 'lucide-react';
+import { AnimatedBrandLogo } from './AnimatedBrandLogo';
 
 type Lang = 'id' | 'ar' | 'en';
 type Currency = 'IDR' | 'SAR' | 'USD';
@@ -52,26 +53,19 @@ export function LandingNavbar({
   const t = navLabels[lang];
 
   return (
-    <header className="sticky top-0 z-50 bg-[#FAFAFA]/95 border-b border-zinc-200 backdrop-blur-md px-4 sm:px-8 py-3.5 transition-all">
+    <header className="sticky top-0 z-50 bg-[#FAFAFA]/95 border-b border-zinc-200 backdrop-blur-md px-4 sm:px-8 py-3 transition-all">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* Brand & Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl border border-zinc-300 overflow-hidden bg-white shadow-xs group-hover:border-zinc-500 transition-colors flex items-center justify-center p-0.5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/panggil-logo.jpg"
-              alt="Panggil Official Logo"
-              className="w-full h-full object-cover rounded-lg"
-            />
-          </div>
+        {/* Brand & Animated Logo */}
+        <Link href="/" className="flex items-center gap-3.5 group">
+          <AnimatedBrandLogo size="sm" showRays={false} interactive={true} />
           <div>
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold tracking-tight text-zinc-950 font-mono">
                 PANGGIL
               </span>
               <span className="text-xs font-medium text-zinc-500 font-arabic">/ نداء</span>
-              <span className="hidden sm:inline-block px-2 py-0.5 rounded-md text-[10px] font-mono font-medium bg-zinc-100 text-zinc-700 border border-zinc-200 uppercase">
-                v2.4
+              <span className="hidden sm:inline-block px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-orange-100 text-orange-800 border border-orange-200 uppercase">
+                Smart Pager
               </span>
             </div>
             <p className="text-[11px] text-zinc-500 font-medium">Digital Coaster & Smart Menu</p>
@@ -80,19 +74,19 @@ export function LandingNavbar({
 
         {/* Desktop Anchor Navigation */}
         <nav className="hidden lg:flex items-center gap-7 text-xs font-semibold text-zinc-600 font-mono">
-          <a href="#simulator" className="hover:text-zinc-950 transition-colors">
+          <a href="#simulator" className="hover:text-orange-600 transition-colors">
             {t.simulator}
           </a>
-          <a href="#features" className="hover:text-zinc-950 transition-colors">
+          <a href="#features" className="hover:text-orange-600 transition-colors">
             {t.features}
           </a>
-          <a href="#calculator" className="hover:text-zinc-950 transition-colors">
+          <a href="#calculator" className="hover:text-orange-600 transition-colors">
             {t.calculator}
           </a>
-          <a href="#comparison" className="hover:text-zinc-950 transition-colors">
+          <a href="#comparison" className="hover:text-orange-600 transition-colors">
             {t.comparison}
           </a>
-          <a href="#pricing" className="hover:text-zinc-950 transition-colors">
+          <a href="#pricing" className="hover:text-orange-600 transition-colors">
             {t.pricing}
           </a>
         </nav>
@@ -106,9 +100,9 @@ export function LandingNavbar({
                 key={curr}
                 type="button"
                 onClick={() => onCurrencyChange(curr)}
-                className={`px-2 py-1 rounded-md transition-colors cursor-pointer ${
+                className={`px-2 py-1 rounded-md transition-all cursor-pointer ${
                   currency === curr
-                    ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200'
+                    ? 'bg-white text-zinc-950 shadow-xs border border-zinc-200 font-bold'
                     : 'text-zinc-500 hover:text-zinc-950'
                 }`}
               >
@@ -124,9 +118,9 @@ export function LandingNavbar({
                 key={l}
                 type="button"
                 onClick={() => onLangChange(l)}
-                className={`px-2 py-1 rounded-md transition-colors cursor-pointer uppercase ${
+                className={`px-2 py-1 rounded-md transition-all cursor-pointer uppercase ${
                   lang === l
-                    ? 'bg-zinc-950 text-white shadow-xs'
+                    ? 'bg-zinc-950 text-white shadow-xs font-bold'
                     : 'text-zinc-500 hover:text-zinc-950'
                 }`}
               >
@@ -135,10 +129,10 @@ export function LandingNavbar({
             ))}
           </div>
 
-          {/* Admin Login Button */}
+          {/* Admin Login 3D Button */}
           <Link
             href="/admin/login"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-zinc-100 border border-zinc-200 text-zinc-900 font-mono font-medium text-xs transition-colors"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl btn-3d-white text-zinc-900 font-mono font-bold text-xs"
           >
             <ShieldCheck className="w-3.5 h-3.5 text-zinc-700" />
             <span>{t.admin}</span>

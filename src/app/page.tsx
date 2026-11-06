@@ -17,6 +17,7 @@ import { InteractiveRoiCalculator } from '@/components/landing/InteractiveRoiCal
 import { ComparisonTable } from '@/components/landing/ComparisonTable';
 import { PricingSection } from '@/components/landing/PricingSection';
 import { FaqAccordion } from '@/components/landing/FaqAccordion';
+import { AnimatedBrandLogo } from '@/components/landing/AnimatedBrandLogo';
 
 type Lang = 'id' | 'ar' | 'en';
 type Currency = 'IDR' | 'SAR' | 'USD';
@@ -95,10 +96,10 @@ export default function HomePage() {
   return (
     <div
       dir={isRtl ? 'rtl' : 'ltr'}
-      className="min-h-screen bg-[#FAFAFA] text-zinc-950 flex flex-col justify-between selection:bg-orange-600 selection:text-white font-sans antialiased overflow-x-hidden"
+      className="min-h-screen bg-panggil-pattern text-zinc-950 flex flex-col justify-between selection:bg-orange-600 selection:text-white font-sans antialiased overflow-x-hidden"
     >
       {/* ======================================================== */}
-      {/* 1. TOP NAVBAR */}
+      {/* 1. TOP NAVBAR WITH ANIMATED BRAND LOGO */}
       {/* ======================================================== */}
       <LandingNavbar
         lang={lang}
@@ -110,14 +111,17 @@ export default function HomePage() {
       {/* ======================================================== */}
       {/* 2. HERO SECTION (2-COLUMN SWISS EDITORIAL LAYOUT) */}
       {/* ======================================================== */}
-      <section className="relative pt-12 pb-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+      <section className="relative pt-10 pb-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
-          {/* COLUMN 1: DIRECT VALUE HEADLINE & CTAS (7 COLS) */}
+          {/* COLUMN 1: DIRECT VALUE HEADLINE & 3D CTAS (7 COLS) */}
           <div className="lg:col-span-7 space-y-6">
-            {/* System Status Tag */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-zinc-100 border border-zinc-200 text-xs font-mono font-medium text-zinc-800">
-              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-              <span>{t.badge}</span>
+            {/* Animated Brand Emblem & Micro System Status */}
+            <div className="flex items-center gap-3.5 flex-wrap">
+              <AnimatedBrandLogo size="md" showRays={true} interactive={true} />
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-zinc-200 text-xs font-mono font-medium text-zinc-800 shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
+                <span>{t.badge}</span>
+              </div>
             </div>
 
             {/* Swiss High-Contrast Headline */}
@@ -133,12 +137,12 @@ export default function HomePage() {
               {t.heroSubtitle}
             </p>
 
-            {/* CTA Group */}
-            <div className="pt-2 flex flex-wrap items-center gap-3">
+            {/* Tactile 3D CTA Group */}
+            <div className="pt-2 flex flex-wrap items-center gap-3.5">
               <Link
                 href="/c/ubk/cashier"
                 target="_blank"
-                className="py-3.5 px-6 bg-orange-600 hover:bg-orange-700 text-white font-mono font-bold text-sm rounded-xl shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
+                className="py-3.5 px-6 rounded-xl font-mono font-bold text-sm btn-3d-orange flex items-center gap-2.5"
               >
                 <Zap className="w-4 h-4 fill-white" />
                 <span>{t.ctaDemo}</span>
@@ -148,7 +152,7 @@ export default function HomePage() {
               <Link
                 href="/c/ubk/menu"
                 target="_blank"
-                className="py-3.5 px-5 bg-white hover:bg-zinc-50 text-zinc-900 border border-zinc-300 font-mono font-semibold text-sm rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
+                className="py-3.5 px-5 rounded-xl font-mono font-bold text-sm btn-3d-white flex items-center gap-2"
               >
                 <Smartphone className="w-4 h-4 text-zinc-700" />
                 <span>{t.ctaCustomer}</span>
@@ -156,9 +160,9 @@ export default function HomePage() {
 
               <a
                 href="#simulator"
-                className="py-3.5 px-4 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border border-zinc-200 font-mono font-semibold text-sm rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
+                className="py-3.5 px-5 rounded-xl font-mono font-bold text-sm btn-3d-white flex items-center gap-2"
               >
-                <Volume2 className="w-4 h-4 text-orange-600" />
+                <Volume2 className="w-4 h-4 text-orange-600 animate-pulse" />
                 <span>{t.ctaTestBuzzer}</span>
               </a>
             </div>
@@ -213,11 +217,15 @@ export default function HomePage() {
       <FaqAccordion lang={lang} />
 
       {/* ======================================================== */}
-      {/* 8. BOTTOM CALL TO ACTION */}
+      {/* 8. BOTTOM CALL TO ACTION WITH 3D BUTTONS */}
       {/* ======================================================== */}
       <section className="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full border-t border-zinc-200">
-        <div className="bg-zinc-950 text-white rounded-3xl p-8 sm:p-14 text-center space-y-6 shadow-sm">
-          <div className="max-w-2xl mx-auto space-y-3">
+        <div className="bg-zinc-950 text-white rounded-3xl p-8 sm:p-14 text-center space-y-6 shadow-md relative overflow-hidden">
+          {/* Subtle background radar ring decor */}
+          <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full border border-white/5 pointer-events-none" />
+          <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full border border-white/5 pointer-events-none" />
+
+          <div className="max-w-2xl mx-auto space-y-3 relative z-10">
             <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight">
               {t.ctaBottomTitle}
             </h2>
@@ -226,12 +234,12 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-2 relative z-10">
             <a
               href="https://wa.me/966553865899?text=Halo%20Panggil%20App,%20saya%20ingin%20berlangganan%20sistem%20pager"
               target="_blank"
               rel="noreferrer"
-              className="py-4 px-7 bg-emerald-600 hover:bg-emerald-700 text-white font-mono font-bold text-sm rounded-xl shadow-xs transition-colors flex items-center gap-2.5 cursor-pointer"
+              className="py-4 px-7 rounded-xl font-mono font-bold text-sm btn-3d-emerald flex items-center gap-2.5"
             >
               <MessageCircle className="w-4 h-4" />
               <span>{t.whatsappBtn}</span>
@@ -240,7 +248,7 @@ export default function HomePage() {
             <Link
               href="/c/ubk/cashier"
               target="_blank"
-              className="py-4 px-6 bg-white/10 hover:bg-white/20 text-white font-mono font-semibold text-sm rounded-xl border border-white/20 transition-colors cursor-pointer"
+              className="py-4 px-6 rounded-xl font-mono font-bold text-sm btn-3d-white flex items-center gap-2"
             >
               {t.ctaDemo}
             </Link>
@@ -249,19 +257,12 @@ export default function HomePage() {
       </section>
 
       {/* ======================================================== */}
-      {/* 9. SWISS MINIMALIST FOOTER */}
+      {/* 9. SWISS MINIMALIST FOOTER WITH ANIMATED BRAND MARK */}
       {/* ======================================================== */}
       <footer className="border-t border-zinc-200 bg-white py-12 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-zinc-500 font-mono">
           <div className="flex items-center gap-3.5">
-            <div className="w-9 h-9 rounded-xl overflow-hidden border border-zinc-300 shrink-0 bg-white p-0.5">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/panggil-logo.jpg"
-                alt="Panggil Official Logo"
-                className="w-full h-full object-cover rounded-lg"
-              />
-            </div>
+            <AnimatedBrandLogo size="sm" showRays={false} interactive={true} />
             <div>
               <p className="font-bold text-zinc-950 font-sans text-sm">Panggil / نداء © 2026</p>
               <p className="text-[11px] text-zinc-500">Zero-Hardware Coaster Pager & Smart Menu Platform</p>
@@ -269,13 +270,13 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-6 text-zinc-600">
-            <Link href="/admin/login" className="hover:text-zinc-950 transition-colors">
+            <Link href="/admin/login" className="hover:text-orange-600 transition-colors">
               Admin Portal
             </Link>
-            <Link href="/c/ubk/cashier" className="hover:text-zinc-950 transition-colors">
+            <Link href="/c/ubk/cashier" className="hover:text-orange-600 transition-colors">
               Demo POS
             </Link>
-            <Link href="/c/ubk/menu" className="hover:text-zinc-950 transition-colors">
+            <Link href="/c/ubk/menu" className="hover:text-orange-600 transition-colors">
               Demo Menu
             </Link>
           </div>

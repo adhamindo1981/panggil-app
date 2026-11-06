@@ -346,10 +346,8 @@ export function PricingSection({ lang, currency }: Props) {
                 )}`}
                 target="_blank"
                 rel="noreferrer"
-                className={`w-full py-3.5 px-4 rounded-xl text-center font-mono font-bold text-xs transition-colors cursor-pointer ${
-                  p.highlight
-                    ? 'bg-orange-600 hover:bg-orange-700 text-white shadow-xs'
-                    : 'bg-zinc-950 hover:bg-zinc-800 text-white'
+                className={`w-full py-3.5 px-4 rounded-xl text-center font-mono font-bold text-xs ${
+                  p.highlight ? 'btn-3d-orange' : 'btn-3d-dark'
                 }`}
               >
                 {t.btnChoose}

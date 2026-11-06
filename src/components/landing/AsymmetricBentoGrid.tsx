@@ -17,6 +17,7 @@ import {
   Store,
   Sliders,
 } from 'lucide-react';
+import { AnimatedBrandLogo } from './AnimatedBrandLogo';
 
 type Lang = 'id' | 'ar' | 'en';
 
@@ -142,7 +143,7 @@ export function AsymmetricBentoGrid({ lang }: Props) {
         {/* ======================================================== */}
         {/* TILE 1: CASHIER QUEUE & DISPATCHER (SPAN 8) */}
         {/* ======================================================== */}
-        <div className="md:col-span-8 bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-zinc-300 transition-colors">
+        <div className="md:col-span-8 bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-zinc-300 hover:shadow-md transition-all duration-300">
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-wider">
@@ -168,7 +169,7 @@ export function AsymmetricBentoGrid({ lang }: Props) {
                 <Store className="w-3.5 h-3.5 text-zinc-700" />
                 <span className="text-zinc-900 font-bold">Grand Indonesia · Counter 01</span>
               </div>
-              <span className="text-zinc-500">4 Active Tickets</span>
+              <span className="text-zinc-500 font-semibold">4 Active Tickets</span>
             </div>
 
             <div className="divide-y divide-zinc-200">
@@ -182,11 +183,11 @@ export function AsymmetricBentoGrid({ lang }: Props) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-md bg-emerald-100 border border-emerald-300 text-emerald-900 font-bold text-[10px] flex items-center gap-1">
+                  <span className="px-2.5 py-1 rounded-md bg-emerald-100 border border-emerald-300 text-emerald-900 font-bold text-[10px] flex items-center gap-1 shadow-xs">
                     <Check className="w-3 h-3 text-emerald-700" />
                     SIAP DIAMBIL
                   </span>
-                  <button className="px-3 py-1 rounded-md bg-orange-600 text-white font-mono font-bold text-[10px] hover:bg-orange-700 transition-colors shadow-xs">
+                  <button className="px-3 py-1.5 rounded-lg btn-3d-orange font-mono font-bold text-[10px]">
                     PANGGIL ULANG
                   </button>
                 </div>
@@ -205,7 +206,7 @@ export function AsymmetricBentoGrid({ lang }: Props) {
                   <span className="px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-900 font-bold text-[10px]">
                     SEDANG DIRACIK
                   </span>
-                  <button className="px-3 py-1 rounded-md bg-zinc-900 text-white font-mono font-bold text-[10px] hover:bg-zinc-800 transition-colors shadow-xs">
+                  <button className="px-3 py-1.5 rounded-lg btn-3d-dark font-mono font-bold text-[10px]">
                     PANGGIL PELANGGAN
                   </button>
                 </div>
@@ -231,7 +232,7 @@ export function AsymmetricBentoGrid({ lang }: Props) {
         {/* ======================================================== */}
         {/* TILE 2: ZERO-HARDWARE ACRYLIC TABLE STAND (SPAN 4) */}
         {/* ======================================================== */}
-        <div className="md:col-span-4 bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-zinc-300 transition-colors">
+        <div className="md:col-span-4 bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-zinc-300 hover:shadow-md transition-all duration-300">
           <div>
             <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-wider block mb-4">
               {t.bento2Tag}
@@ -246,11 +247,8 @@ export function AsymmetricBentoGrid({ lang }: Props) {
 
           {/* REALISTIC 3D-STYLE ACRYLIC STAND GRAPHIC */}
           <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-5 flex flex-col items-center text-center">
-            <div className="w-28 h-36 bg-white border-2 border-zinc-300 rounded-xl p-2.5 shadow-md flex flex-col justify-between items-center relative">
-              <div className="w-6 h-6 rounded-md bg-zinc-100 border border-zinc-200 flex items-center justify-center p-0.5">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/panggil-logo.jpg" alt="Logo" className="w-full h-full object-cover rounded" />
-              </div>
+            <div className="w-28 h-36 bg-white border-2 border-zinc-300 rounded-xl p-2.5 shadow-md flex flex-col justify-between items-center relative animate-float">
+              <AnimatedBrandLogo size="sm" showRays={false} interactive={false} />
               <div className="w-16 h-16 bg-zinc-950 rounded-lg p-1.5 flex items-center justify-center shadow-inner">
                 <QrCode className="w-full h-full text-white" />
               </div>
@@ -270,7 +268,7 @@ export function AsymmetricBentoGrid({ lang }: Props) {
         {/* ======================================================== */}
         {/* TILE 3: GOOGLE MAPS 5-STAR REVIEWS (SPAN 4) */}
         {/* ======================================================== */}
-        <div className="md:col-span-4 bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-zinc-300 transition-colors">
+        <div className="md:col-span-4 bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-zinc-300 hover:shadow-md transition-all duration-300">
           <div>
             <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-wider block mb-4">
               {t.bento3Tag}
@@ -287,14 +285,14 @@ export function AsymmetricBentoGrid({ lang }: Props) {
           <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-5 space-y-3">
             <div className="flex justify-between items-center text-xs font-mono text-zinc-500">
               <span>CAPTURE RATE</span>
-              <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              <span className="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 shadow-xs">
                 +38% REVIEWS
               </span>
             </div>
             <div className="bg-white p-4 rounded-xl border border-zinc-200 text-center shadow-xs">
               <div className="flex justify-center gap-1.5 text-amber-400 mb-2">
                 {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} className="w-5 h-5 fill-amber-400" />
+                  <Star key={s} className="w-5 h-5 fill-amber-400 transition-transform hover:scale-125 cursor-pointer" />
                 ))}
               </div>
               <p className="text-xs font-bold text-zinc-900 mb-0.5">
@@ -310,7 +308,7 @@ export function AsymmetricBentoGrid({ lang }: Props) {
         {/* ======================================================== */}
         {/* TILE 4: INTERACTIVE DIGITAL MENU (SPAN 8) */}
         {/* ======================================================== */}
-        <div className="md:col-span-8 bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-zinc-300 transition-colors">
+        <div className="md:col-span-8 bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-zinc-300 hover:shadow-md transition-all duration-300">
           <div>
             <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-wider block mb-4">
               {t.bento4Tag}
@@ -326,15 +324,15 @@ export function AsymmetricBentoGrid({ lang }: Props) {
           {/* REALISTIC DIGITAL MENU INTERFACE SNIPPET */}
           <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 sm:p-5">
             <div className="flex gap-2 mb-4 overflow-x-auto pb-1 text-xs font-mono">
-              <span className="px-3 py-1 bg-zinc-950 text-white rounded-lg font-bold">Semua Menu</span>
-              <span className="px-3 py-1 bg-white text-zinc-600 border border-zinc-200 rounded-lg">Specialty Coffee</span>
-              <span className="px-3 py-1 bg-white text-zinc-600 border border-zinc-200 rounded-lg">Artisan Bakery</span>
-              <span className="px-3 py-1 bg-white text-zinc-600 border border-zinc-200 rounded-lg">Non-Coffee</span>
+              <span className="px-3 py-1 bg-zinc-950 text-white rounded-lg font-bold shadow-xs">Semua Menu</span>
+              <span className="px-3 py-1 bg-white text-zinc-600 border border-zinc-200 rounded-lg hover:border-zinc-400 transition-colors cursor-pointer">Specialty Coffee</span>
+              <span className="px-3 py-1 bg-white text-zinc-600 border border-zinc-200 rounded-lg hover:border-zinc-400 transition-colors cursor-pointer">Artisan Bakery</span>
+              <span className="px-3 py-1 bg-white text-zinc-600 border border-zinc-200 rounded-lg hover:border-zinc-400 transition-colors cursor-pointer">Non-Coffee</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {/* Menu Item 1 */}
-              <div className="bg-white p-3.5 rounded-xl border border-zinc-200 flex items-center justify-between shadow-xs">
+              <div className="bg-white p-3.5 rounded-xl border border-zinc-200 flex items-center justify-between shadow-xs hover:border-orange-300 transition-colors">
                 <div>
                   <div className="flex items-center gap-1.5 mb-1">
                     <span className="font-sans font-bold text-xs text-zinc-950">Spanish Latte Signature</span>
@@ -344,13 +342,13 @@ export function AsymmetricBentoGrid({ lang }: Props) {
                   </div>
                   <p className="text-[11px] font-mono text-zinc-500">Rp 38.000 · 9.5 ر.س</p>
                 </div>
-                <button className="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 rounded-lg font-mono text-[11px] font-semibold transition-colors">
+                <button className="px-3 py-1.5 rounded-lg btn-3d-white font-mono text-[11px] font-semibold">
                   + Custom
                 </button>
               </div>
 
               {/* Menu Item 2 */}
-              <div className="bg-white p-3.5 rounded-xl border border-zinc-200 flex items-center justify-between shadow-xs">
+              <div className="bg-white p-3.5 rounded-xl border border-zinc-200 flex items-center justify-between shadow-xs hover:border-emerald-300 transition-colors">
                 <div>
                   <div className="flex items-center gap-1.5 mb-1">
                     <span className="font-sans font-bold text-xs text-zinc-950">Almond Butter Croissant</span>
@@ -360,7 +358,7 @@ export function AsymmetricBentoGrid({ lang }: Props) {
                   </div>
                   <p className="text-[11px] font-mono text-zinc-500">Rp 32.000 · 8.0 ر.س</p>
                 </div>
-                <button className="px-2.5 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 rounded-lg font-mono text-[11px] font-semibold transition-colors">
+                <button className="px-3 py-1.5 rounded-lg btn-3d-white font-mono text-[11px] font-semibold">
                   + Custom
                 </button>
               </div>
@@ -371,7 +369,7 @@ export function AsymmetricBentoGrid({ lang }: Props) {
         {/* ======================================================== */}
         {/* TILE 5: AUDIO KEEP-ALIVE SURVIVAL (SPAN 6) */}
         {/* ======================================================== */}
-        <div className="md:col-span-6 bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-zinc-300 transition-colors">
+        <div className="md:col-span-6 bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-zinc-300 hover:shadow-md transition-all duration-300">
           <div>
             <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-wider block mb-4">
               {t.bento5Tag}
@@ -407,7 +405,7 @@ export function AsymmetricBentoGrid({ lang }: Props) {
         {/* ======================================================== */}
         {/* TILE 6: MULTI-OUTLET GOVERNANCE (SPAN 6) */}
         {/* ======================================================== */}
-        <div className="md:col-span-6 bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-zinc-300 transition-colors">
+        <div className="md:col-span-6 bg-white border border-zinc-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:border-zinc-300 hover:shadow-md transition-all duration-300">
           <div>
             <span className="text-xs font-mono font-bold text-orange-600 uppercase tracking-wider block mb-4">
               {t.bento6Tag}
