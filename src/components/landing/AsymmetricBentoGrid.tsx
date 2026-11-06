@@ -132,13 +132,10 @@ export function AsymmetricBentoGrid({ lang }: Props) {
       dir={isRtl ? 'rtl' : 'ltr'}
       className="py-24 px-4 sm:px-8 max-w-7xl mx-auto w-full border-t border-zinc-200/80 relative"
     >
-      {/* Precision Section HUD Marker */}
-      <div className="flex items-center justify-between pb-6 border-b border-zinc-200/80 mb-12 text-xs font-mono text-zinc-500">
-        <span className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-orange-600 animate-pulse" />
-          <span className="font-bold text-zinc-950 uppercase tracking-widest">{t.tag}</span>
-        </span>
-        <span className="tracking-widest uppercase">PANGGIL // BENTO_V2.0</span>
+      {/* Section Tag */}
+      <div className="flex items-center gap-2 mb-4 text-xs font-mono">
+        <span className="w-2 h-2 rounded-full bg-orange-600 animate-pulse" />
+        <span className="font-bold text-orange-600 uppercase tracking-widest">{t.tag}</span>
       </div>
 
       {/* Section Header */}
@@ -159,7 +156,6 @@ export function AsymmetricBentoGrid({ lang }: Props) {
         <div className="md:col-span-8">
           <SpatialCard
             tiltIntensity={4}
-            telemetryCode="DISPATCH_LATENCY // <150MS"
             badge="LIVE WEBSOCKET"
             className="h-full"
           >
@@ -263,7 +259,6 @@ export function AsymmetricBentoGrid({ lang }: Props) {
         <div className="md:col-span-4">
           <SpatialCard
             tiltIntensity={5}
-            telemetryCode="OPTIC_SCAN // 0.4S"
             badge="ZERO-HARDWARE"
             className="h-full"
           >
@@ -308,7 +303,6 @@ export function AsymmetricBentoGrid({ lang }: Props) {
         <div className="md:col-span-4">
           <SpatialCard
             tiltIntensity={5}
-            telemetryCode="SEO_LOCAL // 5-STAR"
             badge="GOOGLE MAPS"
             className="h-full"
           >
@@ -360,7 +354,6 @@ export function AsymmetricBentoGrid({ lang }: Props) {
         <div className="md:col-span-8">
           <SpatialCard
             tiltIntensity={4}
-            telemetryCode="MENU_ENGINE // +28% AOV"
             badge="UPSELLING"
             className="h-full"
           >
@@ -442,7 +435,6 @@ export function AsymmetricBentoGrid({ lang }: Props) {
         <div className="md:col-span-6">
           <SpatialCard
             tiltIntensity={4}
-            telemetryCode="AUDIO_DAEMON // 24KHZ"
             badge="BACKGROUND SURVIVAL"
             className="h-full"
           >
@@ -487,7 +479,6 @@ export function AsymmetricBentoGrid({ lang }: Props) {
         <div className="md:col-span-6">
           <SpatialCard
             tiltIntensity={4}
-            telemetryCode="ENTERPRISE // MULTI_TENANT"
             badge="GOVERNANCE"
             className="h-full"
           >

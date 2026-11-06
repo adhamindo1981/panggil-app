@@ -99,7 +99,6 @@ export function InteractiveRoiCalculator({ lang, currency }: Props) {
     >
       <SpatialCard
         tiltIntensity={4}
-        telemetryCode="CAPEX_ANALYSIS // YEAR_01"
         badge="ROI & SAVINGS ENGINE"
       >
         <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">

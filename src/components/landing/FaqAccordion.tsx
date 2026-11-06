@@ -105,7 +105,6 @@ export function FaqAccordion({ lang }: Props) {
             <SpatialCard
               key={idx}
               tiltIntensity={2}
-              showCrosshairs={false}
               className="w-full"
             >
               <button

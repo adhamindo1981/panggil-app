@@ -239,7 +239,6 @@ export default function HomePage() {
           <SpatialCard
             theme="dark"
             tiltIntensity={3}
-            telemetryCode="CONVERSION_GATEWAY // PROD_2026"
             badge="ZERO-RISK ROLLOUT"
           >
             <div className="text-white p-6 sm:p-12 text-center space-y-6 relative overflow-hidden">

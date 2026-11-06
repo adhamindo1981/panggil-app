@@ -288,7 +288,6 @@ export function PricingSection({ lang, currency }: Props) {
             <SpatialCard
               key={p.id}
               tiltIntensity={5}
-              telemetryCode={`PLAN_${p.tier.toUpperCase()} // PANGGIL`}
               badge={p.badge ? p.badge[lang] : undefined}
               className={`h-full ${p.highlight ? 'ring-2 ring-orange-500/40 rounded-2xl' : ''}`}
             >

@@ -192,8 +192,6 @@ export function InteractiveHeroPager({ initialLang = 'id' }: Props) {
       {/* Spatial 3D Container with Perspective Tilt and Studio Glare */}
       <SpatialCard
         tiltIntensity={6}
-        showCrosshairs={true}
-        telemetryCode="SYS_DISPATCH // 2.4GHZ"
         badge={status === 'ready' ? 'SIAP DIKIRIM' : 'TERHUBUNG'}
         className="w-full"
       >

@@ -5,24 +5,20 @@ import React, { useRef, useState } from 'react';
 interface SpatialCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   badge?: string;
-  telemetryCode?: string;
   className?: string;
   tiltIntensity?: number;
-  showCrosshairs?: boolean;
   theme?: 'dark' | 'light';
 }
 
 /**
- * SpatialCard: 3D perspective mouse tilt with cursor-tracking radial glare and architectural HUD ornaments
- * (Antigravity Design Expert + Cinematic UI 2.0 specification).
+ * SpatialCard: Clean 3D perspective mouse tilt with cursor-tracking radial glare
+ * Ultra-clean Swiss Minimalist finish without cluttering HUD/crosshair artifacts.
  */
 export function SpatialCard({
   children,
   badge,
-  telemetryCode,
   className = '',
-  tiltIntensity = 8,
-  showCrosshairs = true,
+  tiltIntensity = 6,
   theme = 'light',
   ...props
 }: SpatialCardProps) {
@@ -45,7 +41,7 @@ export function SpatialCard({
 
     setRotateX(-normalizedY * tiltIntensity);
     setRotateY(normalizedX * tiltIntensity);
-    setGlarePos({ x, y, opacity: isDark ? 0.22 : 0.14 });
+    setGlarePos({ x, y, opacity: isDark ? 0.2 : 0.12 });
   };
 
   const handleMouseLeave = () => {
@@ -90,69 +86,28 @@ export function SpatialCard({
           style={{
             opacity: glarePos.opacity,
             background: isDark
-              ? `radial-gradient(420px circle at ${glarePos.x}px ${glarePos.y}px, rgba(255,255,255,0.22), transparent 75%)`
-              : `radial-gradient(420px circle at ${glarePos.x}px ${glarePos.y}px, rgba(234,88,12,0.12), transparent 75%)`,
+              ? `radial-gradient(420px circle at ${glarePos.x}px ${glarePos.y}px, rgba(255,255,255,0.2), transparent 75%)`
+              : `radial-gradient(420px circle at ${glarePos.x}px ${glarePos.y}px, rgba(234,88,12,0.1), transparent 75%)`,
           }}
         />
 
-        {/* Architectural HUD Corner Crosshairs (+) */}
-        {showCrosshairs && (
-          <>
-            <div
-              className={`pointer-events-none absolute top-2.5 left-3 font-mono text-[10px] select-none ${
-                isDark ? 'text-zinc-700' : 'text-zinc-300'
-              }`}
-            >
-              +
-            </div>
-            <div
-              className={`pointer-events-none absolute top-2.5 right-3 font-mono text-[10px] select-none ${
-                isDark ? 'text-zinc-700' : 'text-zinc-300'
-              }`}
-            >
-              +
-            </div>
-            <div
-              className={`pointer-events-none absolute bottom-2.5 left-3 font-mono text-[10px] select-none ${
-                isDark ? 'text-zinc-700' : 'text-zinc-300'
-              }`}
-            >
-              +
-            </div>
-            <div
-              className={`pointer-events-none absolute bottom-2.5 right-3 font-mono text-[10px] select-none ${
-                isDark ? 'text-zinc-700' : 'text-zinc-300'
-              }`}
-            >
-              +
-            </div>
-          </>
-        )}
-
-        {/* Optional HUD Telemetry Header */}
-        {(badge || telemetryCode) && (
+        {/* Optional Status Badge Header */}
+        {badge && (
           <div
-            style={{ transform: 'translateZ(20px)' }}
-            className={`flex items-center justify-between px-6 pt-5 pb-3 border-b text-xs font-mono ${
-              isDark ? 'border-zinc-900 text-zinc-400' : 'border-zinc-100 text-zinc-500'
+            style={{ transform: 'translateZ(18px)' }}
+            className={`flex items-center px-6 pt-5 pb-2 text-xs ${
+              isDark ? 'text-zinc-400' : 'text-zinc-500'
             }`}
           >
-            {badge && (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-500/20 bg-orange-500/10 px-2.5 py-0.5 text-[10px] font-medium text-orange-600 dark:text-orange-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-orange-600 animate-pulse" />
-                {badge}
-              </span>
-            )}
-            {telemetryCode && (
-              <span className="text-[10px] tracking-widest text-zinc-400 uppercase font-mono">
-                {telemetryCode}
-              </span>
-            )}
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-500/20 bg-orange-500/10 px-2.5 py-0.5 text-[10px] font-mono font-medium text-orange-600 dark:text-orange-400 shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-600 animate-pulse" />
+              {badge}
+            </span>
           </div>
         )}
 
         {/* Floating Content Body on Z-Axis */}
-        <div style={{ transform: 'translateZ(28px)' }} className="relative z-10 p-6">
+        <div style={{ transform: 'translateZ(26px)' }} className="relative z-10 p-6">
           {children}
         </div>
       </div>

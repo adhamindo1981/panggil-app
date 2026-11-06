@@ -101,7 +101,6 @@ export function ComparisonTable({ lang }: Props) {
 
       <SpatialCard
         tiltIntensity={3}
-        telemetryCode="BENCHMARK_MATRIX // PARITY_V2"
         badge="OBJECTIVE AUDIT"
         className="w-full"
       >
